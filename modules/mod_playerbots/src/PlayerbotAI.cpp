@@ -89,17 +89,17 @@ PlayerbotAI::PlayerbotAI(Player* bot)
     _currentEngine = _engines[BOT_STATE_NON_COMBAT];
     _currentState = BOT_STATE_NON_COMBAT;
 
-    masterIncomingPacketHandlers.AddHandler(CMSG_GAME_OBJ_USE, "use game object");
+    masterIncomingPacketHandlers.AddHandler(CMSG_GAMEOBJ_USE, "use game object");
     masterIncomingPacketHandlers.AddHandler(CMSG_AREATRIGGER, "area trigger");
     // masterIncomingPacketHandlers.AddHandler(CMSG_GAMEOBJ_USE, "use game object");
     masterIncomingPacketHandlers.AddHandler(CMSG_LOOT_ROLL, "loot roll");
     masterIncomingPacketHandlers.AddHandler(CMSG_GOSSIP_HELLO, "gossip hello");
-    masterIncomingPacketHandlers.AddHandler(CMSG_QUEST_GIVER_HELLO, "gossip hello");
+    masterIncomingPacketHandlers.AddHandler(CMSG_QUESTGIVER_HELLO, "gossip hello");
     masterIncomingPacketHandlers.AddHandler(CMSG_ACTIVATE_TAXI, "activate taxi");
     masterIncomingPacketHandlers.AddHandler(CMSG_ACTIVATE_TAXI_EXPRESS, "activate taxi");
    // masterIncomingPacketHandlers.AddHandler(CMSG_TAXI_CLEAR_ALL_NODES, "taxi done");
     //masterIncomingPacketHandlers.AddHandler(CMSG_TAXI_CLEAR_NODE, "taxi done");
-    masterIncomingPacketHandlers.AddHandler(CMSG_GROUP_UNINVITE, "uninvite");
+    masterIncomingPacketHandlers.AddHandler(CMSG_GROUP_DISBAND, "uninvite");
     masterIncomingPacketHandlers.AddHandler(CMSG_GROUP_UNINVITE_GUID, "uninvite guid");
     //masterIncomingPacketHandlers.AddHandler(CMSG_LFG_TELEPORT, "lfg teleport");
     masterIncomingPacketHandlers.AddHandler(CMSG_CAST_SPELL, "see spell");
@@ -136,17 +136,17 @@ PlayerbotAI::PlayerbotAI(Player* bot)
 
     masterOutgoingPacketHandlers.AddHandler(SMSG_PARTY_COMMAND_RESULT, "party command");
     masterOutgoingPacketHandlers.AddHandler(SMSG_RAID_READY_CHECK, "ready check");
-    masterOutgoingPacketHandlers.AddHandler(MSG_RAID_READY_CHECK_FINISHED, "ready check finished");
+    masterOutgoingPacketHandlers.AddHandler(CMSG_RAID_READY_CHECK_CONFIRM, "ready check finished");
     masterOutgoingPacketHandlers.AddHandler(SMSG_QUESTGIVER_OFFER_REWARD, "questgiver quest details");
 
     // quest packet
-    masterIncomingPacketHandlers.AddHandler(CMSG_QUEST_GIVER_COMPLETE_QUEST, "complete quest");
-    masterIncomingPacketHandlers.AddHandler(CMSG_QUEST_GIVER_ACCEPT_QUEST, "accept quest");
+    masterIncomingPacketHandlers.AddHandler(CMSG_QUESTGIVER_COMPLETE_QUEST, "complete quest");
+    masterIncomingPacketHandlers.AddHandler(CMSG_QUESTGIVER_ACCEPT_QUEST, "accept quest");
     masterIncomingPacketHandlers.AddHandler(CMSG_QUEST_CONFIRM_ACCEPT, "confirm quest");
     masterIncomingPacketHandlers.AddHandler(CMSG_PUSHQUESTTOPARTY, "quest share");
-    botOutgoingPacketHandlers.AddHandler(SMSG_QUESTUPDATE_COMPLETE, "quest update complete");
+    botOutgoingPacketHandlers.AddHandler(SMSG_QUEST_UPDATE_COMPLETE, "quest update complete");
     //botOutgoingPacketHandlers.AddHandler(SMSG_QUESTUPDATE_ADD_KILL, "quest update add kill");
-    botOutgoingPacketHandlers.AddHandler(SMSG_QUESTUPDATE_ADD_ITEM, "quest update add item");
+    //botOutgoingPacketHandlers.AddHandler(SMSG_QUESTUPDATE_ADD_ITEM, "quest update add item");
     botOutgoingPacketHandlers.AddHandler(SMSG_QUEST_CONFIRM_ACCEPT, "confirm quest");
 }
 
@@ -513,7 +513,7 @@ void PlayerbotAI::DoNextAction(bool min)
 
         _aiObjectContext->GetValue<Unit*>("current target")->Set(nullptr);
         _aiObjectContext->GetValue<Unit*>("enemy player target")->Set(nullptr);
-        _aiObjectContext->GetValue<ObjectGuid>("pull target")->Set(ObjectGuid::Empty());
+        _aiObjectContext->GetValue<ObjectGuid>("pull target")->Set(ObjectGuid::Empty);
         //_aiObjectContext->GetValue<LootObject>("loot target")->Set(LootObject());
 
         ChangeEngine(BOT_STATE_DEAD);
@@ -620,6 +620,9 @@ void PlayerbotAI::HandleBotOutgoingPacket(WorldPacket const* packet)
     {
         return;
     }
+
+    //TC_LOG_INFO("playerbots", "Player: %s Received packet %s", bot->GetName().c_str(), GetOpcodeNameForLogging((OpcodeServer)packet->GetOpcode()).c_str());
+
     switch (packet->GetOpcode())
     {
     case SMSG_SPELL_FAILURE:
@@ -642,13 +645,13 @@ void PlayerbotAI::HandleBotOutgoingPacket(WorldPacket const* packet)
     {
         return;
     }
-    case SMSG_TIME_SYNC_REQUEST:
+    case SMSG_TIME_SYNC_REQ:
     {
         WorldPacket p = *packet;
         uint32 counter;
         p >> counter;
         uint32 clientTicks = time(NULL);
-        WorldPacket packet(CMSG_TIME_SYNC_RESPONSE);
+        WorldPacket packet(CMSG_TIME_SYNC_RESP);
         packet.rpos(0);
         packet << counter << clientTicks;
 

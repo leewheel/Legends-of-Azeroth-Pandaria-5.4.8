@@ -12,6 +12,7 @@
 
 #include "Helper.h"
 #include "PlayerbotAIConfig.h"
+#include "CharacterCache.h"
 #include "ChannelMgr.h"
 #include "CharacterHandler.h"
 #include "Common.h"
@@ -20,6 +21,7 @@
 #include "Group.h"
 #include "GroupMgr.h"
 #include "ObjectAccessor.h"
+#include "ObjectGuid.h"
 #include "ObjectMgr.h"
 #include "Playerbots.h"
 #include "RandomPlayerbotMgr.h"
@@ -35,7 +37,7 @@ private:
     PlayerbotHolder* playerbotHolder;
 
 public:
-    PlayerbotLoginQueryHolder(PlayerbotHolder* playerbotHolder, uint32 masterAccount, uint32 accountId, uint64 guid)
+    PlayerbotLoginQueryHolder(PlayerbotHolder* playerbotHolder, uint32 masterAccount, uint32 accountId, ObjectGuid guid)
         : LoginQueryHolder(accountId, guid)
         , masterAccountId(masterAccount)
         , playerbotHolder(playerbotHolder)
@@ -46,75 +48,50 @@ public:
     PlayerbotHolder* GetPlayerbotHolder() { return playerbotHolder; }
 };
 
-uint32 temp_get_character_accountid(uint64 playerGuid)
-{
-    static const char* QUERY_CHARACTER = "SELECT * FROM `characters` WHERE guid = '%u';";
-    QueryResult result = CharacterDatabase.PQuery(QUERY_CHARACTER, playerGuid);
-    if (!result.get())
-    {
-        SF_LOG_INFO("playerbots", "Fetch database characters failed on get bots characters");
-        return 0;
-    }
-    do
-    {
-        Field* field = result.get()->Fetch();
-
-        auto guid = field[0].GetUInt32();
-        if (guid == playerGuid)
-        {
-            auto accountid = field[2].GetUInt32();
-            return accountid;
-        }
-    } while (result.get()->NextRow());
-
-    return 0;
-}
-
-void PlayerbotHolder::AddPlayerBot(uint64 playerGuid, uint32 masterAccountId)
+void PlayerbotHolder::AddPlayerBot(ObjectGuid playerGuid, uint32 masterAccountId)
 {
     // bot is loading
     if (botLoading.find(playerGuid) != botLoading.end())
     {
-        SF_LOG_DEBUG("playerbots", "Bot %u is already loading", playerGuid);
+        TC_LOG_DEBUG("playerbots", "Bot %u is already loading", playerGuid);
         return;
     }
 
     // has bot already been added?
-    Player* bot = sObjectAccessor->FindPlayer(playerGuid);
+    Player* bot = ObjectAccessor::FindPlayer(playerGuid);
     if (bot && bot->IsInWorld())
     {
-        SF_LOG_DEBUG("playerbots", "Bot %u is already in game", playerGuid);
+        TC_LOG_DEBUG("playerbots", "Bot %u is already in game", playerGuid);
         return;
     }
 
-    uint32 accountId = temp_get_character_accountid(playerGuid);
+    uint32 accountId = sCharacterCache->GetCharacterAccountIdByGuid(playerGuid);
     if (!accountId)
     {
-        SF_LOG_DEBUG("playerbots", "Bot %u has invalid accountid", playerGuid);
+        TC_LOG_DEBUG("playerbots", "Bot %u has invalid accountid", playerGuid);
         return;
     }
 
     // will be delete in WorldSession
-    PlayerbotLoginQueryHolder* holder = new PlayerbotLoginQueryHolder(this, masterAccountId, accountId, playerGuid);
+    std::shared_ptr<PlayerbotLoginQueryHolder> holder = std::make_shared<PlayerbotLoginQueryHolder>(this, masterAccountId, accountId, playerGuid);
     if (!holder->Initialize())
     {
-        SF_LOG_ERROR("playerbots", "Holder initialize failed");
+        TC_LOG_ERROR("playerbots", "Holder initialize failed");
         return;
     }
 
     botLoading.insert(playerGuid);
 
-    QueryResultHolderFuture charLoginCallback = CharacterDatabase.DelayQueryHolder((SQLQueryHolder*)holder);
-    SQLQueryHolder* param;
-    charLoginCallback.get(param);
-    HandlePlayerBotLoginCallback((PlayerbotLoginQueryHolder*)param);
-    charLoginCallback.cancel();
+    sWorld->AddQueryHolderCallback(CharacterDatabase.DelayQueryHolder(holder)).AfterComplete([this](SQLQueryHolderBase const& holder)
+    {
+            HandlePlayerBotLoginCallback(static_cast<PlayerbotLoginQueryHolder const&>(holder));
+    });
 }
 
-void PlayerbotHolder::HandlePlayerBotLoginCallback(PlayerbotLoginQueryHolder* holder)
+void PlayerbotHolder::HandlePlayerBotLoginCallback(PlayerbotLoginQueryHolder const& holder)
 {
-    uint32 botAccountId = holder->GetAccountId();
-    uint64 botGUID = holder->GetGuid();
+    uint32 botAccountId = holder.GetAccountId();
+    ObjectGuid botGUID = holder.GetGuid();
 
     // At login DBC locale should be what the server is set to use by default (as spells etc are hardcoded to ENUS this
     // allows channels to work as intended)
@@ -126,21 +103,21 @@ void PlayerbotHolder::HandlePlayerBotLoginCallback(PlayerbotLoginQueryHolder* ho
     if (!bot)
     {
         // Debug log
-        SF_LOG_DEBUG("playerbots", "Bot player could not be loaded for account ID: %u", botAccountId);
+        TC_LOG_DEBUG("playerbots", "Bot player could not be loaded for account ID: %u", botAccountId);
         botSession->LogoutPlayer(true);
         delete botSession;
         botLoading.erase(botGUID);
         return;
     }
 
-    uint32 masterAccount = holder->GetMasterAccountId();
+    uint32 masterAccount = holder.GetMasterAccountId();
     WorldSession* masterSession = masterAccount ? sWorld->FindSession(masterAccount) : nullptr;
 
     // Check if masterSession->GetPlayer() is valid
     Player* masterPlayer = masterSession ? masterSession->GetPlayer() : nullptr;
     if (masterSession && !masterPlayer)
     {
-        SF_LOG_DEBUG("playerbots", "Master session found but no player is associated for master account ID: %u", masterAccount);
+        TC_LOG_DEBUG("playerbots", "Master session found but no player is associated for master account ID: %u", masterAccount);
     }
 
     std::ostringstream out;
@@ -169,11 +146,11 @@ void PlayerbotHolder::HandlePlayerBotLoginCallback(PlayerbotLoginQueryHolder* ho
         PlayerbotMgr* mgr = GET_PLAYERBOT_MGR(masterPlayer);
         if (!mgr)
         {
-            SF_LOG_DEBUG("playerbots", "PlayerbotMgr not found for master player with GUID: %u", masterPlayer->GetGUID());
+            TC_LOG_DEBUG("playerbots", "PlayerbotMgr not found for master player with GUID: %u", masterPlayer->GetGUID());
         }
 
         uint32 count = mgr->GetPlayerbotsCount();
-        uint32 cls_count = mgr->GetPlayerbotsCountByClass(bot->getClass());
+        uint32 cls_count = mgr->GetPlayerbotsCountByClass(bot->GetClass());
         if (count >= sPlayerbotAIConfig->maxAddedBots)
         {
             allowed = false;
@@ -191,11 +168,11 @@ void PlayerbotHolder::HandlePlayerBotLoginCallback(PlayerbotLoginQueryHolder* ho
         sRandomPlayerbotMgr->OnPlayerLogin(bot);
         OnBotLogin(bot);
 
-        SF_LOG_INFO("playerbots", "Player logged: %s", bot->GetName().c_str());
+        TC_LOG_INFO("playerbots", "Player logged: %s", bot->GetName().c_str());
     }
     else
     {
-        SF_LOG_ERROR("playerbots", "Bot error on logging: %s", out.str().c_str());
+        TC_LOG_ERROR("playerbots", "Bot error on logging: %s", out.str().c_str());
         botSession->LogoutPlayer(true);
         delete botSession;
     }
@@ -305,7 +282,7 @@ void PlayerbotMgr::CancelLogout()
     }
 }
 
-void PlayerbotHolder::LogoutPlayerBot(uint64 guid)
+void PlayerbotHolder::LogoutPlayerBot(ObjectGuid guid)
 {
     if (Player* bot = GetPlayerBot(guid))
     {
@@ -319,7 +296,7 @@ void PlayerbotHolder::LogoutPlayerBot(uint64 guid)
             //sPlayerbotDbStore->Save(botAI);
         }
 
-        SF_LOG_INFO("playerbots", "Bot %s logging out", bot->GetName().c_str());
+        TC_LOG_INFO("playerbots", "Bot %s logging out", bot->GetName().c_str());
         bot->SaveToDB(false);
 
         WorldSession* botWorldSessionPtr = bot->GetSession();
@@ -402,7 +379,7 @@ void PlayerbotHolder::LogoutPlayerBot(uint64 guid)
     }
 }
 
-void PlayerbotHolder::DisablePlayerBot(uint64 guid)
+void PlayerbotHolder::DisablePlayerBot(ObjectGuid guid)
 {
     if (Player* bot = GetPlayerBot(guid))
     {
@@ -421,7 +398,7 @@ void PlayerbotHolder::DisablePlayerBot(uint64 guid)
             //sPlayerbotDbStore->Save(botAI);
         }
 
-        SF_LOG_DEBUG("playerbots", "Bot %s logged out", bot->GetName().c_str());
+        TC_LOG_DEBUG("playerbots", "Bot %s logged out", bot->GetName().c_str());
 
         bot->SaveToDB(false);
 
@@ -438,7 +415,14 @@ void PlayerbotHolder::DisablePlayerBot(uint64 guid)
     }
 }
 
-Player* PlayerbotHolder::GetPlayerBot(uint64 playerGuid) const
+Player* PlayerbotHolder::GetPlayerBot(ObjectGuid::LowType lowGuid) const
+{
+    ObjectGuid playerGuid = ObjectGuid::Create<HighGuid::Player>(lowGuid);
+    PlayerBotMap::const_iterator it = playerBots.find(playerGuid);
+    return (it == playerBots.end()) ? 0 : it->second;
+}
+
+Player* PlayerbotHolder::GetPlayerBot(ObjectGuid playerGuid) const
 {
     PlayerBotMap::const_iterator it = playerBots.find(playerGuid);
     return (it == playerBots.end()) ? 0 : it->second;
@@ -460,7 +444,7 @@ void PlayerbotHolder::OnBotLogin(Player* const bot)
     if (!botAI)
     {
         // Log a warning here to indicate that the botAI is null
-        //SF_LOG_DEBUG("playerbots", "PlayerbotAI is null for bot with GUID: %u", bot->GetGUID());
+        //TC_LOG_DEBUG("playerbots", "PlayerbotAI is null for bot with GUID: %u", bot->GetGUID());
         return;
     }
 
@@ -468,7 +452,7 @@ void PlayerbotHolder::OnBotLogin(Player* const bot)
     if (!master)
     {
         // Log a warning to indicate that the master is null
-        //SF_LOG_DEBUG("playerbots", "Master is null for bot with GUID: %u", bot->GetGUID());
+        //TC_LOG_DEBUG("playerbots", "Master is null for bot with GUID: %u", bot->GetGUID());
         return;
     }
 
@@ -651,7 +635,7 @@ void PlayerbotHolder::OnBotLogin(Player* const bot)
     }*/
 }
 
-std::string const PlayerbotHolder::ProcessBotCommand(std::string const /*cmd*/, uint64 /*guid*/, uint64 /*masterguid*/,
+std::string const PlayerbotHolder::ProcessBotCommand(std::string const /*cmd*/, ObjectGuid /*guid*/, ObjectGuid /*masterguid*/,
     bool /*admin*/, uint32 /*masterAccountId*/, uint32 /*masterGuildId*/)
 {
     return "unknown command";
@@ -1061,21 +1045,21 @@ std::vector<std::string> PlayerbotHolder::HandlePlayerbotCommand(char const* /*a
 
 uint32 PlayerbotHolder::GetAccountId(std::string const name) { return AccountMgr::GetId(name); }
 
-uint32 PlayerbotHolder::GetAccountId(uint64 guid)
+uint32 PlayerbotHolder::GetAccountId(ObjectGuid guid)
 {
-    /*if (!guid.IsPlayer())
-        return 0;*/
+    if (!guid.IsPlayer())
+        return 0;
 
     // prevent DB access for online player
-    if (Player* player = sObjectAccessor->FindPlayer(guid))
+    if (Player* player = ObjectAccessor::FindPlayer(guid))
         return player->GetSession()->GetAccountId();
 
-    /*ObjectGuid::LowType lowguid = guid.GetCounter();
-    if (QueryResult result = CharacterDatabase.Query("SELECT account FROM characters WHERE guid = {}", lowguid))
+    ObjectGuid::LowType lowguid = guid.GetCounter();
+    if (QueryResult result = CharacterDatabase.PQuery("SELECT account FROM characters WHERE guid = {}", lowguid))
     {
-        uint32 acc = (*result)[0].Get<uint32>();
+        uint32 acc = (*result)[0].GetUInt32();
         return acc;
-    }*/
+    }
 
     return 0;
 }
@@ -1110,7 +1094,7 @@ std::string const PlayerbotHolder::ListBots(Player* master)
 
         names.push_back(name);
         online[name] = "+";
-        classes[name] = classNames[bot->getClass()];
+        classes[name] = classNames[bot->GetClass()];
     }
 
     /*if (master)
@@ -1148,7 +1132,7 @@ std::string const PlayerbotHolder::ListBots(Player* master)
 
                 names.push_back(name);
                 online[name] = "+";
-                classes[name] = classNames[member->getClass()];
+                classes[name] = classNames[member->GetClass()];
             }
         }
     }
@@ -1200,7 +1184,7 @@ uint32 PlayerbotHolder::GetPlayerbotsCountByClass(uint32 cls)
     for (PlayerBotMap::const_iterator it = GetPlayerBotsBegin(); it != GetPlayerBotsEnd(); ++it)
     {
         Player* const bot = it->second;
-        if (bot && bot->IsInWorld() && bot->getClass() == cls)
+        if (bot && bot->IsInWorld() && bot->GetClass() == cls)
         {
             count++;
         }
@@ -1343,7 +1327,7 @@ void PlayerbotMgr::OnBotLoginInternal(Player* const bot)
     botAI->SetMaster(master);
     //botAI->ResetStrategies();
 
-    SF_LOG_INFO("playerbots", "Bot %s logged in", bot->GetName().c_str());
+    TC_LOG_INFO("playerbots", "Bot %s logged in", bot->GetName().c_str());
 }
 
 void PlayerbotMgr::OnPlayerLogin(Player* player)
@@ -1435,7 +1419,7 @@ void PlayerbotsMgr::AddPlayerbotData(Player* player, bool isBotAI)
 
     if (!isBotAI)
     {
-        std::unordered_map<uint64, PlayerbotAIBase*>::iterator itr = _playerbotsMgrMap.find(player->GetGUID());
+        std::unordered_map<ObjectGuid, PlayerbotAIBase*>::iterator itr = _playerbotsMgrMap.find(player->GetGUID());
         if (itr != _playerbotsMgrMap.end())
         {
             _playerbotsMgrMap.erase(itr);
@@ -1447,7 +1431,7 @@ void PlayerbotsMgr::AddPlayerbotData(Player* player, bool isBotAI)
     }
     else
     {
-        std::unordered_map<uint64, PlayerbotAIBase*>::iterator itr = _playerbotsAIMap.find(player->GetGUID());
+        std::unordered_map<ObjectGuid, PlayerbotAIBase*>::iterator itr = _playerbotsAIMap.find(player->GetGUID());
         if (itr != _playerbotsAIMap.end())
         {
             _playerbotsAIMap.erase(itr);
@@ -1457,11 +1441,11 @@ void PlayerbotsMgr::AddPlayerbotData(Player* player, bool isBotAI)
     }
 }
 
-void PlayerbotsMgr::RemovePlayerBotData(uint64 const& guid, bool is_AI)
+void PlayerbotsMgr::RemovePlayerBotData(ObjectGuid const& guid, bool is_AI)
 {
     if (is_AI)
     {
-        std::unordered_map<uint64, PlayerbotAIBase*>::iterator itr = _playerbotsAIMap.find(guid);
+        std::unordered_map<ObjectGuid, PlayerbotAIBase*>::iterator itr = _playerbotsAIMap.find(guid);
         if (itr != _playerbotsAIMap.end())
         {
             _playerbotsAIMap.erase(itr);
@@ -1469,7 +1453,7 @@ void PlayerbotsMgr::RemovePlayerBotData(uint64 const& guid, bool is_AI)
     }
     else
     {
-        std::unordered_map<uint64, PlayerbotAIBase*>::iterator itr = _playerbotsMgrMap.find(guid);
+        std::unordered_map<ObjectGuid, PlayerbotAIBase*>::iterator itr = _playerbotsMgrMap.find(guid);
         if (itr != _playerbotsMgrMap.end())
         {
             _playerbotsMgrMap.erase(itr);

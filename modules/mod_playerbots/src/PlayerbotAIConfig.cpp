@@ -55,11 +55,11 @@ void LoadListString(std::string const value, T& list)
 
 bool PlayerbotAIConfig::Initialize()
 {
-    SF_LOG_INFO("server.loading", "Initializing AI Playerbots");
+    TC_LOG_INFO("server.loading", "Initializing AI Playerbots");
     enabled = sConfigMgr->GetBoolDefault("AiPlayerbot.Enabled", true);
     if (!enabled)
     {
-        SF_LOG_INFO("server.loading", "AI Playerbots is Disabled in aiplayerbot.conf");
+        TC_LOG_INFO("server.loading", "AI Playerbots is Disabled in aiplayerbot.conf");
         return false;
     }
 
@@ -118,8 +118,8 @@ bool PlayerbotAIConfig::Initialize()
     randomBotAutologin = sConfigMgr->GetBoolDefault("AiPlayerbot.RandomBotAutologin", true);
     minRandomBots = sConfigMgr->GetIntDefault("AiPlayerbot.MinRandomBots", 50);
     maxRandomBots = sConfigMgr->GetIntDefault("AiPlayerbot.MaxRandomBots", 200);
-    maxAddedBotsPerClass = sConfigMgr->GetIntDefault("AiPlayerbot.maxAddedBotsPerClass", 50);
-    maxAddedBots = sConfigMgr->GetIntDefault("AiPlayerbot.maxAddedBots", 200);
+    maxAddedBotsPerClass = sConfigMgr->GetIntDefault("AiPlayerbot.MaxAddedBotsPerClass", 50);
+    maxAddedBots = sConfigMgr->GetIntDefault("AiPlayerbot.MaxAddedBots", 200);
 
     randomBotUpdateInterval = sConfigMgr->GetIntDefault("AiPlayerbot.RandomBotUpdateInterval", 20);
     randomBotCountChangeMinInterval =
@@ -143,9 +143,9 @@ bool PlayerbotAIConfig::Initialize()
         return true;
     }
 
-    SF_LOG_INFO("server.loading", "---------------------------------------");
-    SF_LOG_INFO("server.loading", "        AI Playerbots initialized       ");
-    SF_LOG_INFO("server.loading", "---------------------------------------");
+    TC_LOG_INFO("server.loading", "---------------------------------------");
+    TC_LOG_INFO("server.loading", "        AI Playerbots initialized       ");
+    TC_LOG_INFO("server.loading", "---------------------------------------");
 
     return true;
 }

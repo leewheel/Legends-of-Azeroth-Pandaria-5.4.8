@@ -27,15 +27,13 @@
 #include <thread>
 
 # define _SKYFIRE_PLAYERBOT_CONFIG  "playerbots.conf"
-static const char* QUERY_ACCOUNT = "SELECT * FROM `account`";
-static const char* QUERY_CHARACTER = "SELECT * FROM `characters`";
 
 class mod_playerbots : public PlayerScript
 {
 public:
     mod_playerbots() : PlayerScript("mod_playerbots") {}
 
-    void OnLogin(Player* player, bool /*firstlogin*/) override
+    void OnLogin(Player* player) override
     {
         // Announce Module
         ChatHandler(player->GetSession()).SendSysMessage("This server is running the |cff4CFF00mod playerbots |rmodule.");
@@ -54,25 +52,26 @@ public:
         {
             uint32 oldMSTime = getMSTime();
 
-            SF_LOG_INFO("playerbots", " ");
-            SF_LOG_INFO("playerbots", "Load Playerbots Config...");
+            TC_LOG_INFO("playerbots", " ");
+            TC_LOG_INFO("playerbots", "Load Playerbots Config...");
 
-            if (!sConfigMgr->LoadMore(_SKYFIRE_PLAYERBOT_CONFIG))
+            std::string err;
+            if (!sConfigMgr->LoadAdditionalFile(_SKYFIRE_PLAYERBOT_CONFIG, true, err))
             {
-                SF_LOG_FATAL("playerbots", ">> Loaded playerbots failed, %s is not found", _SKYFIRE_PLAYERBOT_CONFIG);
+                TC_LOG_FATAL("playerbots", ">> Loaded playerbots failed, %s", err.c_str());
                 std::this_thread::sleep_for(std::chrono::seconds(5));
                 sWorld->StopNow(1);
                 return;
             }
             sPlayerbotAIConfig->Initialize();
 
-            SF_LOG_INFO("playerbots", ">> Loaded playerbots config in %u ms", GetMSTimeDiffToNow(oldMSTime));
-            SF_LOG_INFO("playerbots", " ");
+            TC_LOG_INFO("playerbots", ">> Loaded playerbots config in %u ms", GetMSTimeDiffToNow(oldMSTime));
+            TC_LOG_INFO("playerbots", " ");
 
 
-            SF_LOG_INFO("playerbots", "Playerbots enabled: %s", sPlayerbotAIConfig->enabled ? "Yes" : "No");
-            SF_LOG_INFO("playerbots", "Playerbots min/max to load: %u/%u", sPlayerbotAIConfig->minRandomBots, sPlayerbotAIConfig->maxRandomBots);
-            SF_LOG_INFO("playerbots", "Playerbots autologin: %s", sPlayerbotAIConfig->randomBotAutologin ? "Yes" : "No");
+            TC_LOG_INFO("playerbots", "Playerbots enabled: %s", sPlayerbotAIConfig->enabled ? "Yes" : "No");
+            TC_LOG_INFO("playerbots", "Playerbots min/max to load: %u/%u", sPlayerbotAIConfig->minRandomBots, sPlayerbotAIConfig->maxRandomBots);
+            TC_LOG_INFO("playerbots", "Playerbots autologin: %s", sPlayerbotAIConfig->randomBotAutologin ? "Yes" : "No");
         }
     }
 };
@@ -81,9 +80,8 @@ class PlayerbotsServerScript : public ServerScript
 {
 public:
     PlayerbotsServerScript() : ServerScript("PlayerbotsServerScript") {}
-    void OnPacketReceive(WorldSocket* socket, WorldPacket& packet) override
+    void OnPacketReceive(WorldSession* sessionBot, WorldPacket& packet) override
     {
-        WorldSession* sessionBot = socket->GetSession();
         if (sessionBot)
         {
             Player* playerBot = sessionBot->GetPlayer();
@@ -118,10 +116,9 @@ public:
 
     void OnPlayerbotPacketSent(Player* player, WorldPacket const* packet) override
     {
-        if (!player || !sRandomPlayerbotMgr->IsRandomBot(player))
+        if (!player)
             return;
         
-        //SF_LOG_INFO("playerbots", "Player: %s Received packet %s", player->GetName().c_str(), GetOpcodeNameForLogging(packet->GetOpcode(), true).c_str());
         if (PlayerbotAI* botAI = GET_PLAYERBOT_AI(player))
         {
             botAI->HandleBotOutgoingPacket(packet);
@@ -166,7 +163,7 @@ class PlayerbotsPlayerScript : public PlayerScript
 public:
     PlayerbotsPlayerScript() : PlayerScript("PlayerbotsPlayerScript") {}
 
-    void OnLogin(Player* player, bool /*firstLogin*/) override
+    void OnLogin(Player* player) override
     {
         if (!player->GetSession()->IsBot())
         {

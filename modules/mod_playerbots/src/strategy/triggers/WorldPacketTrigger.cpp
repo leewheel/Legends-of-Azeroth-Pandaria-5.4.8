@@ -4,7 +4,6 @@
  */
 
 #include "WorldPacketTrigger.h"
-
 #include "Playerbots.h"
 
 void WorldPacketTrigger::ExternalEvent(WorldPacket& revData, Player* eventOwner)

@@ -1124,6 +1124,8 @@ void Player::Update(uint32 p_time)
     if (!IsInWorld())
         return;
 
+    sScriptMgr->OnPlayerBeforeUpdate(this, p_time);
+
     uint64 victimGuid = GetVictim() ? GetVictim()->GetGUID() : 0;
     m_assistTimer += p_time;
     for (auto it = m_lastTargets.begin(); it != m_lastTargets.end();)
@@ -1401,6 +1403,8 @@ void Player::Update(uint32 p_time)
             m_timeSyncTimer -= p_time;
     }
 
+    sScriptMgr->OnPlayerUpdate(this, p_time);
+
     if (IsAlive() || m_runes)
     {
         m_regenTimer += p_time;
@@ -1524,6 +1528,7 @@ void Player::Update(uint32 p_time)
 
     m_VignetteMgr.Update();
     sScriptMgr->OnUpdate(this, p_time);
+    sScriptMgr->OnPlayerAfterUpdate(this, p_time);
 
     if (!IsPhased(169))
         SetPhased(169, true, true);

@@ -15887,6 +15887,11 @@ void Unit::SetMeleeAnimKitId(uint16 animKitId)
     SendMessageToSet(&data, true);
 }
 
+void Unit::AddDelayedEvent(uint64 timeOffset, std::function<void()>&& function)
+{
+    _functionsDelayed.AddDelayedEvent(timeOffset, std::move(function));
+}
+
 void Unit::Kill(Unit* victim, bool durabilityLoss, SpellInfo const* spellInfo)
 {
     // Prevent killing unit twice (and giving reward from kill twice)
@@ -15925,6 +15930,8 @@ void Unit::Kill(Unit* victim, bool durabilityLoss, SpellInfo const* spellInfo)
     // call kill spell proc event (before real die and combat stop to triggering auras removed at death/combat stop)
     if (isRewardAllowed && player && player != victim)
     {
+        sScriptMgr->OnPlayerbotCheckKillTask(player, victim);
+
         ObjectGuid killerGuid = player->GetGUID();
         ObjectGuid victimGuid = victim->GetGUID();
         WorldPacket data(SMSG_PARTYKILLLOG); // send event PARTY_KILL

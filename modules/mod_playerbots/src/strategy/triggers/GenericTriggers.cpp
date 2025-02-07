@@ -5,12 +5,3 @@
 
 #include "GenericTriggers.h"
 
-#include <string>
-
-#include "BattlegroundWS.h"
-#include "CreatureAI.h"
-#include "PlayerbotAIConfig.h"
-#include "Playerbots.h"
-#include "SharedDefines.h"
-#include "TemporarySummon.h"
-#include "Timer.h"

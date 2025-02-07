@@ -18,6 +18,7 @@ class ChatHandler;
 class PlayerbotAI;
 class PlayerbotLoginQueryHolder;
 class WorldPacket;
+class ObjectGuid;
 
 typedef std::map<uint64, Player*> PlayerBotMap;
 typedef std::map<std::string, std::set<std::string> > PlayerBotErrorMap;
@@ -28,12 +29,13 @@ public:
     PlayerbotHolder();
     virtual ~PlayerbotHolder() {};
 
-    void AddPlayerBot(uint64 guid, uint32 masterAccountId);
-    void HandlePlayerBotLoginCallback(PlayerbotLoginQueryHolder* holder);
+    void AddPlayerBot(ObjectGuid guid, uint32 masterAccountId);
+    void HandlePlayerBotLoginCallback(PlayerbotLoginQueryHolder const& holder);
 
-    void LogoutPlayerBot(uint64 guid);
-    void DisablePlayerBot(uint64 guid);
-    Player* GetPlayerBot(uint64 guid) const;
+    void LogoutPlayerBot(ObjectGuid guid);
+    void DisablePlayerBot(ObjectGuid guid);
+    Player* GetPlayerBot(ObjectGuid guid) const;
+    Player* GetPlayerBot(ObjectGuid::LowType lowGuid) const;
     PlayerBotMap::const_iterator GetPlayerBotsBegin() const { return playerBots.begin(); }
     PlayerBotMap::const_iterator GetPlayerBotsEnd() const { return playerBots.end(); }
 
@@ -45,10 +47,10 @@ public:
     void OnBotLogin(Player* const bot);
 
     std::vector<std::string> HandlePlayerbotCommand(char const* args, Player* master = nullptr);
-    std::string const ProcessBotCommand(std::string const cmd, uint64 guid, uint64 masterguid, bool admin,
+    std::string const ProcessBotCommand(std::string const cmd, ObjectGuid guid, ObjectGuid masterguid, bool admin,
         uint32 masterAccountId, uint32 masterGuildId);
     uint32 GetAccountId(std::string const name);
-    uint32 GetAccountId(uint64 guid);
+    uint32 GetAccountId(ObjectGuid guid);
     std::string const ListBots(Player* master);
     std::string const LookupBots(Player* master);
     uint32 GetPlayerbotsCount() { return playerBots.size(); }
@@ -58,7 +60,7 @@ protected:
     virtual void OnBotLoginInternal(Player* const bot) = 0;
 
     PlayerBotMap playerBots;
-    std::unordered_set<uint64> botLoading;
+    std::unordered_set<ObjectGuid> botLoading;
 };
 
 class PlayerbotMgr : public PlayerbotHolder
@@ -104,14 +106,14 @@ public:
     }
 
     void AddPlayerbotData(Player* player, bool isBotAI);
-    void RemovePlayerBotData(uint64 const& guid, bool is_AI);
+    void RemovePlayerBotData(ObjectGuid const& guid, bool is_AI);
 
     PlayerbotAI* GetPlayerbotAI(Player* player);
     PlayerbotMgr* GetPlayerbotMgr(Player* player);
 
 private:
-    std::unordered_map<uint64, PlayerbotAIBase*> _playerbotsAIMap;
-    std::unordered_map<uint64, PlayerbotAIBase*> _playerbotsMgrMap;
+    std::unordered_map<ObjectGuid, PlayerbotAIBase*> _playerbotsAIMap;
+    std::unordered_map<ObjectGuid, PlayerbotAIBase*> _playerbotsMgrMap;
 };
 
 #define sPlayerbotsMgr PlayerbotsMgr::instance()

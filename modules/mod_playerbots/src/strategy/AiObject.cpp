@@ -4,7 +4,6 @@
  */
 
 #include "AiObject.h"
-
 #include "Playerbots.h"
 
 AiObject::AiObject(PlayerbotAI* botAI)

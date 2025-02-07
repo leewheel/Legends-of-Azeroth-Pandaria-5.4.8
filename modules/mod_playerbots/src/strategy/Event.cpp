@@ -15,7 +15,7 @@ Event::Event(std::string const source, ObjectGuid object, Player* owner) : sourc
 ObjectGuid Event::getObject()
 {
     if (packet.empty())
-        return ObjectGuid::Empty();
+        return ObjectGuid::Empty;
 
     WorldPacket p(packet);
     p.rpos(0);

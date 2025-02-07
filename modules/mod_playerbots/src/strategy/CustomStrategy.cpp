@@ -20,7 +20,7 @@ NextAction* toNextAction(std::string const action)
     else if (tokens.size() == 1 && !tokens[0].empty())
         return new NextAction(tokens[0], ACTION_NORMAL);
 
-    SF_LOG_ERROR("playerbots", "Invalid action {}", action.c_str());
+    TC_LOG_ERROR("playerbots", "Invalid action {}", action.c_str());
     return nullptr;
 }
 
@@ -46,7 +46,7 @@ TriggerNode* toTriggerNode(std::string const actionLine)
     if (tokens.size() == 2)
         return new TriggerNode(tokens[0], toNextActionArray(tokens[1]));
 
-    SF_LOG_ERROR("playerbots", "Invalid action line {}", actionLine.c_str());
+    TC_LOG_ERROR("playerbots", "Invalid action line {}", actionLine.c_str());
     return nullptr;
 }
 
@@ -90,7 +90,7 @@ void CustomStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 
 void CustomStrategy::LoadActionLines(uint32 owner)
 {
-    PreparedStatement* stmt = PlayerbotsDatabase.GetPreparedStatement(PLAYERBOTS_SEL_CUSTOM_STRATEGY_BY_OWNER_AND_NAME);
+    PlayerbotsPreparedStatement* stmt = PlayerbotsDatabase.GetPreparedStatement(PLAYERBOTS_SEL_CUSTOM_STRATEGY_BY_OWNER_AND_NAME);
     stmt->setUInt32(0, owner);
     stmt->setString(1, qualifier);
     PreparedQueryResult result = PlayerbotsDatabase.Query(stmt);

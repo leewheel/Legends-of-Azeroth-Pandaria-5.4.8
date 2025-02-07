@@ -22,6 +22,7 @@
 #include "EventProcessor.h"
 #include "FollowerReference.h"
 #include "FollowerRefManager.h"
+#include "FunctionProcessor.h"
 #include "HostileRefManager.h"
 #include "MotionMaster.h"
 #include "Object.h"
@@ -1103,6 +1104,7 @@ public:
 
     void AddToWorld() override;
     void RemoveFromWorld() override;
+    void AddDelayedEvent(uint64 timeOffset, std::function<void()>&& function);
 
     void CleanupBeforeRemoveFromMap(bool finalCleanup);
     void CleanupsBeforeDelete(bool finalCleanup = true) override;                        // used in ~Creature/~Player (or before mass creature delete to remove cross-references to already deleted units)
@@ -2697,6 +2699,7 @@ private:
 
     // used to track total damage each player has made to the unit
     std::map<uint64, uint32> _playerTotalDamage;
+    FunctionProcessor _functionsDelayed;
 };
 
 namespace Trinity

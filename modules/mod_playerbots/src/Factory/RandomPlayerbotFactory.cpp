@@ -8,12 +8,12 @@
 
 #include "AccountMgr.h"
 #include "DBCStore.h"
-#include "ArenaTeamMgr.h"
 #include "DatabaseEnv.h"
+#include "CharacterCache.h"
 #include "GuildMgr.h"
 //#include "PlayerbotFactory.h"
-#include "../Playerbots.h"
-#include "../PlayerbotAIConfig.h"
+#include "Playerbots.h"
+#include "PlayerbotAIConfig.h"
 #include "ScriptMgr.h"
 #include "SocialMgr.h"
 
@@ -264,7 +264,7 @@ RandomPlayerbotFactory::RandomPlayerbotFactory(uint32 accountId) : accountId(acc
 
 Player* RandomPlayerbotFactory::CreateRandomBot(WorldSession* session, Classes cls, std::unordered_map<Gender, std::vector<std::string>>& nameCache)
 {
-    SF_LOG_DEBUG("playerbots", "Creating new random bot for class %s", ClassToString(cls).c_str());
+    TC_LOG_DEBUG("playerbots", "Creating new random bot for class %s", ClassToString(cls).c_str());
 
     uint8 gender = rand() % 2 ? GENDER_MALE : GENDER_FEMALE;
     bool alliance = rand() % 2 ? true : false;
@@ -279,7 +279,7 @@ Player* RandomPlayerbotFactory::CreateRandomBot(WorldSession* session, Classes c
 
     if (raceOptions.empty())
     {
-        SF_LOG_ERROR("playerbots", "No races available for class: %s", ClassToString(cls).c_str());
+        TC_LOG_ERROR("playerbots", "No races available for class: %s", ClassToString(cls).c_str());
         return nullptr;
     }
 
@@ -293,7 +293,7 @@ Player* RandomPlayerbotFactory::CreateRandomBot(WorldSession* session, Classes c
     {
         if (nameCache[(Gender)gender].empty())
         {
-            SF_LOG_ERROR("playerbots", "No name found for race and gender: %u %s %u", gender, RaceToString((Races)race).c_str(), gender);
+            TC_LOG_ERROR("playerbots", "No name found for race and gender: %u %s %u", gender, RaceToString((Races)race).c_str(), gender);
             return nullptr;
         }
         uint32 i = std::rand() % nameCache[(Gender)gender].size();
@@ -303,7 +303,7 @@ Player* RandomPlayerbotFactory::CreateRandomBot(WorldSession* session, Classes c
     }
     if (name.empty())
     {
-        SF_LOG_ERROR("playerbots", "Unable to get random bot name!");
+        TC_LOG_ERROR("playerbots", "Unable to get random bot name!");
         return nullptr;
     }
 
@@ -348,12 +348,12 @@ Player* RandomPlayerbotFactory::CreateRandomBot(WorldSession* session, Classes c
 
     Player* player = new Player(session);
     player->GetMotionMaster()->Initialize();
-    if (!player->Create(sObjectMgr->GenerateLowGuid(HIGHGUID_PLAYER), characterInfo.get()))
+    if (!player->Create(sObjectMgr->GetGenerator<HighGuid::Player>().Generate(), characterInfo.get()))
     {
         player->CleanupsBeforeDelete();
         delete player;
 
-        SF_LOG_ERROR("playerbots", "Unable to create random bot for account %u - name: \"%s\"; race: %s; class: %s",
+        TC_LOG_ERROR("playerbots", "Unable to create random bot for account %u - name: \"%s\"; race: %s; class: %s",
             accountId, name.c_str(), RaceToString((Races)race).c_str(), ClassToString(cls).c_str());
         return nullptr;
     }
@@ -361,11 +361,11 @@ Player* RandomPlayerbotFactory::CreateRandomBot(WorldSession* session, Classes c
     player->setCinematic(2);
     player->SetAtLoginFlag(AT_LOGIN_NONE);
 
-    if (player->getClass() == CLASS_DEATH_KNIGHT)
+    if (player->GetClass() == CLASS_DEATH_KNIGHT)
     {
-        player->learnSpell(50977, false);
+        player->LearnSpell(50977, false);
     }
-    SF_LOG_DEBUG("playerbots", "Random bot created for account %u - name: \"%s\"; race: %s; class: %s", accountId,
+    TC_LOG_DEBUG("playerbots", "Random bot created for account %u - name: \"%s\"; race: %s; class: %s", accountId,
         name.c_str(), RaceToString((Races)race).c_str(), ClassToString(cls).c_str());
 
     return player;
@@ -386,7 +386,7 @@ std::string const RandomPlayerbotFactory::CreateRandomBotName(Gender gender)
             (uint8)gender);
         if (!result)
         {
-            SF_LOG_ERROR("playerbots", "Failed to query database to get bot names.");
+            TC_LOG_ERROR("playerbots", "Failed to query database to get bot names.");
             break;
         }
 
@@ -399,7 +399,7 @@ std::string const RandomPlayerbotFactory::CreateRandomBotName(Gender gender)
     }
 
     // CONLANG NAME GENERATION
-    SF_LOG_ERROR("playerbots", "No more names left for random bots. Attempting conlang name generation.");
+    TC_LOG_ERROR("playerbots", "No more names left for random bots. Attempting conlang name generation.");
     const std::string groupCategory = "SCVKRU";
     const std::string groupFormStart[2][4] = { {"SV", "SV", "VK", "RV"}, {"V", "SU", "VS", "RV"} };
     const std::string groupFormMid[2][6] = { {"CV", "CVC", "CVC", "CVK", "VC", "VK"},
@@ -459,8 +459,6 @@ std::string const RandomPlayerbotFactory::CreateRandomBotName(Gender gender)
         return std::move(botName);
     }
 
-    // TRUE RANDOM NAME GENERATION
-    SF_LOG_ERROR("playerbots", "Con​lang name generation failed. True random name fallback.");
     tries = 10;
     while (--tries)
     {
@@ -475,25 +473,25 @@ std::string const RandomPlayerbotFactory::CreateRandomBotName(Gender gender)
         }
         return std::move(botName);
     }
-    SF_LOG_ERROR("playerbots", "Random name generation failed.");
+    TC_LOG_ERROR("playerbots", "Random name generation failed.");
     botName.clear();
     return std::move(botName);
 }
 
 void RandomPlayerbotFactory::CreateRandomBots()
 {
-    SF_LOG_INFO("playerbots", "Creating random bot accounts...");
+    TC_LOG_INFO("playerbots", "Creating random bot accounts...");
 
     std::unordered_map<Gender, std::vector<std::string>> nameCache;
     uint32 totalAccCount = sPlayerbotAIConfig->randomBotAccountCount;
     std::vector<std::future<void>> account_creations;
     int account_creation = 0;
 
-    SF_LOG_INFO("playerbots", "Creating cache for names per gender and race.");
+    TC_LOG_INFO("playerbots", "Creating cache for names per gender and race.");
     QueryResult result = CharacterDatabase.Query("SELECT name, gender FROM playerbots_names");
     if (!result)
     {
-        SF_LOG_ERROR("playerbots", "No more unused names left");
+        TC_LOG_ERROR("playerbots", "No more unused names left");
         return;
     }
     do
@@ -512,7 +510,7 @@ void RandomPlayerbotFactory::CreateRandomBots()
         out << sPlayerbotAIConfig->randomBotAccountPrefix << accountNumber;
         std::string const accountName = out.str();
 
-        PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_GET_ACCOUNT_ID_BY_USERNAME);
+        LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_GET_ACCOUNT_ID_BY_USERNAME);
         stmt->setString(0, accountName);
         PreparedQueryResult result = LoginDatabase.Query(stmt);
         if (result)
@@ -533,17 +531,18 @@ void RandomPlayerbotFactory::CreateRandomBots()
             password = accountName;
 
         AccountOpResult res = sAccountMgr->CreateAccount(accountName, password, "");
-        SF_LOG_INFO("playerbots", "Account %u created for random bots", accountName.c_str());
+        if (AccountOpResult::AOR_OK == res)
+            TC_LOG_INFO("playerbots", "Account %s created for random bots", accountName.c_str());
     }
 
     if (account_creation)
     {
         /* wait for async accounts create to make character create correctly, same as account delete */
-        SF_LOG_INFO("playerbots", "Waiting for %u accounts loading into database...", account_creation);
+        TC_LOG_INFO("playerbots", "Waiting for %u accounts loading into database...", account_creation);
         std::this_thread::sleep_for(std::chrono::milliseconds(10) * sPlayerbotAIConfig->randomBotAccountCount);
     }
 
-    SF_LOG_INFO("playerbots", "Creating random bot characters...");
+    TC_LOG_INFO("playerbots", "Creating random bot characters...");
     uint32 totalRandomBotChars = 0;
     uint32 totalCharCount = sPlayerbotAIConfig->randomBotAccountCount * 10;
     std::vector<std::pair<Player*, uint32>> playerBots;
@@ -555,7 +554,7 @@ void RandomPlayerbotFactory::CreateRandomBots()
         out << sPlayerbotAIConfig->randomBotAccountPrefix << accountNumber;
         std::string const accountName = out.str();
 
-        PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_GET_ACCOUNT_ID_BY_USERNAME);
+        LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_GET_ACCOUNT_ID_BY_USERNAME);
         stmt->setString(0, accountName);
         PreparedQueryResult result = LoginDatabase.Query(stmt);
         if (!result)
@@ -571,12 +570,12 @@ void RandomPlayerbotFactory::CreateRandomBots()
         {
             continue;
         }
-        SF_LOG_INFO("playerbots", "Creating random bot characters for account: [%u/%u]", accountNumber + 1, sPlayerbotAIConfig->randomBotAccountCount);
+        TC_LOG_INFO("playerbots", "Creating random bot characters for account: [%u/%u]", accountNumber + 1, sPlayerbotAIConfig->randomBotAccountCount);
         RandomPlayerbotFactory factory(accountId);
 
         WorldSession* session = new WorldSession(accountId, nullptr, AccountTypes::SEC_PLAYER, EXPANSION_MISTS_OF_PANDARIA,
             time_t(0), LOCALE_enUS, 0, false, false, true);
-        session->SetVirtualRealmID(1);
+        //session->SetVirtualRealmID(1);
         sessionBots.push_back(session);
 
         for (uint8 cls = CLASS_WARRIOR; cls < MAX_CLASSES - character_count; ++cls)
@@ -601,16 +600,21 @@ void RandomPlayerbotFactory::CreateRandomBots()
                 if (Player* playerBot = factory.CreateRandomBot(session, (Classes)cls, nameCache))
                 {
                     playerBot->SaveToDB(true);
-                    //sCharacterCache->AddCharacterCacheEntry(playerBot->GetGUID(), accountId, playerBot->GetName(),
-                    //    playerBot->getGender(), playerBot->getRace(),
-                    //    playerBot->getClass(), playerBot->GetLevel());
+
+                    sWorld->AddCharacterNameData(playerBot->GetGUID(), playerBot->GetName(), playerBot->GetGender(), playerBot->GetRace(), playerBot->GetClass(), playerBot->GetLevel());
+                    sCharacterCache->AddCharacterCacheEntry(playerBot->GetGUID(), accountId, playerBot->GetName(), playerBot->GetGender(), playerBot->GetRace(), playerBot->GetClass(), playerBot->GetLevel());
+
                     playerBot->CleanupsBeforeDelete();
+
                     delete playerBot;
+                    playerBot = nullptr;
+                    session->SetPlayer(nullptr);
+
                     bot_creation++;
                 }
                 else
                 {
-                    SF_LOG_ERROR("playerbots", "Fail to create character for account %u", accountId);
+                    TC_LOG_ERROR("playerbots", "Fail to create character for account %u", accountId);
                 }
             }
         }
@@ -618,7 +622,7 @@ void RandomPlayerbotFactory::CreateRandomBots()
 
     if (bot_creation)
     {
-        SF_LOG_INFO("playerbots", "Waiting for %u characters loading into database...", bot_creation);
+        TC_LOG_INFO("playerbots", "Waiting for %u characters loading into database...", bot_creation);
         /* wait for characters load into database, or characters will fail to loggin */
         std::this_thread::sleep_for(std::chrono::seconds(5) + bot_creation * std::chrono::milliseconds(5));
     }
@@ -631,7 +635,7 @@ void RandomPlayerbotFactory::CreateRandomBots()
         totalRandomBotChars += AccountMgr::GetCharactersCount(accountId);
     }
 
-    SF_LOG_INFO("server.loading", ">> %u random bot accounts with %u characters available", sPlayerbotAIConfig->randomBotAccounts.size(), totalRandomBotChars);
+    TC_LOG_INFO("server.loading", ">> %u random bot accounts with %u characters available", sPlayerbotAIConfig->randomBotAccounts.size(), totalRandomBotChars);
 }
 
 void RandomPlayerbotFactory::CreateRandomGuilds()

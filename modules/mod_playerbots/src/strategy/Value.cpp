@@ -98,7 +98,7 @@ std::string const ObjectGuidCalculatedValue::Format()
 
 ObjectGuidListCalculatedValue::ObjectGuidListCalculatedValue(PlayerbotAI* botAI, std::string const name,
                                                              int32 checkInterval)
-    : CalculatedValue<std::vector<uint64>>(botAI, name, checkInterval)
+    : CalculatedValue<GuidVector>(botAI, name, checkInterval)
 {
 }
 
@@ -107,8 +107,8 @@ std::string const ObjectGuidListCalculatedValue::Format()
     std::ostringstream out;
     out << "{";
 
-    std::vector<uint64> guids = Calculate();
-    for (std::vector<uint64>::iterator i = guids.begin(); i != guids.end(); ++i)
+    GuidVector guids = Calculate();
+    for (GuidVector::iterator i = guids.begin(); i != guids.end(); ++i)
     {
         ObjectGuid guid = *i;
         out << guid.GetRawValue() << ",";

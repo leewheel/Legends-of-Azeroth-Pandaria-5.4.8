@@ -329,7 +329,7 @@ public:
     std::string const Format() override;
 };
 
-class ObjectGuidListCalculatedValue : public CalculatedValue<std::vector<uint64>>
+class ObjectGuidListCalculatedValue : public CalculatedValue<GuidVector>
 {
 public:
     ObjectGuidListCalculatedValue(PlayerbotAI* botAI, std::string const name = "value", int32 checkInterval = 1);

@@ -5,8 +5,6 @@
 
 #include "AiFactory.h"
 
-#include "BattlegroundMgr.h"
-
 #include "Engine.h"
 #include "Group.h"
 
@@ -83,8 +81,8 @@ std::map<uint8, uint32> AiFactory::GetPlayerSpecTabs(Player* bot)
             tabs[1] += rank;
         if (talentInfo->TalentTab == talentTabIds[2])
             tabs[2] += rank;
-    }
-    return tabs;*/
+    }*/
+    return tabs;
 }
 
 BotRoles AiFactory::GetPlayerRoles(Player* player)
@@ -92,7 +90,7 @@ BotRoles AiFactory::GetPlayerRoles(Player* player)
     BotRoles role = BOT_ROLE_NONE;
     uint8 tab = GetPlayerSpecTab(player);
 
-    switch (player->getClass())
+    switch (player->GetClass())
     {
         case CLASS_PRIEST:
             if (tab == 2)
@@ -140,7 +138,7 @@ std::string AiFactory::GetPlayerSpecName(Player* player)
 {
     std::string specName;
     int tab = GetPlayerSpecTab(player);
-    switch (player->getClass())
+    switch (player->GetClass())
     {
         case CLASS_PRIEST:
             if (tab == 2)

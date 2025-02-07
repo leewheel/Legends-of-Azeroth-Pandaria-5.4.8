@@ -23,6 +23,7 @@
 #include <atomic>
 
 #include "DBCStores.h"
+#include "ObjectMgr.h"
 #include "SharedDefines.h"
 #include "Types.h"
 #include "Tuples.h"
@@ -803,6 +804,26 @@ class PlayerScript : public UnitScript
 
         // Called when a player selects an option in a player gossip window
         virtual void OnGossipSelectCode(Player* /*player*/, uint32 /*menu_id*/, uint32 /*sender*/, uint32 /*action*/, const char* /*code*/) { }
+
+        // Called for player::update
+        virtual void OnBeforeUpdate(Player* /*player*/, uint32 /*p_time*/) { }
+        virtual void OnAfterUpdate(Player* /*player*/, uint32 /*diff*/) {}
+};
+
+class PlayerbotScript : public ScriptObject
+{
+protected:
+    PlayerbotScript(const char* name);
+public:
+    bool IsDatabaseBound() const { return false; }
+    virtual void OnPlayerbotCheckKillTask(Player* /*player*/, Unit* /*victim*/) { }
+    virtual void OnPlayerbotCheckPetitionAccount(Player* /*player*/, bool& /*found*/) { }
+    [[nodiscard]] virtual bool OnPlayerbotCheckUpdatesToSend(Player* /*player*/) { return true; }
+    virtual void OnPlayerbotPacketSent(Player* /*player*/, WorldPacket const* /*packet*/) { }
+    virtual void OnPlayerbotUpdate(uint32 /*diff*/) { }
+    virtual void OnPlayerbotUpdateSessions(Player* /*player*/) { }
+    virtual void OnPlayerbotLogout(Player* /*player*/) { }
+    virtual void OnPlayerbotLogoutBots() { }
 };
 
 class GuildScript : public ScriptObject
@@ -1191,6 +1212,10 @@ class TC_GAME_API ScriptMgr
         void OnGossipSelect(Player* player, uint32 menu_id, uint32 sender, uint32 action);
         void OnGossipSelectCode(Player* player, uint32 menu_id, uint32 sender, uint32 action, const char* code);
 
+        void OnPlayerBeforeUpdate(Player* player, uint32 p_time);
+        void OnPlayerUpdate(Player* player, uint32 p_time);
+        void OnPlayerAfterUpdate(Player* player, uint32 diff);
+
     public: /* GuildScript */
 
         void OnGuildAddMember(Guild* guild, Player* player, uint8& plRank);
@@ -1252,6 +1277,16 @@ class TC_GAME_API ScriptMgr
     public: /* QuestScript */
         void OnQuestStatusChange(Player* player, Quest const* quest, QuestStatus oldStatus, QuestStatus newStatus);
         void OnQuestObjectiveChange(Player* player, Quest const* quest, QuestObjective const* objective, int32 oldAmount, int32 newAmount);
+
+    public: /* PlayerbotScript */
+        void OnPlayerbotCheckKillTask(Player* player, Unit* victim);
+        void OnPlayerbotCheckPetitionAccount(Player* player, bool& found);
+        bool OnPlayerbotCheckUpdatesToSend(Player* player);
+        void OnPlayerbotPacketSent(Player* player, WorldPacket const* packet);
+        void OnPlayerbotUpdate(uint32 diff);
+        void OnPlayerbotUpdateSessions(Player* player);
+        void OnPlayerbotLogout(Player* player);
+        void OnPlayerbotLogoutBots();
 
     public:
         static bool CanHavePetAI(Creature* creature);
@@ -1381,5 +1416,114 @@ class FactoryGameObjectScript : public GameObjectScript
 #define RegisterGameObjectAIWithFactory(ai_name, factory_fn) new FactoryGameObjectScript<ai_name, &factory_fn>(#ai_name)
 
 // #define sScriptMgr ScriptMgr::instance() TODO cause link error
+
+namespace
+{
+    typedef std::set<ScriptObject*> ExampleScriptContainer;
+    ExampleScriptContainer ExampleScripts;
+}
+
+// This is the global static registry of scripts.
+template<class TScript>
+class ScriptRegistry
+{
+public:
+
+    typedef std::map<uint32, TScript*> ScriptMap;
+    typedef typename ScriptMap::iterator ScriptMapIterator;
+
+    // The actual list of scripts. This will be accessed concurrently, so it must not be modified
+    // after server startup.
+    static ScriptMap ScriptPointerList;
+
+    static ScriptRegistry* Instance()
+    {
+        static ScriptRegistry instance;
+        return &instance;
+    }
+
+    static void AddScript(TScript* const script)
+    {
+        ASSERT(script);
+
+        // See if the script is using the same memory as another script. If this happens, it means that
+        // someone forgot to allocate new memory for a script.
+        for (ScriptMapIterator it = ScriptPointerList.begin(); it != ScriptPointerList.end(); ++it)
+        {
+            if (it->second == script)
+            {
+                TC_LOG_ERROR("scripts", "Script '%s' has same memory pointer as '%s'.",
+                    script->GetName().c_str(), it->second->GetName().c_str());
+
+                return;
+            }
+        }
+
+        // Get an ID for the script. An ID only exists if it's a script that is assigned in the database
+        // through a script name (or similar).
+        uint32 id = sObjectMgr->GetScriptId(script->GetName().c_str());
+        if (id)
+        {
+            // Try to find an existing script.
+            bool existing = false;
+            for (ScriptMapIterator it = ScriptPointerList.begin(); it != ScriptPointerList.end(); ++it)
+            {
+                // If the script names match...
+                if (it->second->GetName() == script->GetName())
+                {
+                    // ... It exists.
+                    existing = true;
+                    break;
+                }
+            }
+
+            // If the script isn't assigned -> assign it!
+            if (!existing)
+            {
+                ScriptPointerList[id] = script;
+                sScriptMgr->IncreaseScriptCount();
+
+#ifdef SCRIPTS
+                UnusedScriptNamesContainer::iterator itr = std::lower_bound(UnusedScriptNames.begin(), UnusedScriptNames.end(), script->GetName());
+
+                if (itr != UnusedScriptNames.end() && *itr == script->GetName())
+                    UnusedScriptNames.erase(itr);
+#endif
+            }
+            else
+            {
+                // If the script is already assigned -> delete it!
+                TC_LOG_ERROR("scripts", "Script '%s' already assigned with the same script name, so the script can't work.",
+                    script->GetName().c_str());
+
+                ASSERT(false); // Error that should be fixed ASAP.
+            }
+        }
+        else
+        {
+
+            // We're dealing with a code-only script; just add it.
+            ScriptPointerList[_scriptIdCounter++] = script;
+            sScriptMgr->IncreaseScriptCount();
+
+        }
+
+    }
+
+    // Gets a script by its ID (assigned by ObjectMgr).
+    static TScript* GetScriptById(uint32 id)
+    {
+        ScriptMapIterator it = ScriptPointerList.find(id);
+        if (it != ScriptPointerList.end())
+            return it->second;
+
+        return NULL;
+    }
+
+private:
+
+    // Counter used for code-only scripts.
+    static uint32 _scriptIdCounter;
+};
 
 #endif
