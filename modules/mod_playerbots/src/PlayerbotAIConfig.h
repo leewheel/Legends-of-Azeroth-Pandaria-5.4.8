@@ -57,7 +57,7 @@ public:
     uint32 randomBotUpdateInterval, randomBotCountChangeMinInterval, randomBotCountChangeMaxInterval;
     uint32 minRandomBotInWorldTime, maxRandomBotInWorldTime;
     uint32 randomBotsPerInterval;
-   
+    float randomChangeMultiplier;
     bool randomBotLoginAtStartup;
     std::string randomBotAccountPrefix;
     uint32 randomBotAccountCount;
@@ -65,6 +65,9 @@ public:
     std::vector<uint32> randomBotAccounts;
 
     uint32 iterationsPerTick;
+
+    std::string combatStrategies, nonCombatStrategies;
+    std::string randomBotCombatStrategies, randomBotNonCombatStrategies;
 
     std::mutex m_logMtx;
     std::vector<std::string> allowedLogFiles;

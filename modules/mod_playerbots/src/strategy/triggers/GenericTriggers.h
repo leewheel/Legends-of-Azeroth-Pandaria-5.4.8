@@ -13,4 +13,38 @@
 class PlayerbotAI;
 class Unit;
 
+class RandomTrigger : public Trigger
+{
+public:
+    RandomTrigger(PlayerbotAI* botAI, std::string const name, int32 probability = 7);
+
+    bool IsActive() override;
+
+protected:
+    int32 probability;
+    uint32 lastCheck;
+};
+
+class TimerTrigger : public Trigger
+{
+public:
+    TimerTrigger(PlayerbotAI* botAI) : Trigger(botAI, "timer"), lastCheck(0) {}
+
+    bool IsActive() override;
+
+private:
+    time_t lastCheck;
+};
+
+class AlwaysTrigger : public Trigger
+{
+public:
+    AlwaysTrigger(PlayerbotAI* ai) : Trigger(ai, "always trigger") {}
+
+    bool IsActive() override
+    {
+        return true;
+    }
+};
+
 #endif

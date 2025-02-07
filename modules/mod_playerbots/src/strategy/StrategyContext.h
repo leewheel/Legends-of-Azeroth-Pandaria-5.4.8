@@ -11,6 +11,7 @@
 
 #include "NamedObjectContext.h"
 
+#include "HelloStrategy.h"
 #include "WorldPacketHandlerStrategy.h"
 
 class StrategyContext : public NamedObjectContext<Strategy>
@@ -21,6 +22,7 @@ public:
         creators["default"] = &StrategyContext::world_packet;
         creators["ready check"] = &StrategyContext::ready_check;
         creators["custom"] = &StrategyContext::custom;
+        creators["say hello"] = &StrategyContext::hello;
     }
 
 private:
@@ -28,8 +30,8 @@ private:
     static Strategy* world_packet(PlayerbotAI* botAI) { return new WorldPacketHandlerStrategy(botAI); }
     static Strategy* ready_check(PlayerbotAI* botAI) { return new ReadyCheckStrategy(botAI); }
 
+    static Strategy* hello(PlayerbotAI* ai) { return new HelloStrategy(ai); }
     static Strategy* custom(PlayerbotAI* botAI) { return new CustomStrategy(botAI); }
-    
 };
 
 #endif

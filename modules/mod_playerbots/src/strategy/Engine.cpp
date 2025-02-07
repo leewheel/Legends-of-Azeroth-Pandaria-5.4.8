@@ -204,10 +204,10 @@ bool Engine::DoNextAction(Unit* unit, uint32 depth, bool minimal)
                     }
                 }
 
-                /*PerformanceMonitorOperation* pmo = sPerformanceMonitor->start(PERF_MON_ACTION, action->getName(), &aiObjectContext->performanceStack);
+                //PerformanceMonitorOperation* pmo = sPerformanceMonitor->start(PERF_MON_ACTION, action->getName(), &aiObjectContext->performanceStack);
                 actionExecuted = ListenAndExecute(action, event);
-                if (pmo)
-                    pmo->finish();*/
+                //if (pmo)
+                //    pmo->finish();
 
                 if (actionExecuted)
                 {
@@ -592,13 +592,12 @@ bool Engine::ListenAndExecute(Action* action, Event event)
     actionExecutionListeners.After(action, actionExecuted, event);
     return actionExecuted;
 }
-
+#include "Log.h"
 void Engine::LogAction(char const* format, ...)
 {
-    return;
-    /*Player* bot = botAI->GetBot();
-    if (sPlayerbotAIConfig->logInGroupOnly && (!bot->GetGroup() || !botAI->HasRealPlayerMaster()) && !testMode)
-        return;
+    Player* bot = botAI->GetBot();
+    //if (sPlayerbotAIConfig->logInGroupOnly && (!bot->GetGroup() || !botAI->HasRealPlayerMaster()) && !testMode)
+        //return;
 
     char buf[1024];
 
@@ -616,7 +615,7 @@ void Engine::LogAction(char const* format, ...)
         lastAction = (pos == std::string::npos ? "" : lastAction.substr(pos));
     }
 
-    if (testMode)
+    if (true)
     {
         FILE* file = fopen("test.log", "a");
         fprintf(file, "'%s'", buf);
@@ -625,8 +624,8 @@ void Engine::LogAction(char const* format, ...)
     }
     else
     {
-        SF_LOG_DEBUG("playerbots", "%s %s", bot->GetName().c_str(), buf);
-    }*/
+        TC_LOG_INFO("playerbots", "%s", buf);
+    }
 }
 
 void Engine::ChangeStrategy(std::string const names)

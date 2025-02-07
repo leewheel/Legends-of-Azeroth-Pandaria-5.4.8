@@ -36,13 +36,14 @@ protected:
     int32 checkInterval;
     uint32 lastCheckTime;
 };
-
+#include "Log.h"
 class TriggerNode
 {
 public:
     TriggerNode(std::string const name, NextAction** handlers = nullptr)
         : trigger(nullptr), handlers(handlers), name(name)
     {
+        TC_LOG_INFO("playerbots", "Création de TriggerNode : %s", name.c_str());
     }  // reorder args - whipowill
 
     virtual ~TriggerNode() { NextAction::destroy(handlers); }

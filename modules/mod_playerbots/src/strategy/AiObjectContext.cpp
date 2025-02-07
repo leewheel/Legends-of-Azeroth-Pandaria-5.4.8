@@ -25,7 +25,6 @@ AiObjectContext::AiObjectContext(PlayerbotAI* botAI) : PlayerbotAIAware(botAI)
     actionContexts.Add(new ActionContext());
 
     actionContexts.Add(new WorldPacketActionContext());
-    ;
 
     triggerContexts.Add(new TriggerContext());
 
@@ -100,7 +99,9 @@ void AiObjectContext::Load(std::vector<std::string> data)
 
 Strategy* AiObjectContext::GetStrategy(std::string const name)
 {
-    return strategyContexts.GetContextObject(name, botAI);
+    Strategy* strategy = strategyContexts.GetContextObject(name, botAI);
+    TC_LOG_INFO("playerbots", "Recherche de strategie : %s -> %s", name.c_str(), strategy ? "Trouvé" : "Non trouvé");
+    return strategy;
 }
 
 std::set<std::string> AiObjectContext::GetSiblingStrategy(std::string const name)
@@ -108,9 +109,19 @@ std::set<std::string> AiObjectContext::GetSiblingStrategy(std::string const name
     return strategyContexts.GetSiblings(name);
 }
 
-Trigger* AiObjectContext::GetTrigger(std::string const name) { return triggerContexts.GetContextObject(name, botAI); }
+Trigger* AiObjectContext::GetTrigger(std::string const name)
+{
+    Trigger* trigger = triggerContexts.GetContextObject(name, botAI);
+    TC_LOG_INFO("playerbots", "Recherche du trigger : %s -> %s", name.c_str(), trigger ? "Trouvé" : "Non trouvé");
+    return trigger;
+}
 
-Action* AiObjectContext::GetAction(std::string const name) { return actionContexts.GetContextObject(name, botAI); }
+Action* AiObjectContext::GetAction(std::string const name)
+{
+    Action* action = actionContexts.GetContextObject(name, botAI);
+    TC_LOG_INFO("playerbots", "Recherche de action : %s -> %s", name.c_str(), action ? "Trouvé" : "Non trouvé");
+    return action;
+}
 
 UntypedValue* AiObjectContext::GetUntypedValue(std::string const name)
 {

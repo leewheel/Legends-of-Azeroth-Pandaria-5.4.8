@@ -756,7 +756,7 @@ void RandomPlayerbotMgr::OnPlayerLogin(Player* player)
     if (!IsRandomBot(player))
     {
         _players.push_back(player);
-        TC_LOG_INFO("playerbots", "Including non-random bot player %s into random bot update", player->GetName().c_str());
+        TC_LOG_DEBUG("playerbots", "Including non-random bot player %s into random bot update", player->GetName().c_str());
     }
 }
 

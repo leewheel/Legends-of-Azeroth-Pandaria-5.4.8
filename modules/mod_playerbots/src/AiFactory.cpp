@@ -18,7 +18,7 @@
 #include "SpellInfo.h"
 #include "SpellMgr.h"
 
-
+#include "NonCombatStrategy.h"
 AiObjectContext* AiFactory::createAiObjectContext(Player* player, PlayerbotAI* botAI)
 {
     /*switch (player->getClass())
@@ -251,6 +251,7 @@ Engine* AiFactory::createCombatEngine(Player* player, PlayerbotAI* const facade,
 
 void AiFactory::AddDefaultNonCombatStrategies(Player* player, PlayerbotAI* const facade, Engine* nonCombatEngine)
 {
+    nonCombatEngine->addStrategy("say hello");
 }
 
 Engine* AiFactory::createNonCombatEngine(Player* player, PlayerbotAI* const facade, AiObjectContext* aiObjectContext)

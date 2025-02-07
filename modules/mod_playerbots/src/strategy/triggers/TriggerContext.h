@@ -8,6 +8,7 @@
 
 
 #include "NamedObjectContext.h"
+#include "GenericTriggers.h"
 
 class PlayerbotAI;
 class TriggerContext : public NamedObjectContext<Trigger>
@@ -15,10 +16,19 @@ class TriggerContext : public NamedObjectContext<Trigger>
 public:
     TriggerContext()
     {
+        creators["timer"] = &TriggerContext::Timer;
+        creators["random"] = &TriggerContext::Random;
+        creators["seldom"] = &TriggerContext::seldom;
+        creators["often"] = &TriggerContext::often;
+        creators["always trigger"] = &TriggerContext::always;
     }
 
 private:
-
+    static Trigger* Timer(PlayerbotAI* botAI) { return new TimerTrigger(botAI); }
+    static Trigger* Random(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "random", 20); }
+    static Trigger* seldom(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "seldom", 300); }
+    static Trigger* often(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "often", 5); }
+    static Trigger* always(PlayerbotAI* botAI) { return new AlwaysTrigger(botAI); }
 };
 
 #endif

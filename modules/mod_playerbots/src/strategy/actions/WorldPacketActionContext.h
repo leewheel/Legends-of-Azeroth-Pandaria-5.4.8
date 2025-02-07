@@ -17,11 +17,11 @@ class WorldPacketActionContext : public NamedObjectContext<Action>
 public:
     WorldPacketActionContext()
     {
-
+        
     }
 
 private:
-
+    
 };
 
 #endif
