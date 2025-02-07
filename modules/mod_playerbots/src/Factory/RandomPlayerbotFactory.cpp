@@ -3,7 +3,7 @@
  * and/or modify it under version 2 of the License, or (at your option), any later version.
  */
 
-#include "../Helper.h"
+#include "Helper.h"
 #include "RandomPlayerbotFactory.h"
 
 #include "AccountMgr.h"
