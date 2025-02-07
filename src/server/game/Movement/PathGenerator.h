@@ -62,6 +62,8 @@ class TC_GAME_API PathGenerator
         // return: true if new path was calculated, false otherwise (no change needed)
         bool CalculatePath(float destX, float destY, float destZ, bool forceDest = false, bool straightLine = false, bool assumeSourceOnGround = false);
         bool IsInvalidDestinationZ(Unit const* target) const;
+        static bool IsWalkableClimb(float x, float y, float z, float destX, float destY, float destZ, float sourceHeight);
+        static float GetRequiredHeightToClimb(float x, float y, float z, float destX, float destY, float destZ, float sourceHeight);
 
         // option setters - use optional
         void SetUseStraightPath(bool useStraightPath) { _useStraightPath = useStraightPath; }

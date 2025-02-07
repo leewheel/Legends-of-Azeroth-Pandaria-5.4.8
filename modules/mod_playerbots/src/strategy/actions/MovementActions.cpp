@@ -107,25 +107,25 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
 bool MoveRandomAction::Execute(Event event)
 {
     float distance = sPlayerbotAIConfig->tooCloseDistance + urand(10, 30);
-
+    const float x = bot->GetPositionX();
+    const float y = bot->GetPositionY();
+    const float z = bot->GetPositionZ();
+    int attempts = 5;
     Map* map = bot->GetMap();
-    for (int i = 0; i < 3; ++i)
+    while (--attempts)
     {
-        float x = bot->GetPositionX();
-        float y = bot->GetPositionY();
-        float z = bot->GetPositionZ();
-        float angle = (float)rand_norm() * static_cast<float>(M_PI);
-        x += urand(0, distance) * cos(angle);
-        y += urand(0, distance) * sin(angle);
-        float ox = x;
-        float oy = y;
-        float oz = z;
-        //if (!bot->GetMap()->CheckCollisionAndGetValidCoords(bot, bot->GetPositionX(), bot->GetPositionY(), bot->GetPositionZ(), x, y, z))
-            //continue;
-        //if (map->IsInWater(bot->GetPhaseMask(), x, y, z, bot->GetCollisionHeight()))
-            //continue;
+        float angle = (float)rand_norm() * 2 * static_cast<float>(M_PI);
+        float dx = x + distance * cos(angle);
+        float dy = y + distance * sin(angle);
+        float dz = z;
+        if (!map->CheckCollisionAndGetValidCoords(bot, bot->GetPositionX(), bot->GetPositionY(), bot->GetPositionZ(),
+            dx, dy, dz))
+            continue;
 
-        bool moved = MoveTo(bot->GetMapId(), x, y, z, false, false, false, true);
+        if (map->IsInWater(bot->GetPhaseMask(), dx, dy, dz))
+            continue;
+
+        bool moved = MoveTo(bot->GetMapId(), dx, dy, dz, false, false, false, true);
         if (moved)
             return true;
     }
