@@ -6,14 +6,14 @@
 #ifndef _PLAYERBOT_WORLD_POSITION_H
 #define _PLAYERBOT_WORLD_POSITION_H
 
-#include <boost/functional/hash.hpp>
-#include <random>
-
 #include "AiObject.h"
 #include "CreatureData.h"
 #include "GameObject.h"
 #include "GridDefines.h"
 #include "PlayerbotAIConfig.h"
+
+#include <boost/functional/hash.hpp>
+#include <random>
 
 class GuidPosition;
 class ObjectGuid;

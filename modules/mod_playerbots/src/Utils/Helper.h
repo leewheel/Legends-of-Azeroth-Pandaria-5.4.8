@@ -7,20 +7,6 @@
 #include <sstream>
 #include <string>
 
-inline void split(std::vector<std::string>& dest, std::string const str, char const* delim)
-{
-    char* pTempStr = strdup(str.c_str());
-    char* pWord = strtok(pTempStr, delim);
-
-    while (pWord != nullptr)
-    {
-        dest.push_back(pWord);
-        pWord = strtok(nullptr, delim);
-    }
-
-    free(pTempStr);
-}
-
 inline std::vector<std::string>& split(std::string const s, char delim, std::vector<std::string>& elems)
 {
     std::stringstream ss(s);
@@ -38,6 +24,20 @@ inline std::vector<std::string> split(std::string const s, char delim)
 {
     std::vector<std::string> elems;
     return split(s, delim, elems);
+}
+
+inline void split(std::vector<std::string>& dest, std::string const str, char const* delim)
+{
+    size_t start = 0, end;
+
+    while ((end = str.find(delim, start)) != std::string::npos)
+    {
+        dest.emplace_back(str.substr(start, end - start));
+        start = end + 1;
+    }
+
+    // Ajouter le dernier segment (ou la chaîne complète si aucun délimiteur trouvé)
+    dest.emplace_back(str.substr(start));
 }
 
 static bool IsAlliance(uint8 race)
