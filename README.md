@@ -24,10 +24,8 @@ Read file [COPYING](COPYING.md)
 Read file [THANKS](THANKS.md)
 
 ## Build Status
-[![windows-build](https://github.com/atidot3/Pandaria/actions/workflows/windows-build.yml/badge.svg?branch=master)](https://github.com/atidot3/Pandaria/actions/workflows/windows-build.yml)
+[![windows-build](https://github.com/atidot3/Pandaria/actions/workflows/windows-build-release.yml/badge.svg?branch=main)](https://github.com/atidot3/Pandaria/actions/workflows/windows-build-release.yml)
 [![linux-gcc-build](https://github.com/atidot3/Pandaria/actions/workflows/linux_gcc.yml/badge.svg?branch=master)](https://github.com/atidot3/Pandaria/actions/workflows/linux_gcc.yml)
-[![linux-clang-build](https://github.com/atidot3/Pandaria/actions/workflows/linux_clang.yml/badge.svg?branch=master)](https://github.com/atidot3/Pandaria/actions/workflows/linux_clang.yml)
-[![macos-arm-build](https://github.com/atidot3/Pandaria/actions/workflows/macos-arm-build.yml/badge.svg?branch=master)](https://github.com/atidot3/Pandaria/actions/workflows/macos-arm-build.yml)
 
 <a href="https://scan.coverity.com/projects/legends-of-azeroth-mop">
   <img alt="Coverity Scan Build Status"
