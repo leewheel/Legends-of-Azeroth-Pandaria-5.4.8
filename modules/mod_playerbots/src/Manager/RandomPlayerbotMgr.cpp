@@ -561,7 +561,7 @@ std::string const RandomPlayerbotMgr::GetEventData(uint32 bot, std::string const
 uint32 RandomPlayerbotMgr::SetEventValue(uint32 bot, std::string const event, uint32 value, uint32 validIn,
     std::string const data)
 {
-    SQLTransaction trans = PlayerbotsDatabase.BeginTransaction();
+    PlayerbotsDatabaseTransaction trans = PlayerbotsDatabase.BeginTransaction();
 
     PlayerbotsPreparedStatement* stmt = PlayerbotsDatabase.GetPreparedStatement(PLAYERBOTS_DEL_RANDOM_BOTS_BY_OWNER_AND_EVENT);
     stmt->setUInt32(0, 0);
