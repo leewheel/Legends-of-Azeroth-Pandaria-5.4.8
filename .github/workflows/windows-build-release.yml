@@ -73,8 +73,7 @@ jobs:
       shell: bash
     - name: Check binaries
       run: |
-        cd $GITHUB_WORKSPACE
-        cd /bin/RelWithDebInfo
+        cd $GITHUB_WORKSPACE/bin/RelWithDebInfo
         ./authserver --version
         ./worldserver --version
 
