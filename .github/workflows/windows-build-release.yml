@@ -73,14 +73,14 @@ jobs:
       shell: bash
     - name: Check binaries
       run: |
-        cd $GITHUB_WORKSPACE/bin/RelWithDebInfo
+        cd ${{ env.BUILD_DIR }}/bin/RelWithDebInfo || cd ${{ env.BUILD_DIR }}/RelWithDebInfo || cd ${{ env.BUILD_DIR }}/Release || exit 1
         ./authserver --version
         ./worldserver --version
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        path: ${{ steps.strings.outputs.build-output-dir }}/bin/${{ env.CMAKE_BUILD_TYPE }}
+        path: ${{ env.BUILD_DIR }}/bin/RelWithDebInfo/
         name: PandariaMasterWin64VS2022
         # Set a custom retention for artifacts
         #retention-days: 7
