@@ -133,10 +133,9 @@ bool FindCorpseAction::Execute(Event event)
             return false;
         else
         {
-            //GuidVector units = AI_VALUE(GuidVector, "possible targets no los");
-
-            //if (botPos.getUnitsAggro(units, bot) == 0)  // There are no mobs near.
-                //return false;
+            GuidVector units = AI_VALUE(GuidVector, "possible targets no los");
+            if (botPos.getUnitsAggro(units, bot) == 0)  // There are no mobs near.
+                return false;
         }
     }
 
@@ -280,7 +279,7 @@ bool SpiritHealerAction::Execute(Event event)
                 //PlayerbotChatHandler ch(bot);
                 bot->ResurrectPlayer(0.5f);
                 bot->SpawnCorpseBones();
-                //context->GetValue<Unit*>("current target")->Set(nullptr);
+                context->GetValue<Unit*>("current target")->Set(nullptr);
                 //bot->SetTarget();
                 //botAI->TellMaster("Hello");
 

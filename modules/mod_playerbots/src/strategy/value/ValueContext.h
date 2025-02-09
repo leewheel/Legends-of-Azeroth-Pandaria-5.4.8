@@ -1,15 +1,14 @@
-/*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU GPL v2 license, you may redistribute it
- * and/or modify it under version 2 of the License, or (at your option), any later version.
- */
-
 #ifndef _PLAYERBOT_VALUECONTEXT_H
 #define _PLAYERBOT_VALUECONTEXT_H
 
 #include "PositionValue.h"
 #include "LastMovementValue.h"
 #include "StatsValues.h"
+#include "AttackersValue.h"
 #include "SelfTargetValue.h"
+#include "PossibleTargetsValue.h"
+#include "CurrentTargetValue.h"
+#include "NearestUnitsValue.h"
 
 class PlayerbotAI;
 class ValueContext : public NamedObjectContext<UntypedValue>
@@ -42,10 +41,20 @@ public:
         creators["last flee timestamp"] = &ValueContext::last_flee_timestamp;
         creators["recently flee info"] = &ValueContext::recently_flee_info;
 
+        creators["attackers"] = &ValueContext::attackers;
+        creators["possible adds"] = &ValueContext::possible_adds;
+        creators["prioritized targets"] = &ValueContext::prioritized_targets;
+
+        creators["possible triggers"] = &ValueContext::possible_triggers;
+        creators["possible targets"] = &ValueContext::possible_targets;
+        creators["possible targets no los"] = &ValueContext::possible_targets_no_los;
+
         creators["position"] = &ValueContext::position;
         creators["current position"] = &ValueContext::current_position;
 
+        creators["all targets"] = &ValueContext::all_targets;
         creators["self target"] = &ValueContext::self_target;
+        creators["current target"] = &ValueContext::current_target;
     }
 
 private:
@@ -74,7 +83,17 @@ private:
     static UntypedValue* recently_flee_info(PlayerbotAI* ai) { return new RecentlyFleeInfo(ai); }
     static UntypedValue* position(PlayerbotAI* botAI) { return new PositionValue(botAI); }
     static UntypedValue* current_position(PlayerbotAI* botAI) { return new CurrentPositionValue(botAI); }
+    
+    static UntypedValue* attackers(PlayerbotAI* botAI) { return new AttackersValue(botAI); }
+    static UntypedValue* possible_adds(PlayerbotAI* botAI) { return new PossibleAddsValue(botAI); }
+    static UntypedValue* prioritized_targets(PlayerbotAI* botAI) { return new PrioritizedTargetsValue(botAI); }
+
+    static UntypedValue* all_targets(PlayerbotAI* botAI) { return new AllTargetsValue(botAI); }
     static UntypedValue* self_target(PlayerbotAI* botAI) { return new SelfTargetValue(botAI); }
+    static UntypedValue* current_target(PlayerbotAI* botAI) { return new CurrentTargetValue(botAI); }
+    static UntypedValue* possible_triggers(PlayerbotAI* botAI) { return new PossibleTriggersValue(botAI); }
+    static UntypedValue* possible_targets(PlayerbotAI* botAI) { return new PossibleTargetsValue(botAI); }
+    static UntypedValue* possible_targets_no_los(PlayerbotAI* botAI) { return new PossibleTargetsValue(botAI, "possible targets", sPlayerbotAIConfig->sightDistance, true); }
 };
 
 #endif

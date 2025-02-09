@@ -34,6 +34,9 @@ public:
 
     bool Initialize();
     
+    bool IsPvpProhibited(uint32 zoneId, uint32 areaId);
+    bool IsInPvpProhibitedZone(uint32 id);
+    bool IsInPvpProhibitedArea(uint32 id);
 
     bool enabled;
     uint32 globalCoolDown, reactDelay, maxWaitForMove, disableMoveSplinePath, maxMovementSearchTime, expireActionTime,
@@ -68,6 +71,8 @@ public:
 
     std::string combatStrategies, nonCombatStrategies;
     std::string randomBotCombatStrategies, randomBotNonCombatStrategies;
+    std::vector<uint32> pvpProhibitedZoneIds;
+    std::vector<uint32> pvpProhibitedAreaIds;
 
     std::mutex m_logMtx;
     std::vector<std::string> allowedLogFiles;

@@ -538,7 +538,7 @@ void PlayerbotAI::DoNextAction(bool min)
             _aiObjectContext->GetValue<uint32>("death count")->Set(++dCount);
         }
 
-        //_aiObjectContext->GetValue<Unit*>("current target")->Set(nullptr);
+        _aiObjectContext->GetValue<Unit*>("current target")->Set(nullptr);
         //_aiObjectContext->GetValue<Unit*>("enemy player target")->Set(nullptr);
         //_aiObjectContext->GetValue<ObjectGuid>("pull target")->Set(ObjectGuid::Empty);
         //_aiObjectContext->GetValue<LootObject>("loot target")->Set(LootObject());

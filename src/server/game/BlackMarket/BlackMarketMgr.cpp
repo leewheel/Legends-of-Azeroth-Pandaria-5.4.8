@@ -180,7 +180,7 @@ void BlackMarketMgr::Update()
     CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
 
     // Delete expired auctions
-    /*for (auto&& itr : _auctions)
+    for (auto&& itr : _auctions)
     {
         BlackMarketAuction* auction = itr.second;
         if (auction->IsExpired())
@@ -191,7 +191,7 @@ void BlackMarketMgr::Update()
             auction->DeleteFromDB(trans);
             _auctions.erase(itr.first);
         }
-    }*/
+    }
 
     // Add New Auctions
     int32 add = sWorld->getIntConfig(CONFIG_BLACK_MARKET_MAX_AUCTIONS) - _auctions.size();

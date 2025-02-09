@@ -136,6 +136,9 @@ bool PlayerbotAIConfig::Initialize()
     
     targetPosRecalcDistance = sConfigMgr->GetFloatDefault("AiPlayerbot.TargetPosRecalcDistance", 0.1f);
 
+    LoadList<std::vector<uint32>>(sConfigMgr->GetStringDefault("AiPlayerbot.PvpProhibitedZoneIds", "2255,656,2361,2362,2363,976,35,2268,3425,392,541,1446,3828,3712,3738,3565,3539,3623,4152,3988,4658,4284,4418,4436,4275,4323,4395"), pvpProhibitedZoneIds);
+    LoadList<std::vector<uint32>>(sConfigMgr->GetStringDefault("AiPlayerbot.PvpProhibitedAreaIds", "976,35"), pvpProhibitedAreaIds);
+
     randomChangeMultiplier = sConfigMgr->GetFloatDefault("AiPlayerbot.RandomChangeMultiplier", 1.0);
     randomBotCombatStrategies = sConfigMgr->GetStringDefault("AiPlayerbot.RandomBotCombatStrategies", "-threat");
     randomBotNonCombatStrategies = sConfigMgr->GetStringDefault("AiPlayerbot.RandomBotNonCombatStrategies", "");
@@ -151,6 +154,21 @@ bool PlayerbotAIConfig::Initialize()
     TC_LOG_INFO("server.loading", "---------------------------------------");
 
     return true;
+}
+
+bool PlayerbotAIConfig::IsPvpProhibited(uint32 zoneId, uint32 areaId)
+{
+    return IsInPvpProhibitedZone(zoneId) || IsInPvpProhibitedArea(areaId) || IsInPvpProhibitedZone(areaId);
+}
+
+bool PlayerbotAIConfig::IsInPvpProhibitedZone(uint32 id)
+{
+    return std::find(pvpProhibitedZoneIds.begin(), pvpProhibitedZoneIds.end(), id) != pvpProhibitedZoneIds.end();
+}
+
+bool PlayerbotAIConfig::IsInPvpProhibitedArea(uint32 id)
+{
+    return std::find(pvpProhibitedAreaIds.begin(), pvpProhibitedAreaIds.end(), id) != pvpProhibitedAreaIds.end();
 }
 
 std::string const PlayerbotAIConfig::GetTimestampStr()
