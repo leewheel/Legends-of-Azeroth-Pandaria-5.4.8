@@ -463,7 +463,7 @@ void PlayerbotHolder::OnBotLogin(Player* const bot)
         Group::MemberSlotList const& slots = group->GetMemberSlots();
         for (Group::MemberSlotList::const_iterator i = slots.begin(); i != slots.end(); ++i)
         {
-            uint64 member = i->guid;
+            ObjectGuid member = i->guid;
             if (master)
             {
                 if (master->GetGUID() == member)
@@ -474,12 +474,12 @@ void PlayerbotHolder::OnBotLogin(Player* const bot)
             }
             else
             {
-                //uint32 account = sCharacterCache->GetCharacterAccountIdByGuid(member);
-                //if (!sPlayerbotAIConfig->IsInRandomAccountList(account))
-                //{
-                //    groupValid = true;
-                //    break;
-                //}
+                uint32 account = sCharacterCache->GetCharacterAccountIdByGuid(member);
+                if (!sPlayerbotAIConfig->IsInRandomAccountList(account))
+                {
+                    groupValid = true;
+                    break;
+                }
             }
         }
 
@@ -1242,7 +1242,7 @@ void PlayerbotMgr::HandleCommand(uint32 type, std::string const text)
     }
 }
 
-void PlayerbotMgr::HandleMasterIncomingPacket(WorldPacket const* packet)
+void PlayerbotMgr::HandleMasterIncomingPacket(WorldPacket const& packet)
 {
     for (PlayerBotMap::const_iterator it = GetPlayerBotsBegin(); it != GetPlayerBotsEnd(); ++it)
     {
@@ -1263,7 +1263,7 @@ void PlayerbotMgr::HandleMasterIncomingPacket(WorldPacket const* packet)
             botAI->HandleMasterIncomingPacket(packet);
     }
 
-    switch (packet->GetOpcode())
+    switch (packet.GetOpcode())
     {
         // if master is logging out, log out all bots
     case CMSG_LOGOUT_REQUEST:
@@ -1280,7 +1280,7 @@ void PlayerbotMgr::HandleMasterIncomingPacket(WorldPacket const* packet)
     }
 }
 
-void PlayerbotMgr::HandleMasterOutgoingPacket(WorldPacket const* packet)
+void PlayerbotMgr::HandleMasterOutgoingPacket(WorldPacket const& packet)
 {
     for (PlayerBotMap::const_iterator it = GetPlayerBotsBegin(); it != GetPlayerBotsEnd(); ++it)
     {

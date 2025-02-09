@@ -135,6 +135,12 @@ bool MoveRandomAction::Execute(Event event)
 
 bool MoveRandomAction::isUseful()
 {
+    return true;
+}
+
+bool MoveRandomAction::isPossible()
+{
     if (bot->isMoving() || bot->isTurning() || bot->IsFlying() || bot->IsFalling()) return false;
+
     return true;
 }

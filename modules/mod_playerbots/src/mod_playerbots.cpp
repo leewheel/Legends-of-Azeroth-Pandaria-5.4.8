@@ -86,7 +86,7 @@ public:
         {
             Player* playerBot = sessionBot->GetPlayer();
             if (PlayerbotMgr* playerbotMgr = GET_PLAYERBOT_MGR(playerBot))
-                playerbotMgr->HandleMasterIncomingPacket(&packet);
+                playerbotMgr->HandleMasterIncomingPacket(packet);
         }
     }
 };
@@ -121,11 +121,11 @@ public:
         
         if (PlayerbotAI* botAI = GET_PLAYERBOT_AI(player))
         {
-            botAI->HandleBotOutgoingPacket(packet);
+            botAI->HandleBotOutgoingPacket(*packet);
         }
         if (PlayerbotMgr* playerbotMgr = GET_PLAYERBOT_MGR(player))
         {
-            playerbotMgr->HandleMasterOutgoingPacket(packet);
+            playerbotMgr->HandleMasterOutgoingPacket(*packet);
         }
     }
 

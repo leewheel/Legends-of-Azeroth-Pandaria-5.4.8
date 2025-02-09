@@ -21,4 +21,7 @@ Event WorldPacketTrigger::Check()
     return Event(getName(), packet, owner);
 }
 
-void WorldPacketTrigger::Reset() { triggered = false; }
+void WorldPacketTrigger::Reset()
+{
+    triggered = false;
+}

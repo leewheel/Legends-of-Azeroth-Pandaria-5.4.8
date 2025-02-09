@@ -74,9 +74,9 @@ public:
     bool AllowActive(ActivityType activityType);
     void DoNextAction(bool min);
 
-    void HandleBotOutgoingPacket(WorldPacket const* packet);
-    void HandleMasterIncomingPacket(WorldPacket const* packet);
-    void HandleMasterOutgoingPacket(WorldPacket const* packet);
+    void HandleBotOutgoingPacket(WorldPacket const& packet);
+    void HandleMasterIncomingPacket(WorldPacket const& packet);
+    void HandleMasterOutgoingPacket(WorldPacket const& packet);
     void HandleTeleportAck();
     
     void ChangeEngine(BotState type);

@@ -37,5 +37,5 @@ public:
 
     bool Execute(Event event) override;
     bool isUseful() override;
-    bool isPossible() override { return true; }
+    bool isPossible() override;
 };

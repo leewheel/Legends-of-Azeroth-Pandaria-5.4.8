@@ -10,8 +10,14 @@
 void WorldPacketHandlerStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
     PassTroughStrategy::InitTriggers(triggers);
+
+    // party handlers
+    triggers.push_back(new TriggerNode("group invite", NextAction::array(0, new NextAction("accept invitation", relevance), nullptr)));
+    triggers.push_back(new TriggerNode("uninvite guid", NextAction::array(0, new NextAction("uninvite", relevance), nullptr)));
+    triggers.push_back(new TriggerNode("uninvite", NextAction::array(0, new NextAction("uninvite", relevance), nullptr)));
 }
 
 WorldPacketHandlerStrategy::WorldPacketHandlerStrategy(PlayerbotAI* botAI) : PassTroughStrategy(botAI)
 {
+    supported.push_back("uninvite");
 }

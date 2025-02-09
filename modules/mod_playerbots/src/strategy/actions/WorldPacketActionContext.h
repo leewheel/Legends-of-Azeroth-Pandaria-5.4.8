@@ -8,7 +8,9 @@
 
 
 #include "NamedObjectContext.h"
-#include "NamedObjectContext.h"
+
+#include "AcceptInvitationAction.h"
+#include "LeaveGroupAction.h"
 
 class PlayerbotAI;
 
@@ -17,11 +19,14 @@ class WorldPacketActionContext : public NamedObjectContext<Action>
 public:
     WorldPacketActionContext()
     {
-        
+        // party handlers
+        creators["accept invitation"] = &WorldPacketActionContext::accept_invitation;
+        creators["uninvite"] = &WorldPacketActionContext::uninvite;
     }
 
 private:
-    
+    static Action* accept_invitation(PlayerbotAI* botAI) { return new AcceptInvitationAction(botAI); }
+    static Action* uninvite(PlayerbotAI* botAI) { return new UninviteAction(botAI); }
 };
 
 #endif

@@ -16,7 +16,7 @@ class WorldPacket;
 class WorldPacketTrigger : public Trigger
 {
 public:
-    WorldPacketTrigger(PlayerbotAI* botAI, std::string const command) : Trigger(botAI, command), triggered(false) {}
+    WorldPacketTrigger(PlayerbotAI* botAI, std::string const command) : Trigger(botAI, command), triggered(false), owner(nullptr){}
 
     void ExternalEvent(WorldPacket& packet, Player* owner = nullptr) override;
     Event Check() override;
