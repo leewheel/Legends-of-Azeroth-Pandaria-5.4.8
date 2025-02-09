@@ -64,7 +64,7 @@ jobs:
       env:
           BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
       run: |
-        cd $GITHUB_WORKSPACE
+        cd ${{ env.BUILD_DIR }}
         
         mkdir -p build && cd build
         cmake .. -DTOOLS=ON -DELUNA=1 -A x64
@@ -73,14 +73,14 @@ jobs:
       shell: bash
     - name: Check binaries
       run: |
-        cd ${{ env.BUILD_DIR }}/bin/RelWithDebInfo || cd ${{ env.BUILD_DIR }}/RelWithDebInfo || cd ${{ env.BUILD_DIR }}/Release || exit 1
+        cd ${{ env.BUILD_DIR }}/build/bin/RelWithDebInfo
         ./authserver --version
         ./worldserver --version
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        path: ${{ env.BUILD_DIR }}/bin/RelWithDebInfo/
+        path: ${{ env.BUILD_DIR }}/build/bin/RelWithDebInfo/
         name: PandariaMasterWin64VS2022
         # Set a custom retention for artifacts
         #retention-days: 7
