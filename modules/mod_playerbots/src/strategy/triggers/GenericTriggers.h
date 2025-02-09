@@ -47,4 +47,12 @@ public:
     }
 };
 
+class CorpseNearTrigger : public Trigger
+{
+public:
+    CorpseNearTrigger(PlayerbotAI* botAI) : Trigger(botAI, "corpse near", 1 * 1000) {}
+
+    bool IsActive() override;
+};
+
 #endif

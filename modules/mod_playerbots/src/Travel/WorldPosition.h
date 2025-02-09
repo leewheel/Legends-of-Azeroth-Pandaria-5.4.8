@@ -20,7 +20,12 @@ class ObjectGuid;
 class Quest;
 class Player;
 class PlayerbotAI;
+class CreatureData;
+class WorldObject;
 
+struct GameObjectData;
+struct CreatureTemplate;
+struct GameObjectTemplate;
 struct QuestStatusData;
 
 namespace G3D
@@ -351,5 +356,34 @@ inline ByteBuffer& operator>>(ByteBuffer& b, [[maybe_unused]] WorldPosition& g)
 
     return b;
 }
+
+class GuidPosition : public ObjectGuid, public WorldPosition
+{
+public:
+    GuidPosition() : ObjectGuid(), WorldPosition(), loadedFromDB(false) { }
+    GuidPosition(WorldObject* wo);
+    GuidPosition(CreatureData const& creData);
+    GuidPosition(GameObjectData const& goData);
+    CreatureTemplate const* GetCreatureTemplate();
+    GameObjectTemplate const* GetGameObjectTemplate();
+
+    WorldObject* GetWorldObject();
+    Creature* GetCreature();
+    Unit* GetUnit();
+    GameObject* GetGameObject();
+    Player* GetPlayer();
+
+    bool HasNpcFlag(NPCFlags flag);
+
+    bool isDead();  // For loaded grids check if the unit/object is unloaded/dead.
+
+    operator bool() const { return !IsEmpty(); }
+    bool operator==(ObjectGuid const& guid) const { return GetRawValue() == guid.GetRawValue(); }
+    bool operator!=(ObjectGuid const& guid) const { return GetRawValue() != guid.GetRawValue(); }
+    bool operator<(ObjectGuid const& guid) const { return GetRawValue() < guid.GetRawValue(); }
+
+private:
+    bool loadedFromDB;
+};
 
 #endif /*_PLAYERBOT_WORLD_POSITION_H*/

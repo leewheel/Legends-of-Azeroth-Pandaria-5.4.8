@@ -5,6 +5,7 @@
 
 #include "GenericTriggers.h"
 #include "PlayerbotAIConfig.h"
+#include "Player.h"
 
 bool TimerTrigger::IsActive()
 {
@@ -32,4 +33,9 @@ bool RandomTrigger::IsActive()
     if (k < 1)
         k = 1;
     return (rand() % k) == 0;
+}
+
+bool CorpseNearTrigger::IsActive()
+{
+    return bot->GetCorpse() && bot->GetCorpse()->IsWithinDistInMap(bot, CORPSE_RECLAIM_RADIUS, true);
 }

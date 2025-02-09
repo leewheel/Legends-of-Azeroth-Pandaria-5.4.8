@@ -407,8 +407,8 @@ void RandomPlayerbotMgr::Revive(Player* player)
     uint64 bot = player->GetGUID();
 
     // LOG_INFO("playerbots", "Bot {} revived", player->GetName().c_str());
-    //SetEventValue(bot, "dead", 0, 0);
-    //SetEventValue(bot, "revive", 0, 0);
+    SetEventValue(bot, "dead", 0, 0);
+    SetEventValue(bot, "revive", 0, 0);
 
     Refresh(player);
     //RandomTeleportGrindForLevel(player);

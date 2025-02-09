@@ -19,12 +19,14 @@
 #include "CreatureAIImpl.h"
 #include "GuildMgr.h"
 #include "LFGMgr.h"
+#include "MapManager.h"
 #include "MotionMaster.h"
 #include "MoveSpline.h"
 #include "MoveSplineInit.h"
 #include "Player.h"
 #include "PointMovementGenerator.h"
 #include "RandomPlayerbotMgr.h"
+#include "ServerFacade.h"
 #include "ScriptMgr.h"
 #include "SharedDefines.h"
 #include "SocialMgr.h"
@@ -91,6 +93,8 @@ PlayerbotAI::PlayerbotAI(Player* bot)
 
     masterIncomingPacketHandlers.AddHandler(CMSG_GROUP_DISBAND, "uninvite");
     masterIncomingPacketHandlers.AddHandler(CMSG_GROUP_UNINVITE_GUID, "uninvite guid");
+    masterIncomingPacketHandlers.AddHandler(CMSG_REPOP_REQUEST, "release spirit");
+    masterIncomingPacketHandlers.AddHandler(CMSG_RECLAIM_CORPSE, "revive from corpse");
 
     botOutgoingPacketHandlers.AddHandler(SMSG_GROUP_INVITE, "group invite");
 }
@@ -172,6 +176,58 @@ void PlayerbotAI::UpdateAIInternal([[maybe_unused]] uint32 elapsed, bool minimal
     masterOutgoingPacketHandlers.Handle(helper);
 
     DoNextAction(minimal);
+}
+
+bool PlayerbotAI::DoSpecificAction(std::string const name, Event event, bool silent, std::string const qualifier)
+{
+    std::ostringstream out;
+
+    for (uint8 i = 0; i < BOT_STATE_MAX; i++)
+    {
+        ActionResult res = _engines[i]->ExecuteAction(name, event, qualifier);
+        switch (res)
+        {
+        case ACTION_RESULT_UNKNOWN:
+            continue;
+        case ACTION_RESULT_OK:
+            if (!silent)
+            {
+                //PlaySound(TEXT_EMOTE_NOD);
+            }
+            return true;
+        case ACTION_RESULT_IMPOSSIBLE:
+            out << name << ": impossible";
+            if (!silent)
+            {
+                //TellError(out.str());
+                //PlaySound(TEXT_EMOTE_NO);
+            }
+            return false;
+        case ACTION_RESULT_USELESS:
+            out << name << ": useless";
+            if (!silent)
+            {
+                //TellError(out.str());
+                //PlaySound(TEXT_EMOTE_NO);
+            }
+            return false;
+        case ACTION_RESULT_FAILED:
+            if (!silent)
+            {
+                //out << name << ": failed";
+                //TellError(out.str());
+            }
+            return false;
+        }
+    }
+
+    if (!silent)
+    {
+        //out << name << ": unknown action";
+        //TellError(out.str());
+    }
+
+    return false;
 }
 
 bool PlayerbotAI::AllowActive(ActivityType activityType)
@@ -425,6 +481,32 @@ void PlayerbotAI::ChangeEngine(BotState type)
         }
     }
 }
+void PlayerbotAI::ChangeStrategy(std::string const names, BotState type)
+{
+    Engine* e = _engines[type];
+    if (!e)
+        return;
+
+    e->ChangeStrategy(names);
+}
+
+void PlayerbotAI::ClearStrategies(BotState type)
+{
+    Engine* e = _engines[type];
+    if (!e)
+        return;
+
+    e->removeAllStrategies();
+}
+
+std::vector<std::string> PlayerbotAI::GetStrategies(BotState type)
+{
+    Engine* e = _engines[type];
+    if (!e)
+        return std::vector<std::string>();
+
+    return e->GetStrategies();
+}
 
 void PlayerbotAI::DoNextAction(bool min)
 {
@@ -456,9 +538,9 @@ void PlayerbotAI::DoNextAction(bool min)
             _aiObjectContext->GetValue<uint32>("death count")->Set(++dCount);
         }
 
-        _aiObjectContext->GetValue<Unit*>("current target")->Set(nullptr);
-        _aiObjectContext->GetValue<Unit*>("enemy player target")->Set(nullptr);
-        _aiObjectContext->GetValue<ObjectGuid>("pull target")->Set(ObjectGuid::Empty);
+        //_aiObjectContext->GetValue<Unit*>("current target")->Set(nullptr);
+        //_aiObjectContext->GetValue<Unit*>("enemy player target")->Set(nullptr);
+        //_aiObjectContext->GetValue<ObjectGuid>("pull target")->Set(ObjectGuid::Empty);
         //_aiObjectContext->GetValue<LootObject>("loot target")->Set(LootObject());
 
         ChangeEngine(BOT_STATE_DEAD);
@@ -535,11 +617,29 @@ void PlayerbotAI::HandleTeleportAck()
             if (!plMover)
                 return;
 
+            ObjectGuid guid = plMover->GetGUID();
             WorldPacket p = WorldPacket(CMSG_MOVE_TELEPORT_ACK, 20);
-            p << plMover->GetGUID();
             p << (uint32)0;  // supposed to be flags? not used currently
             p << (uint32)0;  // time - not currently used
-            p.FlushBits();
+            
+            p.WriteBit(guid[0]);
+            p.WriteBit(guid[7]);
+            p.WriteBit(guid[3]);
+            p.WriteBit(guid[5]);
+            p.WriteBit(guid[4]);
+            p.WriteBit(guid[6]);
+            p.WriteBit(guid[1]);
+            p.WriteBit(guid[2]);
+
+            p.WriteByteSeq(guid[4]);
+            p.WriteByteSeq(guid[1]);
+            p.WriteByteSeq(guid[6]);
+            p.WriteByteSeq(guid[7]);
+            p.WriteByteSeq(guid[0]);
+            p.WriteByteSeq(guid[2]);
+            p.WriteByteSeq(guid[5]);
+            p.WriteByteSeq(guid[3]);
+            
             bot->GetSession()->HandleMoveTeleportAck(p);
         };
     }
@@ -651,4 +751,205 @@ bool PlayerbotAI::CanMove()
         return false;
 
     return bot->GetMotionMaster()->GetCurrentMovementGeneratorType() != FLIGHT_MOTION_TYPE;
+}
+
+Unit* PlayerbotAI::GetUnit(ObjectGuid guid)
+{
+    if (!guid)
+        return nullptr;
+
+    return ObjectAccessor::GetUnit(*bot, guid);
+}
+
+Player* PlayerbotAI::GetPlayer(ObjectGuid guid)
+{
+    Unit* unit = GetUnit(guid);
+    return unit ? unit->ToPlayer() : nullptr;
+}
+
+Player* PlayerbotAI::GetGroupMaster()
+{
+    if (!bot->InBattleground())
+        if (Group* group = bot->GetGroup())
+            if (Player* player = ObjectAccessor::FindPlayer(group->GetLeaderGUID()))
+                return player;
+
+    return master;
+}
+
+uint32 GetCreatureIdForCreatureTemplateId(uint32 creatureTemplateId)
+{
+    QueryResult results = WorldDatabase.PQuery("SELECT guid FROM `creature` WHERE id = %u LIMIT 1;", creatureTemplateId);
+    if (results)
+    {
+        Field* fields = results->Fetch();
+        return fields[0].GetUInt32();
+    }
+    return 0;
+}
+
+Unit* PlayerbotAI::GetUnit(CreatureData const* creatureData)
+{
+    if (!creatureData)
+        return nullptr;
+
+    Map* map = sMapMgr->FindMap(creatureData->mapId, 0);
+    if (!map)
+        return nullptr;
+
+    uint32 spawnId = creatureData->spawnId;
+    if (!spawnId)  // workaround for CreatureData with missing spawnId (this just uses first matching creatureId in DB,
+        // but thats ok this method is only used for battlemasters and theres only 1 of each type)
+        spawnId = GetCreatureIdForCreatureTemplateId(creatureData->id);
+    auto creatureBounds = map->GetCreatureBySpawnIdStore().equal_range(spawnId);
+    if (creatureBounds.first == creatureBounds.second)
+        return nullptr;
+
+    return creatureBounds.first->second;
+}
+
+Creature* PlayerbotAI::GetCreature(ObjectGuid guid)
+{
+    if (!guid)
+        return nullptr;
+
+    return ObjectAccessor::GetCreature(*bot, guid);
+}
+
+GameObject* PlayerbotAI::GetGameObject(ObjectGuid guid)
+{
+    if (!guid)
+        return nullptr;
+
+    return ObjectAccessor::GetGameObject(*bot, guid);
+}
+WorldObject* PlayerbotAI::GetWorldObject(ObjectGuid guid)
+{
+    if (!guid)
+        return nullptr;
+
+    return ObjectAccessor::GetWorldObject(*bot, guid);
+}
+
+bool PlayerbotAI::SayToParty(const std::string& msg)
+{
+    if (!bot->GetGroup())
+        return false;
+
+    /*WorldPacket data;
+    ChatHandler::BuildChatPacket(data, CHAT_MSG_PARTY, msg.c_str(), LANG_UNIVERSAL, CHAT_TAG_NONE, bot->GetGUID(),
+        bot->GetName());
+
+    for (auto reciever : GetPlayersInGroup())
+    {
+        sServerFacade->SendPacket(reciever, &data);
+    }*/
+
+    return true;
+}
+
+bool PlayerbotAI::SayToRaid(const std::string& msg)
+{
+    if (!bot->GetGroup() || bot->GetGroup()->isRaidGroup())
+        return false;
+
+    /*WorldPacket data;
+    ChatHandler::BuildChatPacket(data, CHAT_MSG_RAID, msg.c_str(), LANG_UNIVERSAL, CHAT_TAG_NONE, bot->GetGUID(),
+        bot->GetName());
+
+    for (auto reciever : GetPlayersInGroup())
+    {
+        sServerFacade->SendPacket(reciever, &data);
+    }*/
+
+    return true;
+}
+
+bool PlayerbotAI::Yell(const std::string& msg)
+{
+    if (bot->GetTeamId() == TeamId::TEAM_ALLIANCE)
+    {
+        bot->Yell(msg, LANG_COMMON);
+    }
+    else
+    {
+        bot->Yell(msg, LANG_ORCISH);
+    }
+
+    return true;
+}
+
+bool PlayerbotAI::Say(const std::string& msg)
+{
+    if (bot->GetTeamId() == TeamId::TEAM_ALLIANCE)
+    {
+        bot->Say(msg, LANG_COMMON);
+    }
+    else
+    {
+        bot->Say(msg, LANG_ORCISH);
+    }
+
+    return true;
+}
+
+bool PlayerbotAI::Whisper(const std::string& msg, const std::string& receiverName)
+{
+    const auto receiver = ObjectAccessor::FindPlayerByName(receiverName);
+    if (!receiver)
+    {
+        return false;
+    }
+
+    if (bot->GetTeamId() == TeamId::TEAM_ALLIANCE)
+    {
+        bot->Whisper(msg, LANG_COMMON, receiver);
+    }
+    else
+    {
+        bot->Whisper(msg, LANG_ORCISH, receiver);
+    }
+
+    return true;
+}
+
+bool PlayerbotAI::TellMasterNoFacing(std::ostringstream& stream)
+{
+    return TellMasterNoFacing(stream.str());
+}
+
+bool PlayerbotAI::TellMasterNoFacing(std::string const text)
+{
+    Player* master = GetMaster();
+    PlayerbotAI* masterBotAI = nullptr;
+    if (master)
+        masterBotAI = GET_PLAYERBOT_AI(master);
+
+    /*if ((!master || (masterBotAI && !masterBotAI->IsRealPlayer())) &&
+        (sPlayerbotAIConfig->randomBotSayWithoutMaster || HasStrategy("debug", BOT_STATE_NON_COMBAT)))
+    {
+        bot->Say(text, (bot->GetTeamId() == TEAM_ALLIANCE ? LANG_COMMON : LANG_ORCISH));
+        return true;
+    }
+
+    if (!IsTellAllowed(securityLevel))
+        return false;
+
+    time_t lastSaid = whispers[text];
+
+    if (!lastSaid || (time(nullptr) - lastSaid) >= sPlayerbotAIConfig->repeatDelay / 1000)
+    {
+        whispers[text] = time(nullptr);
+
+        ChatMsg type = CHAT_MSG_WHISPER;
+        if (currentChat.second - time(nullptr) >= 1)
+            type = currentChat.first;
+
+        WorldPacket data;
+        ChatHandler::BuildChatPacket(data, type == CHAT_MSG_ADDON ? CHAT_MSG_PARTY : type,
+            type == CHAT_MSG_ADDON ? LANG_ADDON : LANG_UNIVERSAL, bot, nullptr, text.c_str());
+        master->SendDirectMessage(&data);
+    }*/
+
+    return true;
 }

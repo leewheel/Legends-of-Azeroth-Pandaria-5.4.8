@@ -732,3 +732,148 @@ uint32 WorldPosition::getUnitsAggro(GuidVector& units, Player* bot)
 
     return units.size();
 }
+
+GuidPosition::GuidPosition(WorldObject* wo) : ObjectGuid(wo->GetGUID()), WorldPosition(wo), loadedFromDB(false) {}
+
+GuidPosition::GuidPosition(CreatureData const& creData)
+    : ObjectGuid(HighGuid::Unit, creData.id, creData.spawnId),
+    WorldPosition(creData.mapId, creData.posX, creData.posY, creData.posZ, creData.orientation)
+{
+    loadedFromDB = true;
+}
+
+GuidPosition::GuidPosition(GameObjectData const& goData)
+    : ObjectGuid(HighGuid::GameObject, goData.id),
+    WorldPosition(goData.mapid, goData.posX, goData.posY, goData.posZ, goData.orientation)
+{
+    loadedFromDB = true;
+}
+
+CreatureTemplate const* GuidPosition::GetCreatureTemplate()
+{
+    return IsCreature() ? sObjectMgr->GetCreatureTemplate(GetEntry()) : nullptr;
+}
+
+GameObjectTemplate const* GuidPosition::GetGameObjectTemplate()
+{
+    return IsGameObject() ? sObjectMgr->GetGameObjectTemplate(GetEntry()) : nullptr;
+}
+
+WorldObject* GuidPosition::GetWorldObject()
+{
+    if (!*this)
+        return nullptr;
+
+    switch (GetHigh())
+    {
+    case HighGuid::Player:
+        return ObjectAccessor::FindPlayer(*this);
+    case HighGuid::Transport:
+    case HighGuid::Mo_Transport:
+    case HighGuid::GameObject:
+        return GetGameObject();
+    case HighGuid::Vehicle:
+    case HighGuid::Unit:
+        return GetCreature();
+    case HighGuid::Pet:
+        return getMap()->GetPet(*this);
+    case HighGuid::DynamicObject:
+        return getMap()->GetDynamicObject(*this);
+    case HighGuid::Corpse:
+        return getMap()->GetCorpse(*this);
+    default:
+        return nullptr;
+    }
+
+    return nullptr;
+}
+
+bool GuidPosition::HasNpcFlag(NPCFlags flag)
+{
+    return IsCreature() && GetCreatureTemplate()->npcflag & flag;
+}
+
+Creature* GuidPosition::GetCreature()
+{
+    if (!*this)
+        return nullptr;
+
+    if (loadedFromDB)
+    {
+        auto creatureBounds = getMap()->GetCreatureBySpawnIdStore().equal_range(GetCounter());
+        if (creatureBounds.first != creatureBounds.second)
+            return creatureBounds.second->second;
+
+        return nullptr;
+    }
+
+    return getMap()->GetCreature(*this);
+}
+
+Unit* GuidPosition::GetUnit()
+{
+    if (!*this)
+        return nullptr;
+
+    if (loadedFromDB)
+    {
+        auto creatureBounds = getMap()->GetCreatureBySpawnIdStore().equal_range(GetCounter());
+        if (creatureBounds.first != creatureBounds.second)
+            return creatureBounds.second->second;
+
+        return nullptr;
+    }
+
+    if (IsPlayer())
+        return ObjectAccessor::FindPlayer(*this);
+
+    if (IsPet())
+        return getMap()->GetPet(*this);
+
+    return GetCreature();
+}
+
+GameObject* GuidPosition::GetGameObject()
+{
+    if (!*this)
+        return nullptr;
+
+    if (loadedFromDB)
+    {
+        auto gameobjectBounds = getMap()->GetGameObjectBySpawnIdStore().equal_range(GetCounter());
+        if (gameobjectBounds.first != gameobjectBounds.second)
+            return gameobjectBounds.second->second;
+
+        return nullptr;
+    }
+
+    return getMap()->GetGameObject(*this);
+}
+
+Player* GuidPosition::GetPlayer()
+{
+    if (!*this)
+        return nullptr;
+
+    if (IsPlayer())
+        return ObjectAccessor::FindPlayer(*this);
+
+    return nullptr;
+}
+
+bool GuidPosition::isDead()
+{
+    if (!getMap())
+        return false;
+
+    if (!getMap()->IsGridLoaded(getX(), getY()))
+        return false;
+
+    if (IsUnit() && GetUnit() && GetUnit()->IsInWorld() && GetUnit()->IsAlive())
+        return false;
+
+    if (IsGameObject() && GetGameObject() && GetGameObject()->IsInWorld())
+        return false;
+
+    return true;
+}

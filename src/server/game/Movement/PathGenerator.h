@@ -91,6 +91,32 @@ class TC_GAME_API PathGenerator
         std::vector<ObjectGuid>* visualizeNavmeshWaypointGUIDs = nullptr;
         Map* visualizePathMap = nullptr;
 
+        [[nodiscard]] float getPathLength() const
+        {
+            float len = 0.0f;
+            float dx, dy, dz;
+            uint32 size = _pathPoints.size();
+            if (size)
+            {
+                dx = _pathPoints[0].x - _startPosition.x;
+                dy = _pathPoints[0].y - _startPosition.y;
+                dz = _pathPoints[0].z - _startPosition.z;
+                len += std::sqrt(dx * dx + dy * dy + dz * dz);
+            }
+            else
+            {
+                return len;
+            }
+
+            for (uint32 i = 1; i < size; ++i)
+            {
+                dx = _pathPoints[i].x - _pathPoints[i - 1].x;
+                dy = _pathPoints[i].y - _pathPoints[i - 1].y;
+                dz = _pathPoints[i].z - _pathPoints[i - 1].z;
+                len += std::sqrt(dx * dx + dy * dy + dz * dz);
+            }
+            return len;
+        }
     private:
 
         dtPolyRef _pathPolyRefs[MAX_PATH_LENGTH];   // array of detour polygon references

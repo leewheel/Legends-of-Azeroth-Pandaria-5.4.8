@@ -10,6 +10,7 @@
 #include "WorldPosition.h"
 
 class PlayerbotAI;
+class WorldPosition;
 
 class PositionInfo
 {
@@ -68,6 +69,8 @@ public:
     {
         return value.fDist(lastValue) < sPlayerbotAIConfig->tooCloseDistance;
     }
+
+    WorldPosition Calculate() override;
 };
 
 #endif

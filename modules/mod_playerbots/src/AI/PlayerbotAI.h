@@ -9,6 +9,7 @@
 #include <queue>
 #include <stack>
 
+#include "Event.h"
 #include "PlayerbotAIBase.h"
 #include "WorldPacket.h"
 
@@ -44,10 +45,17 @@ enum ActivityType
 };
 
 class AiObjectContext;
+class Creature;
 class Engine;
 class ExternalEventHelper;
+class GameObject;
+class ObjectGuid;
 class Player;
 class Position;
+class Unit;
+class WorldObject;
+
+struct CreatureData;
 
 class PacketHandlingHelper
 {
@@ -81,8 +89,23 @@ public:
     
     void ChangeEngine(BotState type);
     void ReInitCurrentEngine();
+    virtual bool DoSpecificAction(std::string const name, Event event = Event(), bool silent = false,
+        std::string const qualifier = "");
+
+    void ChangeStrategy(std::string const name, BotState type);
+    void ClearStrategies(BotState type);
+    std::vector<std::string> GetStrategies(BotState type);
+
     Player* GetBot() { return bot; }
     Player* GetMaster() { return master; }
+    Player* GetGroupMaster();
+    Creature* GetCreature(ObjectGuid guid);
+    Unit* GetUnit(ObjectGuid guid);
+    Player* GetPlayer(ObjectGuid guid);
+    static Unit* GetUnit(CreatureData const* creatureData);
+    GameObject* GetGameObject(ObjectGuid guid);
+    // static GameObject* GetGameObject(GameObjectData const* gameObjectData);
+    WorldObject* GetWorldObject(ObjectGuid guid);
     AiObjectContext* GetAiObjectContext() { return _aiObjectContext; }
 
     // Checks if the bot is really a player. Players always have themselves as master.
@@ -100,6 +123,14 @@ public:
     void SetMaster(Player* newMaster) { master = newMaster; }
 
     bool CanMove();
+
+    bool TellMasterNoFacing(std::string const text);
+    bool TellMasterNoFacing(std::ostringstream& stream);
+    bool Whisper(const std::string& msg, const std::string& receiverName);
+    bool Say(const std::string& msg);
+    bool Yell(const std::string& msg);
+    bool SayToRaid(const std::string& msg);
+    bool SayToParty(const std::string& msg);
 private:
     bool _isBotInitializing = false;
 
