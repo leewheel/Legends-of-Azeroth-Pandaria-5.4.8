@@ -64,7 +64,7 @@ jobs:
       env:
           BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
       run: |
-        cd ${{ env.BUILD_DIR }}
+        cd $GITHUB_WORKSPACE
         
         mkdir -p build && cd build
         cmake .. -DTOOLS=ON -DELUNA=1 -A x64
@@ -73,7 +73,7 @@ jobs:
       shell: bash
     - name: Check binaries
       run: |
-        cd ${{ env.BUILD_DIR }}/build/bin/RelWithDebInfo
+        cd ${{github.workspace}}/build/bin/RelWithDebInfo
         ./authserver --version
         ./worldserver --version
 
