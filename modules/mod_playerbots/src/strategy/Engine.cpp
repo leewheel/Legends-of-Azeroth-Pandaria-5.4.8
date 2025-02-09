@@ -592,7 +592,7 @@ bool Engine::ListenAndExecute(Action* action, Event event)
     actionExecutionListeners.After(action, actionExecuted, event);
     return actionExecuted;
 }
-#include "Log.h"
+
 void Engine::LogAction(char const* format, ...)
 {
     Player* bot = botAI->GetBot();
@@ -615,16 +615,12 @@ void Engine::LogAction(char const* format, ...)
         lastAction = (pos == std::string::npos ? "" : lastAction.substr(pos));
     }
 
-    if (true)
+    if (testMode)
     {
         FILE* file = fopen("test.log", "a");
         fprintf(file, "'%s'", buf);
         fprintf(file, "\n");
         fclose(file);
-    }
-    else
-    {
-        TC_LOG_INFO("playerbots", "%s", buf);
     }
 }
 

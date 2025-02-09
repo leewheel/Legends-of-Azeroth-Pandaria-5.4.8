@@ -468,13 +468,13 @@ void PlayerbotAI::ChangeEngine(BotState type)
         switch (type)
         {
         case BOT_STATE_COMBAT:
-            TC_LOG_DEBUG("playerbots",  "=== {} COMBAT ===", bot->GetName().c_str());
+            TC_LOG_DEBUG("playerbots",  "=== %s COMBAT ===", bot->GetName().c_str());
             break;
         case BOT_STATE_NON_COMBAT:
-            TC_LOG_DEBUG("playerbots",  "=== {} NON-COMBAT ===", bot->GetName().c_str());
+            TC_LOG_DEBUG("playerbots",  "=== %s NON-COMBAT ===", bot->GetName().c_str());
             break;
         case BOT_STATE_DEAD:
-            TC_LOG_DEBUG("playerbots",  "=== {} DEAD ===", bot->GetName().c_str());
+            TC_LOG_DEBUG("playerbots",  "=== %s DEAD ===", bot->GetName().c_str());
             break;
         default:
             break;

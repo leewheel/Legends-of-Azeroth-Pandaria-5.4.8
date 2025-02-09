@@ -100,7 +100,6 @@ void AiObjectContext::Load(std::vector<std::string> data)
 Strategy* AiObjectContext::GetStrategy(std::string const name)
 {
     Strategy* strategy = strategyContexts.GetContextObject(name, botAI);
-    TC_LOG_INFO("playerbots", "Recherche de strategie : %s -> %s", name.c_str(), strategy ? "Trouvé" : "Non trouvé");
     return strategy;
 }
 
@@ -112,14 +111,12 @@ std::set<std::string> AiObjectContext::GetSiblingStrategy(std::string const name
 Trigger* AiObjectContext::GetTrigger(std::string const name)
 {
     Trigger* trigger = triggerContexts.GetContextObject(name, botAI);
-    TC_LOG_INFO("playerbots", "Recherche du trigger : %s -> %s", name.c_str(), trigger ? "Trouvé" : "Non trouvé");
     return trigger;
 }
 
 Action* AiObjectContext::GetAction(std::string const name)
 {
     Action* action = actionContexts.GetContextObject(name, botAI);
-    TC_LOG_INFO("playerbots", "Recherche de action : %s -> %s", name.c_str(), action ? "Trouvé" : "Non trouvé");
     return action;
 }
 

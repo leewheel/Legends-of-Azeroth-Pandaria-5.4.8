@@ -168,7 +168,7 @@ void PlayerbotHolder::HandlePlayerBotLoginCallback(PlayerbotLoginQueryHolder con
         sRandomPlayerbotMgr->OnPlayerLogin(bot);
         OnBotLogin(bot);
 
-        TC_LOG_INFO("playerbots", "Player logged: %s", bot->GetName().c_str());
+        TC_LOG_DEBUG("playerbots", "Player logged: %s", bot->GetName().c_str());
     }
     else
     {
