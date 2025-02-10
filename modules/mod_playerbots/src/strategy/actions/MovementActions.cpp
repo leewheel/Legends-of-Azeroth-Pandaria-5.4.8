@@ -60,6 +60,43 @@ bool MovementAction::IsWaitingForLastMove(MovementPriority priority)
     return false;
 }
 
+bool MovementAction::ReachCombatTo(Unit* target, float distance)
+{
+    if (!IsMovingAllowed(target))
+        return false;
+
+    float bx = bot->GetPositionX();
+    float by = bot->GetPositionY();
+    float bz = bot->GetPositionZ();
+
+    float tx = target->GetPositionX();
+    float ty = target->GetPositionY();
+    float tz = target->GetPositionZ();
+    float combatDistance = bot->GetCombatReach() + target->GetCombatReach();
+    distance += combatDistance;
+
+    if (bot->GetExactDist(tx, ty, tz) <= distance)
+        return false;
+
+    PathGenerator path(bot);
+    path.CalculatePath(tx, ty, tz, false);
+    PathType type = path.GetPathType();
+    int typeOk = PATHFIND_NORMAL | PATHFIND_INCOMPLETE | PATHFIND_SHORTCUT;
+    if (!(type & typeOk))
+        return false;
+    float shortenTo = distance;
+
+    // Avoid walking too far when moving towards each other
+    float disToGo = bot->GetExactDist(tx, ty, tz) - distance;
+    if (disToGo >= 10.0f)
+        shortenTo = disToGo / 2 + distance;
+
+    path.ShortenPathUntilDist(G3D::Vector3(tx, ty, tz), shortenTo);
+    G3D::Vector3 endPos = path.GetPath().back();
+    return MoveTo(target->GetMapId(), endPos.x, endPos.y, endPos.z, false, false, false, false,
+        MovementPriority::MOVEMENT_COMBAT, true);
+}
+
 bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, bool react, bool normal_only,
     bool exact_waypoint, MovementPriority priority, bool lessDelay, bool backwards)
 {
@@ -283,9 +320,43 @@ bool MoveRandomAction::isUseful()
     return true;
 }
 
+bool MovementAction::IsMovingAllowed(WorldObject* target)
+{
+    if (!target)
+        return false;
+
+    if (bot->GetMapId() != target->GetMapId())
+        return false;
+
+    return IsMovingAllowed();
+}
+
+bool MovementAction::IsMovingAllowed()
+{
+    // do not allow if not vehicle driver
+    if (botAI->IsInVehicle() && !botAI->IsInVehicle(true))
+        return false;
+
+    if (bot->isFrozen() || bot->IsPolymorphed() || (bot->isDead() && !bot->HasPlayerFlag(PLAYER_FLAGS_GHOST)) ||
+        bot->IsBeingTeleported() || bot->HasRootAura() || bot->HasSpiritOfRedemptionAura() ||
+        bot->HasConfuseAura() || bot->IsCharmed() || bot->HasStunAura() ||
+        bot->IsInFlight() || bot->HasUnitState(UNIT_STATE_LOST_CONTROL))
+        return false;
+
+    if (bot->GetMotionMaster()->GetMotionSlotType(MOTION_SLOT_CONTROLLED) != NULL_MOTION_TYPE)
+    {
+        return false;
+    }
+
+    return bot->GetMotionMaster()->GetCurrentMovementGeneratorType() != FLIGHT_MOTION_TYPE;
+}
+
 bool MoveRandomAction::isPossible()
 {
-    if (bot->isMoving() || bot->isTurning() || bot->IsFlying() || bot->IsFalling()) return false;
+    if (bot->IsInCombat() ||
+        !AI_VALUE(bool, "can move around") ||
+        !bot->CanFreeMove() ||
+        !botAI->CanMove()) return false;
 
     return true;
 }

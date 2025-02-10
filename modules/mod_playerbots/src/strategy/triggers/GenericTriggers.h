@@ -55,4 +55,28 @@ public:
     bool IsActive() override;
 };
 
+class InvalidTargetTrigger : public Trigger
+{
+public:
+    InvalidTargetTrigger(PlayerbotAI* botAI) : Trigger(botAI, "invalid target") {}
+
+    bool IsActive() override;
+};
+
+class TargetChangedTrigger : public Trigger
+{
+public:
+    TargetChangedTrigger(PlayerbotAI* botAI) : Trigger(botAI, "target changed") {}
+
+    bool IsActive() override;
+};
+
+class NoTargetTrigger : public Trigger
+{
+public:
+    NoTargetTrigger(PlayerbotAI* botAI) : Trigger(botAI, "no target") {}
+
+    bool IsActive() override;
+};
+
 #endif

@@ -4,6 +4,8 @@
  */
 
 #include "GenericTriggers.h"
+
+#include "Playerbots.h"
 #include "PlayerbotAIConfig.h"
 #include "Player.h"
 
@@ -38,4 +40,21 @@ bool RandomTrigger::IsActive()
 bool CorpseNearTrigger::IsActive()
 {
     return bot->GetCorpse() && bot->GetCorpse()->IsWithinDistInMap(bot, CORPSE_RECLAIM_RADIUS, true);
+}
+
+bool InvalidTargetTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "invalid target", "current target");
+}
+
+bool NoTargetTrigger::IsActive()
+{
+    return !AI_VALUE(Unit*, "current target");
+}
+
+bool TargetChangedTrigger::IsActive()
+{
+    Unit* oldTarget = context->GetValue<Unit*>("old target")->Get();
+    Unit* target = context->GetValue<Unit*>("current target")->Get();
+    return target && oldTarget != target;
 }

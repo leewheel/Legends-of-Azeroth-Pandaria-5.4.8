@@ -1,8 +1,3 @@
-/*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU GPL v2 license, you may redistribute it
- * and/or modify it under version 2 of the License, or (at your option), any later version.
- */
-
 #ifndef _PLAYERBOT_PLAYERBOTAI_H
 #define _PLAYERBOT_PLAYERBOTAI_H
 
@@ -11,6 +6,7 @@
 
 #include "Event.h"
 #include "PlayerbotAIBase.h"
+#include "NewRpgStrategy.h"
 #include "WorldPacket.h"
 
 enum BotState
@@ -44,6 +40,7 @@ enum ActivityType
     MAX_ACTIVITY_TYPE
 };
 
+class Aura;
 class AiObjectContext;
 class Creature;
 class Engine;
@@ -53,6 +50,7 @@ class ObjectGuid;
 class Player;
 class Position;
 class Unit;
+class Item;
 class WorldObject;
 
 struct CreatureData;
@@ -87,10 +85,10 @@ public:
     void HandleMasterOutgoingPacket(WorldPacket const& packet);
     void HandleTeleportAck();
     
+    void Reset(bool full = false);
     void ChangeEngine(BotState type);
     void ReInitCurrentEngine();
-    virtual bool DoSpecificAction(std::string const name, Event event = Event(), bool silent = false,
-        std::string const qualifier = "");
+    virtual bool DoSpecificAction(std::string const name, Event event = Event(), bool silent = false, std::string const qualifier = "");
 
     void ChangeStrategy(std::string const name, BotState type);
     void ClearStrategies(BotState type);
@@ -107,7 +105,12 @@ public:
     // static GameObject* GetGameObject(GameObjectData const* gameObjectData);
     WorldObject* GetWorldObject(ObjectGuid guid);
     AiObjectContext* GetAiObjectContext() { return _aiObjectContext; }
+    BotState GetState() { return _currentState; };
+    const NewRpgInfo& GetRpgInfo() { return _rpgInfo; }
+    float GetRange(std::string const type);
 
+    bool IsOpposing(Player* player);
+    static bool IsOpposing(uint8 race1, uint8 race2);
     // Checks if the bot is really a player. Players always have themselves as master.
     bool IsRealPlayer() { return master ? (master == bot) : false; }
     // Bot has a master that is a player.
@@ -117,12 +120,30 @@ public:
     // Get the group leader or the master of the bot.
     // Checks if the bot is summoned as alt of a player
     bool IsAlt();
+    bool IsInVehicle(bool canControl = false, bool canCast = false, bool canAttack = false, bool canTurn = false, bool fixed = false);
 
     bool HasStrategy(std::string const name, BotState type);
+    bool ContainsStrategy(StrategyType type);
 
     void SetMaster(Player* newMaster) { master = newMaster; }
 
     bool CanMove();
+
+    virtual bool CanCastSpell(std::string const name, Unit* target, Item* itemTarget = nullptr);
+    virtual bool CastSpell(std::string const name, Unit* target, Item* itemTarget = nullptr);
+    bool CastSpell(uint32 spellId, Unit* target, Item* itemTarget = nullptr);
+    bool CastSpell(uint32 spellId, float x, float y, float z, Item* itemTarget = nullptr);
+    virtual bool HasAura(std::string const spellName, Unit* player, bool maxStack = false, bool checkIsOwner = false,
+        int maxAmount = -1, bool checkDuration = false);
+    Aura* GetAura(std::string const spellName, Unit* unit, bool checkIsOwner = false, bool checkDuration = false,
+        int checkStack = -1);
+    virtual bool HasAnyAuraOf(Unit* player, ...);
+    bool CanCastSpell(uint32 spellid, Unit* target, bool checkHasSpell = true, Item* itemTarget = nullptr,
+        Item* castItem = nullptr);
+    bool CanCastSpell(uint32 spellid, GameObject* goTarget, uint8 effectMask, bool checkHasSpell = true);
+    bool CanCastSpell(uint32 spellid, float x, float y, float z, uint8 effectMask, bool checkHasSpell = true,
+        Item* itemTarget = nullptr);
+    bool HasAura(uint32 spellId, Unit const* player);
 
     bool TellMasterNoFacing(std::string const text);
     bool TellMasterNoFacing(std::ostringstream& stream);
@@ -131,6 +152,7 @@ public:
     bool Yell(const std::string& msg);
     bool SayToRaid(const std::string& msg);
     bool SayToParty(const std::string& msg);
+    bool TellError(std::string const text);
 private:
     bool _isBotInitializing = false;
 
@@ -142,6 +164,7 @@ protected:
     Engine* _currentEngine;
     Engine* _engines[BOT_STATE_MAX];
     BotState _currentState;
+    NewRpgInfo _rpgInfo;
     //ChatHelper chatHelper;
     //std::list<ChatCommandHolder> chatCommands;
     //std::list<ChatQueuedReply> chatReplies;

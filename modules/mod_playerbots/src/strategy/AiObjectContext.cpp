@@ -21,17 +21,11 @@
 AiObjectContext::AiObjectContext(PlayerbotAI* botAI) : PlayerbotAIAware(botAI)
 {
     strategyContexts.Add(new StrategyContext());
-
     actionContexts.Add(new ActionContext());
-
     actionContexts.Add(new WorldPacketActionContext());
-
     triggerContexts.Add(new TriggerContext());
-
     triggerContexts.Add(new WorldPacketTriggerContext());
-
     valueContexts.Add(new ValueContext());
-
     valueContexts.Add(sSharedValueContext);
 }
 

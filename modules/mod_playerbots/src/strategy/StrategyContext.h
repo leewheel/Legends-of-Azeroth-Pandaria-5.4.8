@@ -11,6 +11,7 @@
 
 #include "NamedObjectContext.h"
 
+#include "MeleeCombatStrategy.h"
 #include "DeadStrategy.h"
 #include "HelloStrategy.h"
 #include "WorldPacketHandlerStrategy.h"
@@ -22,16 +23,17 @@ public:
     {
         creators["default"] = &StrategyContext::world_packet;
         creators["custom"] = &StrategyContext::custom;
-        creators["say hello"] = &StrategyContext::hello;
+
+        creators["close"] = &StrategyContext::close;
         creators["dead"] = &StrategyContext::dead;
     }
 
 private:
     
     static Strategy* world_packet(PlayerbotAI* botAI) { return new WorldPacketHandlerStrategy(botAI); }
-
-    static Strategy* hello(PlayerbotAI* ai) { return new HelloStrategy(ai); }
     static Strategy* custom(PlayerbotAI* botAI) { return new CustomStrategy(botAI); }
+
+    static Strategy* close(PlayerbotAI* botAI) { return new MeleeCombatStrategy(botAI); }
     static Strategy* dead(PlayerbotAI* botAI) { return new DeadStrategy(botAI); }
 };
 
