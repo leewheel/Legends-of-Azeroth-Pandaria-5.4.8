@@ -3,14 +3,18 @@
 
 #include "AttackersValue.h"
 #include "CurrentTargetValue.h"
+#include "DistanceValue.h"
 #include "EnemyPlayerValue.h"
 #include "GroupValues.h"
 #include "GrindTargetValue.h"
 #include "InvalidTargetValue.h"
+#include "IsBehindValue.h"
+#include "IsMovingValue.h"
 #include "LastMovementValue.h"
 #include "LastSpellCastValue.h"
 #include "LastSpellCastTimeValue.h"
 #include "MaintenanceValues.h"
+#include "ManaSaveLevelValue.h"
 #include "NearestUnitsValue.h"
 #include "NearestFriendlyPlayersValue.h"
 #include "PositionValue.h"
@@ -31,6 +35,7 @@ public:
         creators["rage"] = &ValueContext::rage;
         creators["energy"] = &ValueContext::energy;
         creators["mana"] = &ValueContext::mana;
+        creators["mana save level"] = &ValueContext::mana_save_level;
         creators["combo"] = &ValueContext::combo;
         creators["dead"] = &ValueContext::dead;
         creators["pet dead"] = &ValueContext::pet_dead;
@@ -51,6 +56,11 @@ public:
         creators["last flee timestamp"] = &ValueContext::last_flee_timestamp;
         creators["recently flee info"] = &ValueContext::recently_flee_info;
 
+        creators["distance"] = &ValueContext::distance;
+        creators["moving"] = &ValueContext::moving;
+        creators["swimming"] = &ValueContext::swimming;
+        creators["behind"] = &ValueContext::behind;
+        creators["facing"] = &ValueContext::facing;
         creators["attackers"] = &ValueContext::attackers;
         creators["possible adds"] = &ValueContext::possible_adds;
         creators["prioritized targets"] = &ValueContext::prioritized_targets;
@@ -112,6 +122,7 @@ private:
     static UntypedValue* rage(PlayerbotAI* botAI) { return new RageValue(botAI); }
     static UntypedValue* energy(PlayerbotAI* botAI) { return new EnergyValue(botAI); }
     static UntypedValue* mana(PlayerbotAI* botAI) { return new ManaValue(botAI); }
+    static UntypedValue* mana_save_level(PlayerbotAI* botAI) { return new ManaSaveLevelValue(botAI); }
     static UntypedValue* combo(PlayerbotAI* botAI) { return new ComboPointsValue(botAI); }
     static UntypedValue* dead(PlayerbotAI* botAI) { return new IsDeadValue(botAI); }
     static UntypedValue* pet_dead(PlayerbotAI* botAI) { return new PetIsDeadValue(botAI); }
@@ -128,6 +139,11 @@ private:
     static UntypedValue* recently_flee_info(PlayerbotAI* ai) { return new RecentlyFleeInfo(ai); }
     static UntypedValue* position(PlayerbotAI* botAI) { return new PositionValue(botAI); }
     static UntypedValue* current_position(PlayerbotAI* botAI) { return new CurrentPositionValue(botAI); }
+    static UntypedValue* behind(PlayerbotAI* botAI) { return new IsBehindValue(botAI); }
+    static UntypedValue* facing(PlayerbotAI* botAI) { return new IsFacingValue(botAI); }
+    static UntypedValue* moving(PlayerbotAI* botAI) { return new IsMovingValue(botAI); }
+    static UntypedValue* swimming(PlayerbotAI* botAI) { return new IsSwimmingValue(botAI); }
+    static UntypedValue* distance(PlayerbotAI* botAI) { return new DistanceValue(botAI); }
 
     static UntypedValue* attackers(PlayerbotAI* botAI) { return new AttackersValue(botAI); }
     static UntypedValue* possible_adds(PlayerbotAI* botAI) { return new PossibleAddsValue(botAI); }

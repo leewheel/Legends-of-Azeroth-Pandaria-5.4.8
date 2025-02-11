@@ -1,0 +1,17 @@
+/*
+ * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU GPL v2 license, you may redistribute it
+ * and/or modify it under version 2 of the License, or (at your option), any later version.
+ */
+
+#ifndef _PLAYERBOT_WARRIORACTIONS_H
+#define _PLAYERBOT_WARRIORACTIONS_H
+
+#include "AiObject.h"
+#include "GenericSpellActions.h"
+#include "Player.h"
+#include "PlayerbotAI.h"
+#include "ReachTargetActions.h"
+
+REACH_ACTION(CastChargeAction, "charge", 8.0f);
+
+#endif

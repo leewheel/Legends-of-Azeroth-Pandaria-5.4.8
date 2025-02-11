@@ -22,6 +22,9 @@ public:
         creators["say hello"] = &ActionContext::hello;
         creators["move random"] = &ActionContext::move_random;
 
+        creators["set facing"] = &ActionContext::set_facing;
+        creators["drop target"] = &ActionContext::drop_target;
+        creators["reach spell"] = &ActionContext::ReachSpell;
         creators["reach melee"] = &ActionContext::ReachMelee;
         creators["attack"] = &ActionContext::melee;
         creators["melee"] = &ActionContext::melee;
@@ -32,6 +35,9 @@ private:
     static Action* hello(PlayerbotAI* botAI) { return new SayHelloAction(botAI); }
     static Action* move_random(PlayerbotAI* botAI) { return new MoveRandomAction(botAI); }
 
+    static Action* set_facing(PlayerbotAI* botAI) { return new SetFacingTargetAction(botAI); }
+    static Action* drop_target(PlayerbotAI* botAI) { return new DropTargetAction(botAI); }
+    static Action* ReachSpell(PlayerbotAI* botAI) { return new ReachSpellAction(botAI); }
     static Action* ReachMelee(PlayerbotAI* botAI) { return new ReachMeleeAction(botAI); }
     static Action* melee(PlayerbotAI* botAI) { return new MeleeAction(botAI); }
     static Action* attack_anything(PlayerbotAI* botAI) { return new AttackAnythingAction(botAI); }

@@ -11,7 +11,7 @@ bool PlayerBotSpec::IsRanged(Player* player, bool bySpec)
     if (!bySpec && botAi)
         return botAi->ContainsStrategy(STRATEGY_TYPE_RANGED);
 
-    int tab = AiFactory::GetPlayerSpecTab(player);
+    const Specializations& spec = player->GetSpecialization();
     switch (player->GetClass())
     {
         case CLASS_DEATH_KNIGHT:
@@ -23,7 +23,7 @@ bool PlayerBotSpec::IsRanged(Player* player, bool bySpec)
         }
         case CLASS_DRUID:
         {
-            if (tab == DRUID_TABS::DRUID_TAB_FERAL || tab == DRUID_TABS::DRUID_TAB_GUARDIAN)
+            if (spec == Specializations::SPEC_DRUID_FERAL || spec == Specializations::SPEC_DRUID_GUARDIAN)
             {
                 return false;
             }
@@ -31,7 +31,7 @@ bool PlayerBotSpec::IsRanged(Player* player, bool bySpec)
         }
         case CLASS_PALADIN:
         {
-            if (tab != PALADIN_TABS::PALADIN_TAB_HOLY)
+            if (spec != Specializations::SPEC_DEATH_KNIGHT_UNHOLY)
             {
                 return false;
             }
@@ -39,7 +39,7 @@ bool PlayerBotSpec::IsRanged(Player* player, bool bySpec)
         }
         case CLASS_SHAMAN:
         {
-            if (tab == SHAMAN_TABS::SHAMAN_TAB_ENHANCEMENT)
+            if (spec == Specializations::SPEC_SHAMAN_ENHANCEMENT)
             {
                 return false;
             }
@@ -77,50 +77,7 @@ bool PlayerBotSpec::IsTank(Player* player, bool bySpec)
     if (!bySpec && botAi)
         return botAi->ContainsStrategy(STRATEGY_TYPE_TANK);
 
-    int tab = AiFactory::GetPlayerSpecTab(player);
-    switch (player->GetClass())
-    {
-        case CLASS_DEATH_KNIGHT:
-        {
-            if (tab == DEATHKNIGHT_TAB_BLOOD)
-            {
-                return true;
-            }
-            break;
-        }
-        case CLASS_PALADIN:
-        {
-            if (tab == PALADIN_TAB_PROTECTION)
-            {
-                return true;
-            }
-            break;
-        }
-        case CLASS_WARRIOR:
-        {
-            if (tab == WARRIOR_TAB_PROTECTION)
-            {
-                return true;
-            }
-            break;
-        }
-        case CLASS_DRUID:
-        {
-            if (tab == DRUID_TAB_FERAL && (player->GetShapeshiftForm() == FORM_BEAR ||
-                player->GetShapeshiftForm() == FORM_DIREBEAR || player->HasAura(16931)))
-            {
-                return true;
-            }
-            break;
-        }
-        case CLASS_MONK:
-        {
-            if (tab == MONK_TABS::MONK_TAB_BREWMASTER)
-                return true;
-            break;
-        }
-    }
-    return false;
+    return player->GetRoleForGroup() == ROLES_TANK;
 }
 
 bool PlayerBotSpec::IsHeal(Player* player, bool bySpec)
@@ -129,49 +86,7 @@ bool PlayerBotSpec::IsHeal(Player* player, bool bySpec)
     if (!bySpec && botAi)
         return botAi->ContainsStrategy(STRATEGY_TYPE_HEAL);
 
-    int tab = AiFactory::GetPlayerSpecTab(player);
-    switch (player->GetClass())
-    {
-        case CLASS_PRIEST:
-        {
-            if (tab == PRIEST_TAB_DISIPLINE || tab == PRIEST_TAB_HOLY)
-            {
-                return true;
-            }
-            break;
-        }
-        case CLASS_DRUID:
-        {
-            if (tab == DRUID_TAB_RESTORATION)
-            {
-                return true;
-            }
-            break;
-        }
-        case CLASS_SHAMAN:
-        {
-            if (tab == SHAMAN_TAB_RESTORATION)
-            {
-                return true;
-            }
-            break;
-        }
-        case CLASS_PALADIN:
-        {
-            if (tab == PALADIN_TAB_HOLY)
-            {
-                return true;
-            }
-            break;
-        }
-        case CLASS_MONK:
-        {
-            if (tab == MONK_TABS::MONK_TAB_MISTWEAVER)
-                return true;
-            break;
-        }
-    }
-    return false;
+    return player->GetRoleForGroup() == ROLES_HEALER;
 }
 
 bool PlayerBotSpec::IsDps(Player* player, bool bySpec)
@@ -180,74 +95,7 @@ bool PlayerBotSpec::IsDps(Player* player, bool bySpec)
     if (!bySpec && botAi)
         return botAi->ContainsStrategy(STRATEGY_TYPE_DPS);
 
-    int tab = AiFactory::GetPlayerSpecTab(player);
-    switch (player->GetClass())
-    {
-        case CLASS_MAGE:
-        case CLASS_WARLOCK:
-        case CLASS_HUNTER:
-        case CLASS_ROGUE:
-            return true;
-        case CLASS_PRIEST:
-        {
-            if (tab == PRIEST_TAB_SHADOW)
-            {
-                return true;
-            }
-            break;
-        }
-        case CLASS_DRUID:
-        {
-            if (tab == DRUID_TAB_BALANCE)
-            {
-                return true;
-            }
-            if (tab == DRUID_TAB_FERAL && !IsTank(player, bySpec))
-            {
-                return true;
-            }
-            break;
-        }
-        case CLASS_SHAMAN:
-        {
-            if (tab != SHAMAN_TAB_RESTORATION)
-            {
-                return true;
-            }
-            break;
-        }
-        case CLASS_PALADIN:
-        {
-            if (tab == PALADIN_TAB_RETRIBUTION)
-            {
-                return true;
-            }
-            break;
-        }
-        case CLASS_DEATH_KNIGHT:
-        {
-            if (tab != DEATHKNIGHT_TAB_BLOOD)
-            {
-                return true;
-            }
-            break;
-        }
-        case CLASS_WARRIOR:
-        {
-            if (tab != WARRIOR_TAB_PROTECTION)
-            {
-                return true;
-            }
-            break;
-        }
-        case CLASS_MONK:
-        {
-            if (tab == MONK_TABS::MONK_TAB_WINDWALKER)
-                return true;
-            break;
-        }
-    }
-    return false;
+    return player->GetRoleForGroup() == ROLES_DPS;
 }
 
 bool PlayerBotSpec::IsMainTank(Player* player)

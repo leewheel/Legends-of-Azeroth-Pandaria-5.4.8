@@ -1372,7 +1372,7 @@ void PlayerbotMgr::TellError(std::string const botName, std::string const text)
     {
         names.insert(botName);
     }
-
+    TC_LOG_DEBUG("playerbots", "TellErro: %s: %s", botName.c_str(), text.c_str());
     errors[text] = names;
 }
 

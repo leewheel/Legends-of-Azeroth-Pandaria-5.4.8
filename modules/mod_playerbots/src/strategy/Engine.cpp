@@ -615,7 +615,7 @@ void Engine::LogAction(char const* format, ...)
         lastAction = (pos == std::string::npos ? "" : lastAction.substr(pos));
     }
 
-    if (testMode)
+    if (true)
     {
         FILE* file = fopen("test.log", "a");
         fprintf(file, "'%s'", buf);

@@ -30,10 +30,7 @@ protected:
 class CastReachTargetSpellAction : public CastSpellAction
 {
 public:
-    CastReachTargetSpellAction(PlayerbotAI* botAI, std::string const spell, float distance)
-        : CastSpellAction(botAI, spell), distance(distance)
-    {
-    }
+    CastReachTargetSpellAction(PlayerbotAI* botAI, std::string const spell, float distance);
 
     bool isUseful() override;
 

@@ -90,7 +90,6 @@ bool AttackAnythingAction::Execute(Event event)
             {
                 context->GetValue<ObjectGuid>("pull target")->Set(grindTarget->GetGUID());
                 bot->GetMotionMaster()->Clear();
-                // bot->StopMoving();
             }
         }
     }

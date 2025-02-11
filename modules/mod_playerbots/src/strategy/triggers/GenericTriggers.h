@@ -79,4 +79,12 @@ public:
     bool IsActive() override;
 };
 
+class IsNotFacingTargetTrigger : public Trigger
+{
+public:
+    IsNotFacingTargetTrigger(PlayerbotAI* botAI) : Trigger(botAI, "not facing target") {}
+
+    bool IsActive() override;
+};
+
 #endif

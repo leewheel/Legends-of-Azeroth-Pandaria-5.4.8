@@ -58,3 +58,8 @@ bool TargetChangedTrigger::IsActive()
     Unit* target = context->GetValue<Unit*>("current target")->Get();
     return target && oldTarget != target;
 }
+
+bool IsNotFacingTargetTrigger::IsActive()
+{
+    return !AI_VALUE2(bool, "facing", "current target");
+}

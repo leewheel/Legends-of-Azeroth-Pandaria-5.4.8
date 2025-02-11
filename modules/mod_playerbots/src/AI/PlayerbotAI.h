@@ -129,6 +129,11 @@ public:
 
     bool CanMove();
 
+    uint32 GetReactDelay();
+    void InterruptSpell();
+    void RemoveAura(std::string const name);
+    void RemoveShapeshift();
+    void SpellInterrupted(uint32 spellid);
     virtual bool CanCastSpell(std::string const name, Unit* target, Item* itemTarget = nullptr);
     virtual bool CastSpell(std::string const name, Unit* target, Item* itemTarget = nullptr);
     bool CastSpell(uint32 spellId, Unit* target, Item* itemTarget = nullptr);

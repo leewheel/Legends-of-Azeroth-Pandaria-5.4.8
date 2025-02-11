@@ -10,7 +10,12 @@
 #include "Playerbots.h"
 #include "ServerFacade.h"
 
-bool ReachTargetAction::Execute(Event event) { return ReachCombatTo(AI_VALUE(Unit*, GetTargetName()), distance); }
+#include "Log.h"
+
+bool ReachTargetAction::Execute(Event event)
+{
+    return ReachCombatTo(AI_VALUE(Unit*, GetTargetName()), distance);
+}
 
 bool ReachTargetAction::isUseful()
 {
@@ -28,10 +33,13 @@ bool ReachTargetAction::isUseful()
 
 std::string const ReachTargetAction::GetTargetName() { return "current target"; }
 
+CastReachTargetSpellAction::CastReachTargetSpellAction(PlayerbotAI* botAI, std::string const spell, float distance)
+    : CastSpellAction(botAI, spell), distance(distance)
+{
+}
 bool CastReachTargetSpellAction::isUseful()
 {
-    return sServerFacade->IsDistanceGreaterThan(AI_VALUE2(float, "distance", "current target"),
-        (distance + sPlayerbotAIConfig->contactDistance));
+    return sServerFacade->IsDistanceGreaterThan(AI_VALUE2(float, "distance", "current target"), (distance + sPlayerbotAIConfig->contactDistance));
 }
 
 ReachSpellAction::ReachSpellAction(PlayerbotAI* botAI)

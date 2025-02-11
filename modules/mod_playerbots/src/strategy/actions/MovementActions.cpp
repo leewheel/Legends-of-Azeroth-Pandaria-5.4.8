@@ -97,6 +97,25 @@ bool MovementAction::ReachCombatTo(Unit* target, float distance)
         MovementPriority::MOVEMENT_COMBAT, true);
 }
 
+float MovementAction::MoveDelay(float distance, bool backwards)
+{
+    float speed;
+    if (bot->isSwimming())
+    {
+        speed = backwards ? bot->GetSpeed(MOVE_SWIM_BACK) : bot->GetSpeed(MOVE_SWIM);
+    }
+    else if (bot->IsFlying())
+    {
+        speed = backwards ? bot->GetSpeed(MOVE_FLIGHT_BACK) : bot->GetSpeed(MOVE_FLIGHT);
+    }
+    else
+    {
+        speed = backwards ? bot->GetSpeed(MOVE_RUN_BACK) : bot->GetSpeed(MOVE_RUN);
+    }
+    float delay = distance / speed;
+    return delay;
+}
+
 bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, bool react, bool normal_only,
     bool exact_waypoint, MovementPriority priority, bool lessDelay, bool backwards)
 {
@@ -141,7 +160,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
             float delay = 1000.0f * (distance / speed);
             if (lessDelay)
             {
-                delay -= 100;// botAI->GetReactDelay();
+                delay -= botAI->GetReactDelay();
             }
             delay = std::max(.0f, delay);
             delay = std::min((float)sPlayerbotAIConfig->maxWaitForMove, delay);
@@ -157,11 +176,6 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
             if (bot->IsSitState())
                 bot->SetStandState(UNIT_STAND_STATE_STAND);
 
-            // if (bot->IsNonMeleeSpellCast(true))
-            // {
-            //     bot->CastStop();
-            //     botAI->InterruptSpell();
-            // }
             MotionMaster& mm = *bot->GetMotionMaster();
             mm.Clear();
             if (!backwards)
@@ -172,14 +186,14 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
             {
                 mm.MovePointBackwards(0, x, y, z, generatePath);
             }
-            //float delay = 1000.0f * MoveDelay(distance, backwards);
-            //if (lessDelay)
+            float delay = 1000.0f * MoveDelay(distance, backwards);
+            if (lessDelay)
             {
-                //delay -= botAI->GetReactDelay();
+                delay -= botAI->GetReactDelay();
             }
-            //delay = std::max(.0f, delay);
-            //delay = std::min((float)sPlayerbotAIConfig->maxWaitForMove, delay);
-            AI_VALUE(LastMovement&, "last movement").Set(mapId, x, y, z, bot->GetOrientation(), 10000.0f, priority);
+            delay = std::max(.0f, delay);
+            delay = std::min((float)sPlayerbotAIConfig->maxWaitForMove, delay);
+            AI_VALUE(LastMovement&, "last movement").Set(mapId, x, y, z, bot->GetOrientation(), delay, priority);
             return true;
         }
     }
@@ -197,11 +211,6 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
             if (bot->IsSitState())
                 bot->SetStandState(UNIT_STAND_STATE_STAND);
 
-            // if (bot->IsNonMeleeSpellCast(true))
-            // {
-            //     bot->CastStop();
-            //     botAI->InterruptSpell();
-            // }
             MotionMaster& mm = *bot->GetMotionMaster();
             G3D::Vector3 endP = path.back();
             mm.Clear();
@@ -213,14 +222,14 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
             {
                 mm.MovePointBackwards(0, x, y, z, generatePath);
             }
-            // float delay = 1000.0f * MoveDelay(distance, backwards);
-             //if (lessDelay)
-            //{
-            //    delay -= botAI->GetReactDelay();
-            //}
-            //delay = std::max(.0f, delay);
-            //delay = std::min((float)sPlayerbotAIConfig->maxWaitForMove, delay);
-            AI_VALUE(LastMovement&, "last movement").Set(mapId, x, y, z, bot->GetOrientation(), 10000.0f, priority);
+             float delay = 1000.0f * MoveDelay(distance, backwards);
+            if (lessDelay)
+            {
+                delay -= botAI->GetReactDelay();
+            }
+            delay = std::max(.0f, delay);
+            delay = std::min((float)sPlayerbotAIConfig->maxWaitForMove, delay);
+            AI_VALUE(LastMovement&, "last movement").Set(mapId, x, y, z, bot->GetOrientation(), delay, priority);
             return true;
         }
     }
@@ -428,4 +437,34 @@ const Movement::PointsArray MovementAction::SearchForBestPath(float x, float y, 
         return result;
     }
     return result;
+}
+
+bool SetFacingTargetAction::Execute(Event event)
+{
+    Unit* target = AI_VALUE(Unit*, "current target");
+    if (!target)
+        return false;
+
+    if (bot->HasUnitState(UNIT_STATE_IN_FLIGHT))
+        return true;
+
+    sServerFacade->SetFacingTo(bot, target);
+    botAI->SetNextCheckDelay(sPlayerbotAIConfig->reactDelay);
+    return true;
+}
+
+bool SetFacingTargetAction::isUseful()
+{
+    return !AI_VALUE2(bool, "facing", "current target");
+}
+
+bool SetFacingTargetAction::isPossible()
+{
+    if (bot->isFrozen() || bot->IsPolymorphed() || (bot->isDead() && !bot->HasPlayerFlag(PLAYER_FLAGS_GHOST)) ||
+        bot->IsBeingTeleported() || bot->HasConfuseAura() || bot->IsCharmed() ||
+        bot->HasStunAura() || bot->IsInFlight() ||
+        bot->HasUnitState(UNIT_STATE_LOST_CONTROL))
+        return false;
+
+    return true;
 }

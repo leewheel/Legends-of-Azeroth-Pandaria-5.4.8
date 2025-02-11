@@ -55,6 +55,8 @@ Unit* GrindTargetValue::FindTargetForGrinding(uint32 assistCount)
         if (!unit)
             continue;
 
+        if (unit->isDead()) continue;
+
         auto& rep = bot->ToPlayer()->GetReputationMgr();
         if (unit->ToCreature() && !unit->ToCreature()->GetCreatureTemplate()->lootid &&
             bot->GetReactionTo(unit) >= REP_NEUTRAL)
