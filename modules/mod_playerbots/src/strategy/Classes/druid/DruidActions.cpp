@@ -51,7 +51,7 @@ bool CastRebirthAction::isUseful()
 
 Unit* CastRejuvenationOnNotFullAction::GetTarget()
 {
-    /*Group* group = bot->GetGroup();
+    Group* group = bot->GetGroup();
     MinValueCalculator calc(100);
     for (GroupReference* gref = group->GetFirstMember(); gref; gref = gref->next())
     {
@@ -72,10 +72,7 @@ Unit* CastRejuvenationOnNotFullAction::GetTarget()
         }
         calc.probe(player->GetHealthPct(), player);
     }
-    return (Unit*)calc.param;*/
-
-    botAI->Say("CastRejuvenationOnNotFullAction is todo");
-    return botAI->GetBot();
+    return (Unit*)calc.param;
 }
 
 bool CastRejuvenationOnNotFullAction::isUseful()

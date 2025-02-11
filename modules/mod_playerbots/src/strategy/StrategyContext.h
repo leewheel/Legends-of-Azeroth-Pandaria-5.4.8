@@ -30,9 +30,15 @@ public:
         creators["close"] = &StrategyContext::close;
         creators["ranged"] = &StrategyContext::ranged;
         creators["dead"] = &StrategyContext::dead;
+
+        // -- temp
+        creators["say hello"] = &StrategyContext::say_hello;
     }
 
 private:
+    // -- temp
+    static Strategy* say_hello(PlayerbotAI* botAI) { return new HelloStrategy(botAI); }
+    // --
     
     static Strategy* world_packet(PlayerbotAI* botAI) { return new WorldPacketHandlerStrategy(botAI); }
     static Strategy* custom(PlayerbotAI* botAI) { return new CustomStrategy(botAI); }

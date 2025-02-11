@@ -24,11 +24,14 @@ public:
 
         creators["set facing"] = &ActionContext::set_facing;
         creators["drop target"] = &ActionContext::drop_target;
-        creators["reach spell"] = &ActionContext::ReachSpell;
-        creators["reach melee"] = &ActionContext::ReachMelee;
         creators["attack"] = &ActionContext::melee;
         creators["melee"] = &ActionContext::melee;
         creators["attack anything"] = &ActionContext::attack_anything;
+
+        creators["reach spell"] = &ActionContext::ReachSpell;
+        creators["reach melee"] = &ActionContext::ReachMelee;
+        creators["reach party member to heal"] = &ActionContext::reach_party_member_to_heal;
+        creators["reach party member to resurrect"] = &ActionContext::reach_party_member_to_resurrect;
     }
 
 private:
@@ -37,10 +40,13 @@ private:
 
     static Action* set_facing(PlayerbotAI* botAI) { return new SetFacingTargetAction(botAI); }
     static Action* drop_target(PlayerbotAI* botAI) { return new DropTargetAction(botAI); }
-    static Action* ReachSpell(PlayerbotAI* botAI) { return new ReachSpellAction(botAI); }
-    static Action* ReachMelee(PlayerbotAI* botAI) { return new ReachMeleeAction(botAI); }
     static Action* melee(PlayerbotAI* botAI) { return new MeleeAction(botAI); }
     static Action* attack_anything(PlayerbotAI* botAI) { return new AttackAnythingAction(botAI); }
+
+    static Action* ReachSpell(PlayerbotAI* botAI) { return new ReachSpellAction(botAI); }
+    static Action* ReachMelee(PlayerbotAI* botAI) { return new ReachMeleeAction(botAI); }
+    static Action* reach_party_member_to_heal(PlayerbotAI* botAI) { return new ReachPartyMemberToHealAction(botAI); }
+    static Action* reach_party_member_to_resurrect(PlayerbotAI* botAI) { return new ReachPartyMemberToResurrectAction(botAI); }
 };
 
 #endif

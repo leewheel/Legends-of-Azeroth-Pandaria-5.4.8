@@ -1226,6 +1226,32 @@ bool PlayerbotAI::TellError(std::string const text)
     return false;
 }
 
+int32 PlayerbotAI::GetNearGroupMemberCount(float dis)
+{
+    int count = 1;  // yourself
+    if (Group* group = bot->GetGroup())
+    {
+        for (GroupReference* gref = group->GetFirstMember(); gref; gref = gref->next())
+        {
+            Player* member = gref->GetSource();
+            if (member == bot)  // calculated
+                continue;
+
+            if (!member || !member->IsInWorld())
+                continue;
+
+            if (member->GetMapId() != bot->GetMapId())
+                continue;
+
+            if (member->GetExactDist(bot) > dis)
+                continue;
+
+            count++;
+        }
+    }
+    return count;
+}
+
 float PlayerbotAI::GetRange(std::string const type)
 {
     float val = 0;
@@ -1271,6 +1297,73 @@ bool IsRealAura(Player* bot, AuraEffect const* aurEff, Unit const* unit)
         spellInfo->Effects[aurEff->GetEffIndex()].IsAreaAuraEffect())
         return true;
 
+    return false;
+}
+
+bool PlayerbotAI::canDispel(SpellInfo const* spellInfo, uint32 dispelType)
+{
+    static std::vector<std::string> dispel_whitelist =
+    {
+        "mutating injection",
+        "frostbolt",
+    };
+
+    if (spellInfo->Dispel != dispelType)
+        return false;
+
+    if (!spellInfo->SpellName[0])
+    {
+        return true;
+    }
+
+    for (std::string& wl : dispel_whitelist)
+    {
+        if (strcmpi((const char*)spellInfo->SpellName[0], wl.c_str()) == 0)
+        {
+            return false;
+        }
+    }
+
+    return !spellInfo->SpellName[0] || (strcmpi((const char*)spellInfo->SpellName[0], "demon skin") &&
+        strcmpi((const char*)spellInfo->SpellName[0], "mage armor") &&
+        strcmpi((const char*)spellInfo->SpellName[0], "frost armor") &&
+        strcmpi((const char*)spellInfo->SpellName[0], "wavering will") &&
+        strcmpi((const char*)spellInfo->SpellName[0], "chilled") &&
+        strcmpi((const char*)spellInfo->SpellName[0], "mana tap") &&
+        strcmpi((const char*)spellInfo->SpellName[0], "ice armor"));
+}
+
+bool PlayerbotAI::HasAuraToDispel(Unit* target, uint32 dispelType)
+{
+    if (!target->IsInWorld())
+    {
+        return false;
+    }
+    bool isFriend = bot->IsFriendlyTo(target);
+    Unit::VisibleAuraMap const* visibleAuras = target->GetVisibleAuras();
+    for (Unit::VisibleAuraMap::const_iterator itr = visibleAuras->begin(); itr != visibleAuras->end(); ++itr)
+    {
+        Aura* aura = itr->second->GetBase();
+
+        if (aura->IsPassive())
+            continue;
+
+        if (sPlayerbotAIConfig->dispelAuraDuration && aura->GetDuration() &&
+            aura->GetDuration() < (int32)sPlayerbotAIConfig->dispelAuraDuration)
+            continue;
+
+        SpellInfo const* spellInfo = aura->GetSpellInfo();
+
+        bool isPositiveSpell = spellInfo->IsPositive();
+        if (isPositiveSpell && isFriend)
+            continue;
+
+        if (!isPositiveSpell && !isFriend)
+            continue;
+
+        if (canDispel(spellInfo, dispelType))
+            return true;
+    }
     return false;
 }
 
@@ -1361,14 +1454,6 @@ bool PlayerbotAI::HasAura(uint32 spellId, Unit const* unit)
         return false;
 
     return unit->HasAura(spellId);
-    // for (uint8 effect = EFFECT_0; effect <= EFFECT_2; effect++)
-    // {
-    // 	AuraEffect const* aurEff = unit->GetAuraEffect(spellId, effect);
-    // 	if (IsRealAura(bot, aurEff, unit))
-    // 		return true;
-    // }
-
-    // return false;
 }
 
 void PlayerbotAI::RemoveShapeshift()
@@ -1459,6 +1544,34 @@ bool PlayerbotAI::HasAnyAuraOf(Unit* player, ...)
     }
 
     va_end(vl);
+    return false;
+}
+
+bool PlayerbotAI::IsInterruptableSpellCasting(Unit* target, std::string const spell)
+{
+    uint32 spellid = _aiObjectContext->GetValue<uint32>("spell id", spell)->Get();
+    if (!spellid || !target->IsNonMeleeSpellCasted(true))
+        return false;
+
+    SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellid);
+    if (!spellInfo)
+        return false;
+
+    for (uint8 i = EFFECT_0; i <= EFFECT_2; i++)
+    {
+        if ((spellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_INTERRUPT) &&
+            spellInfo->PreventionType == SPELL_PREVENTION_TYPE_SILENCE)
+            return true;
+
+        if (spellInfo->Effects[i].Effect == SPELL_EFFECT_INTERRUPT_CAST &&
+            !target->IsImmunedToSpellEffect(spellInfo, i))
+            return true;
+
+        if ((spellInfo->Effects[i].Effect == SPELL_EFFECT_APPLY_AURA) &&
+            spellInfo->Effects[i].ApplyAuraName == SPELL_AURA_MOD_SILENCE)
+            return true;
+    }
+
     return false;
 }
 
@@ -1809,8 +1922,6 @@ bool PlayerbotAI::CanCastSpell(uint32 spellid, float x, float y, float z, uint8 
 
 bool PlayerbotAI::CastSpell(std::string const name, Unit* target, Item* itemTarget)
 {
-    if (name == "frostfire bolt")
-        TC_LOG_DEBUG("playerbots", "frostfire bolt");
     bool result = CastSpell(_aiObjectContext->GetValue<uint32>("spell id", name)->Get(), target, itemTarget);
     if (result)
     {
@@ -1955,7 +2066,7 @@ bool PlayerbotAI::CastSpell(uint32 spellId, Unit* target, Item* itemTarget)
     if (result != SPELL_CAST_OK)
     {
         // if (!sPlayerbotAIConfig->logInGroupOnly || (bot->GetGroup() && HasRealPlayerMaster())) {
-        TC_LOG_DEBUG("playerbots", "Spell cast failed. - target name: %s, spellid: %u, bot name: %s, result: %u", target->GetName().c_str(), spellId, bot->GetName().c_str(), result);
+        //TC_LOG_DEBUG("playerbots", "Spell cast failed. - target name: %s, spellid: %u, bot name: %s, result: %u", target->GetName().c_str(), spellId, bot->GetName().c_str(), result);
         // }
         return false;
     }
@@ -2103,4 +2214,233 @@ bool PlayerbotAI::CastSpell(uint32 spellId, float x, float y, float z, Item* ite
     }*/
 
     return true;
+}
+
+float PlayerbotAI::GetItemScoreMultiplier(ItemQualities quality)
+{
+    switch (quality)
+    {
+        // each quality increase 1.1x
+        case ITEM_QUALITY_POOR:
+            return 1.0f;
+            break;
+        case ITEM_QUALITY_NORMAL:
+            return 1.1f;
+            break;
+        case ITEM_QUALITY_UNCOMMON:
+            return 1.21f;
+            break;
+        case ITEM_QUALITY_RARE:
+            return 1.331f;
+            break;
+        case ITEM_QUALITY_EPIC:
+            return 1.4641f;
+            break;
+        case ITEM_QUALITY_LEGENDARY:
+            return 1.61051f;
+            break;
+        default:
+            break;
+    }
+    return 1.0f;
+}
+
+void PlayerbotAI::_fillGearScoreData(Player* player, Item* item, std::vector<uint32>* gearScore, uint32& twoHandScore,
+    bool mixed)
+{
+    if (!item)
+        return;
+
+    ItemTemplate const* proto = item->GetTemplate();
+    if (player->CanUseItem(proto) != EQUIP_ERR_OK)
+        return;
+
+    uint8 type = proto->InventoryType;
+    uint32 level = mixed ? proto->ItemLevel * PlayerbotAI::GetItemScoreMultiplier(ItemQualities(proto->Quality))
+        : proto->ItemLevel;
+
+    switch (type)
+    {
+    case INVTYPE_2HWEAPON:
+        twoHandScore = std::max(twoHandScore, level);
+        break;
+    case INVTYPE_WEAPON:
+    case INVTYPE_WEAPONMAINHAND:
+        (*gearScore)[SLOT_MAIN_HAND] = std::max((*gearScore)[SLOT_MAIN_HAND], level);
+        break;
+    case INVTYPE_SHIELD:
+    case INVTYPE_WEAPONOFFHAND:
+        (*gearScore)[EQUIPMENT_SLOT_OFFHAND] = std::max((*gearScore)[EQUIPMENT_SLOT_OFFHAND], level);
+        break;
+    case INVTYPE_THROWN:
+    case INVTYPE_RANGEDRIGHT:
+    case INVTYPE_RANGED:
+    case INVTYPE_QUIVER:
+    case INVTYPE_RELIC:
+        (*gearScore)[EQUIPMENT_SLOT_RANGED] = std::max((*gearScore)[EQUIPMENT_SLOT_RANGED], level);
+        break;
+    case INVTYPE_HEAD:
+        (*gearScore)[EQUIPMENT_SLOT_HEAD] = std::max((*gearScore)[EQUIPMENT_SLOT_HEAD], level);
+        break;
+    case INVTYPE_NECK:
+        (*gearScore)[EQUIPMENT_SLOT_NECK] = std::max((*gearScore)[EQUIPMENT_SLOT_NECK], level);
+        break;
+    case INVTYPE_SHOULDERS:
+        (*gearScore)[EQUIPMENT_SLOT_SHOULDERS] = std::max((*gearScore)[EQUIPMENT_SLOT_SHOULDERS], level);
+        break;
+    case INVTYPE_BODY:
+        (*gearScore)[EQUIPMENT_SLOT_BODY] = std::max((*gearScore)[EQUIPMENT_SLOT_BODY], level);
+        break;
+    case INVTYPE_CHEST:
+        (*gearScore)[EQUIPMENT_SLOT_CHEST] = std::max((*gearScore)[EQUIPMENT_SLOT_CHEST], level);
+        break;
+    case INVTYPE_WAIST:
+        (*gearScore)[EQUIPMENT_SLOT_WAIST] = std::max((*gearScore)[EQUIPMENT_SLOT_WAIST], level);
+        break;
+    case INVTYPE_LEGS:
+        (*gearScore)[EQUIPMENT_SLOT_LEGS] = std::max((*gearScore)[EQUIPMENT_SLOT_LEGS], level);
+        break;
+    case INVTYPE_FEET:
+        (*gearScore)[EQUIPMENT_SLOT_FEET] = std::max((*gearScore)[EQUIPMENT_SLOT_FEET], level);
+        break;
+    case INVTYPE_WRISTS:
+        (*gearScore)[EQUIPMENT_SLOT_WRISTS] = std::max((*gearScore)[EQUIPMENT_SLOT_WRISTS], level);
+        break;
+    case INVTYPE_HANDS:
+        (*gearScore)[EQUIPMENT_SLOT_HEAD] = std::max((*gearScore)[EQUIPMENT_SLOT_HEAD], level);
+        break;
+        // equipped gear score check uses both rings and trinkets for calculation, assume that for bags/banks it is the
+        // same with keeping second highest score at second slot
+    case INVTYPE_FINGER:
+    {
+        if ((*gearScore)[EQUIPMENT_SLOT_FINGER1] < level)
+        {
+            (*gearScore)[EQUIPMENT_SLOT_FINGER2] = (*gearScore)[EQUIPMENT_SLOT_FINGER1];
+            (*gearScore)[EQUIPMENT_SLOT_FINGER1] = level;
+        }
+        else if ((*gearScore)[EQUIPMENT_SLOT_FINGER2] < level)
+            (*gearScore)[EQUIPMENT_SLOT_FINGER2] = level;
+        break;
+    }
+    case INVTYPE_TRINKET:
+    {
+        if ((*gearScore)[EQUIPMENT_SLOT_TRINKET1] < level)
+        {
+            (*gearScore)[EQUIPMENT_SLOT_TRINKET2] = (*gearScore)[EQUIPMENT_SLOT_TRINKET1];
+            (*gearScore)[EQUIPMENT_SLOT_TRINKET1] = level;
+        }
+        else if ((*gearScore)[EQUIPMENT_SLOT_TRINKET2] < level)
+            (*gearScore)[EQUIPMENT_SLOT_TRINKET2] = level;
+        break;
+    }
+    case INVTYPE_CLOAK:
+        (*gearScore)[EQUIPMENT_SLOT_BACK] = std::max((*gearScore)[EQUIPMENT_SLOT_BACK], level);
+        break;
+    default:
+        break;
+    }
+}
+
+uint32 PlayerbotAI::GetMixedGearScore(Player* player, bool withBags, bool withBank, uint32 topN)
+{
+    std::vector<uint32> gearScore(EQUIPMENT_SLOT_END);
+    uint32 twoHandScore = 0;
+
+    for (uint8 i = EQUIPMENT_SLOT_START; i < EQUIPMENT_SLOT_END; ++i)
+    {
+        if (Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
+            _fillGearScoreData(player, item, &gearScore, twoHandScore, true);
+    }
+
+    if (withBags)
+    {
+        // check inventory
+        for (uint8 i = INVENTORY_SLOT_ITEM_START; i < INVENTORY_SLOT_ITEM_END; ++i)
+        {
+            if (Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
+                _fillGearScoreData(player, item, &gearScore, twoHandScore, true);
+        }
+
+        // check bags
+        for (uint8 i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; ++i)
+        {
+            if (Bag* pBag = (Bag*)player->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
+            {
+                for (uint32 j = 0; j < pBag->GetBagSize(); ++j)
+                {
+                    if (Item* item2 = pBag->GetItemByPos(j))
+                        _fillGearScoreData(player, item2, &gearScore, twoHandScore, true);
+                }
+            }
+        }
+    }
+
+    if (withBank)
+    {
+        for (uint8 i = BANK_SLOT_ITEM_START; i < BANK_SLOT_ITEM_END; ++i)
+        {
+            if (Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
+                _fillGearScoreData(player, item, &gearScore, twoHandScore, true);
+        }
+
+        for (uint8 i = BANK_SLOT_BAG_START; i < BANK_SLOT_BAG_END; ++i)
+        {
+            if (Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
+            {
+                if (item->IsBag())
+                {
+                    Bag* bag = (Bag*)item;
+                    for (uint8 j = 0; j < bag->GetBagSize(); ++j)
+                    {
+                        if (Item* item2 = bag->GetItemByPos(j))
+                            _fillGearScoreData(player, item2, &gearScore, twoHandScore, true);
+                    }
+                }
+            }
+        }
+    }
+    if (!topN)
+    {
+        uint8 count = EQUIPMENT_SLOT_END - 2;  // ignore body and tabard slots
+        uint32 sum = 0;
+
+        // check if 2h hand is higher level than main hand + off hand
+        if (gearScore[EQUIPMENT_SLOT_MAINHAND] + gearScore[EQUIPMENT_SLOT_OFFHAND] < twoHandScore * 2)
+        {
+            gearScore[EQUIPMENT_SLOT_OFFHAND] = 0;  // off hand is ignored in calculations if 2h weapon has higher score
+            --count;
+            gearScore[EQUIPMENT_SLOT_MAINHAND] = twoHandScore;
+        }
+
+        for (uint8 i = EQUIPMENT_SLOT_START; i < EQUIPMENT_SLOT_END; ++i)
+        {
+            sum += gearScore[i];
+        }
+
+        if (count)
+        {
+            uint32 res = uint32(sum / count);
+            return res;
+        }
+
+        return 0;
+    }
+    // topN != 0
+    if (gearScore[EQUIPMENT_SLOT_MAINHAND] + gearScore[EQUIPMENT_SLOT_OFFHAND] < twoHandScore * 2)
+    {
+        gearScore[EQUIPMENT_SLOT_OFFHAND] = twoHandScore;
+        gearScore[EQUIPMENT_SLOT_MAINHAND] = twoHandScore;
+    }
+    std::vector<uint32> topGearScore;
+    for (uint8 i = EQUIPMENT_SLOT_START; i < EQUIPMENT_SLOT_END; ++i)
+    {
+        topGearScore.push_back(gearScore[i]);
+    }
+    std::sort(topGearScore.begin(), topGearScore.end(), [&](const uint32 lhs, const uint32 rhs) { return lhs > rhs; });
+    uint32 sum = 0;
+    for (int i = 0; i < std::min((uint32)topGearScore.size(), topN); i++)
+    {
+        sum += topGearScore[i];
+    }
+    return sum / topN;
 }

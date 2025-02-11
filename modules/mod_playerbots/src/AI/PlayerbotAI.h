@@ -55,6 +55,24 @@ class WorldObject;
 
 struct CreatureData;
 
+class MinValueCalculator
+{
+public:
+    MinValueCalculator(float def = 0.0f) : param(nullptr), minValue(def) {}
+
+    void probe(float value, void* p)
+    {
+        if (!param || minValue >= value)
+        {
+            minValue = value;
+            param = p;
+        }
+    }
+
+    void* param;
+    float minValue;
+};
+
 class PacketHandlingHelper
 {
 public:
@@ -74,6 +92,13 @@ public:
     PlayerbotAI(Player* bot);
     virtual ~PlayerbotAI();
 
+    /* static */
+    static uint32 GetMixedGearScore(Player* player, bool withBags, bool withBank, uint32 topN = 0);
+    static float GetItemScoreMultiplier(ItemQualities quality);
+private:
+    static void _fillGearScoreData(Player* player, Item* item, std::vector<uint32>* gearScore, uint32& twoHandScore, bool mixed = false);
+
+public:
     void UpdateAI(uint32 elapsed, bool minimal = false) override;
     void UpdateAIInternal(uint32 elapsed, bool minimal = false) override;
     bool AllowActivity(ActivityType activityType = ALL_ACTIVITY, bool checkNow = false);
@@ -131,6 +156,9 @@ public:
 
     uint32 GetReactDelay();
     void InterruptSpell();
+    virtual bool IsInterruptableSpellCasting(Unit* player, std::string const spell);
+    bool canDispel(SpellInfo const* spellInfo, uint32 dispelType);
+    virtual bool HasAuraToDispel(Unit* player, uint32 dispelType);
     void RemoveAura(std::string const name);
     void RemoveShapeshift();
     void SpellInterrupted(uint32 spellid);
@@ -149,6 +177,8 @@ public:
     bool CanCastSpell(uint32 spellid, float x, float y, float z, uint8 effectMask, bool checkHasSpell = true,
         Item* itemTarget = nullptr);
     bool HasAura(uint32 spellId, Unit const* player);
+
+    int32 GetNearGroupMemberCount(float dis = sPlayerbotAIConfig->sightDistance);
 
     bool TellMasterNoFacing(std::string const text);
     bool TellMasterNoFacing(std::ostringstream& stream);

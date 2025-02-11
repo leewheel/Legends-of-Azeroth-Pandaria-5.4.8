@@ -78,7 +78,7 @@ bool CastPowerWordShieldOnAlmostFullHealthBelowAction::isUseful()
 
 Unit* CastPowerWordShieldOnNotFullAction::GetTarget()
 {
-    /*Group* group = bot->GetGroup();
+    Group* group = bot->GetGroup();
     MinValueCalculator calc(100);
     for (GroupReference* gref = group->GetFirstMember(); gref; gref = gref->next())
     {
@@ -99,9 +99,7 @@ Unit* CastPowerWordShieldOnNotFullAction::GetTarget()
         }
         calc.probe(player->GetHealthPct(), player);
     }
-    return (Unit*)calc.param;*/
-    botAI->Say("CastPowerWordShieldOnNotFullAction is todo");
-    return botAI->GetBot();
+    return (Unit*)calc.param;
 }
 
 bool CastPowerWordShieldOnNotFullAction::isUseful()

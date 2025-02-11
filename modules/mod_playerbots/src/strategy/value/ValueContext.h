@@ -1,10 +1,13 @@
 #ifndef _PLAYERBOT_VALUECONTEXT_H
 #define _PLAYERBOT_VALUECONTEXT_H
 
+#include "ActiveSpellValue.h"
 #include "AttackersValue.h"
+#include "AttackerCountValues.h"
 #include "CurrentTargetValue.h"
 #include "DistanceValue.h"
 #include "EnemyPlayerValue.h"
+#include "EstimatedLifetimeValue.h"
 #include "GroupValues.h"
 #include "GrindTargetValue.h"
 #include "InvalidTargetValue.h"
@@ -17,6 +20,10 @@
 #include "ManaSaveLevelValue.h"
 #include "NearestUnitsValue.h"
 #include "NearestFriendlyPlayersValue.h"
+#include "PartyMemberToDispelValue.h"
+#include "PartyMemberToHealValue.h"
+#include "PartyMemberToResurectValue.h"
+#include "PetTargetValue.h"
 #include "PositionValue.h"
 #include "StatsValues.h"
 #include "SelfTargetValue.h"
@@ -61,6 +68,8 @@ public:
         creators["swimming"] = &ValueContext::swimming;
         creators["behind"] = &ValueContext::behind;
         creators["facing"] = &ValueContext::facing;
+        creators["has aggro"] = &ValueContext::has_aggro;
+        creators["balance"] = &ValueContext::balance;
         creators["attackers"] = &ValueContext::attackers;
         creators["possible adds"] = &ValueContext::possible_adds;
         creators["prioritized targets"] = &ValueContext::prioritized_targets;
@@ -75,6 +84,7 @@ public:
 
         creators["all targets"] = &ValueContext::all_targets;
         creators["self target"] = &ValueContext::self_target;
+        creators["pet target"] = &ValueContext::pet_target;
         creators["current target"] = &ValueContext::current_target;
         creators["old target"] = &ValueContext::old_target;
         creators["grind target"] = &ValueContext::grind_target;
@@ -106,12 +116,21 @@ public:
         creators["group or"] = &ValueContext::group_or;
         creators["group ready"] = &ValueContext::group_ready;
 
+        creators["active spell"] = &ValueContext::active_spell;
         creators["spell id"] = &ValueContext::spell_id;
         creators["vehicle spell id"] = &ValueContext::vehicle_spell_id;
         //creators["item for spell"] = &ValueContext::item_for_spell;
         creators["spell cast useful"] = &ValueContext::spell_cast_useful;
         creators["last spell cast"] = &ValueContext::last_spell_cast;
         creators["last spell cast time"] = &ValueContext::last_spell_cast_time;
+
+        creators["estimated lifetime"] = &ValueContext::expected_lifetime;
+        creators["estimated group dps"] = &ValueContext::expected_group_dps;
+
+        creators["party member to heal"] = &ValueContext::party_member_to_heal;
+        creators["party member to resurrect"] = &ValueContext::party_member_to_resurrect;
+        creators["party member to dispel"] = &ValueContext::party_member_to_dispel;
+        creators["party member to protect"] = &ValueContext::party_member_to_protect;
     }
 
 private:
@@ -145,12 +164,15 @@ private:
     static UntypedValue* swimming(PlayerbotAI* botAI) { return new IsSwimmingValue(botAI); }
     static UntypedValue* distance(PlayerbotAI* botAI) { return new DistanceValue(botAI); }
 
+    static UntypedValue* balance(PlayerbotAI* botAI) { return new BalancePercentValue(botAI); }
+    static UntypedValue* has_aggro(PlayerbotAI* botAI) { return new HasAggroValue(botAI); }
     static UntypedValue* attackers(PlayerbotAI* botAI) { return new AttackersValue(botAI); }
     static UntypedValue* possible_adds(PlayerbotAI* botAI) { return new PossibleAddsValue(botAI); }
     static UntypedValue* prioritized_targets(PlayerbotAI* botAI) { return new PrioritizedTargetsValue(botAI); }
 
     static UntypedValue* all_targets(PlayerbotAI* botAI) { return new AllTargetsValue(botAI); }
     static UntypedValue* self_target(PlayerbotAI* botAI) { return new SelfTargetValue(botAI); }
+    static UntypedValue* pet_target(PlayerbotAI* botAI) { return new PetTargetValue(botAI); }
     static UntypedValue* current_target(PlayerbotAI* botAI) { return new CurrentTargetValue(botAI); }
     static UntypedValue* possible_triggers(PlayerbotAI* botAI) { return new PossibleTriggersValue(botAI); }
     static UntypedValue* possible_targets(PlayerbotAI* botAI) { return new PossibleTargetsValue(botAI); }
@@ -185,12 +207,21 @@ private:
     static UntypedValue* group_or(PlayerbotAI* botAI) { return new GroupBoolORValue(botAI); }
     static UntypedValue* group_ready(PlayerbotAI* botAI) { return new GroupReadyValue(botAI); }
 
+    static UntypedValue* active_spell(PlayerbotAI* botAI) { return new ActiveSpellValue(botAI); }
     static UntypedValue* spell_id(PlayerbotAI* botAI) { return new SpellIdValue(botAI); }
     static UntypedValue* vehicle_spell_id(PlayerbotAI* botAI) { return new VehicleSpellIdValue(botAI); }
     //static UntypedValue* inventory_item(PlayerbotAI* botAI) { return new InventoryItemValue(botAI); }
     static UntypedValue* last_spell_cast(PlayerbotAI* botAI) { return new LastSpellCastValue(botAI); }
     static UntypedValue* last_spell_cast_time(PlayerbotAI* botAI) { return new LastSpellCastTimeValue(botAI); }
     static UntypedValue* spell_cast_useful(PlayerbotAI* botAI) { return new SpellCastUsefulValue(botAI); }
+
+    static UntypedValue* expected_lifetime(PlayerbotAI* ai) { return new EstimatedLifetimeValue(ai); }
+    static UntypedValue* expected_group_dps(PlayerbotAI* ai) { return new EstimatedGroupDpsValue(ai); }
+
+    static UntypedValue* party_member_to_heal(PlayerbotAI* botAI) { return new PartyMemberToHeal(botAI); }
+    static UntypedValue* party_member_to_resurrect(PlayerbotAI* botAI) { return new PartyMemberToResurrect(botAI); }
+    static UntypedValue* party_member_to_dispel(PlayerbotAI* botAI) { return new PartyMemberToDispel(botAI); }
+    static UntypedValue* party_member_to_protect(PlayerbotAI* botAI) { return new PartyMemberToProtect(botAI); }
 };
 
 #endif
