@@ -595,28 +595,28 @@ bool Engine::ListenAndExecute(Action* action, Event event)
 
 void Engine::LogAction(char const* format, ...)
 {
-    Player* bot = botAI->GetBot();
-    //if (sPlayerbotAIConfig->logInGroupOnly && (!bot->GetGroup() || !botAI->HasRealPlayerMaster()) && !testMode)
-        //return;
-
-    char buf[1024];
-
-    va_list ap;
-    va_start(ap, format);
-    vsprintf(buf, format, ap);
-    va_end(ap);
-
-    lastAction += "|";
-    lastAction += buf;
-    if (lastAction.size() > 512)
+    if (testMode)
     {
-        lastAction = lastAction.substr(512);
-        size_t pos = lastAction.find("|");
-        lastAction = (pos == std::string::npos ? "" : lastAction.substr(pos));
-    }
+        Player* bot = botAI->GetBot();
+        //if (sPlayerbotAIConfig->logInGroupOnly && (!bot->GetGroup() || !botAI->HasRealPlayerMaster()) && !testMode)
+            //return;
 
-    if (true)
-    {
+        char buf[1024];
+
+        va_list ap;
+        va_start(ap, format);
+        vsprintf(buf, format, ap);
+        va_end(ap);
+
+        lastAction += "|";
+        lastAction += buf;
+        if (lastAction.size() > 512)
+        {
+            lastAction = lastAction.substr(512);
+            size_t pos = lastAction.find("|");
+            lastAction = (pos == std::string::npos ? "" : lastAction.substr(pos));
+        }
+    
         FILE* file = fopen("test.log", "a");
         fprintf(file, "'%s'", buf);
         fprintf(file, "\n");
