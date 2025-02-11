@@ -853,13 +853,15 @@ std::vector<std::string> PlayerbotHolder::HandlePlayerbotCommand(char const* arg
 
     if (!strcmp(cmd, "setspec") && master && master->GetTarget())
     {
+        uint32 tab = std::atoi(charname);
         WorldPacket p(CMSG_SET_PRIMARY_TALENT_TREE);
-        p << 2;
+        p << tab;
 
         auto bot = ObjectAccessor::FindConnectedPlayer(master->GetTarget());
         if (bot)
         {
             bot->GetSession()->HandeSetTalentSpecialization(p);
+            bot->SetActiveSpec(1);
         }
         return StringVector();
     }
@@ -1340,7 +1342,7 @@ void PlayerbotMgr::OnBotLoginInternal(Player* const bot)
     botAI->SetMaster(master);
     //botAI->ResetStrategies();
 
-    TC_LOG_INFO("playerbots", "Bot %s logged in", bot->GetName().c_str());
+    TC_LOG_INFO("playerbots", "Bot %s logged in - Active spec tab: %u Spec: %u ", bot->GetName().c_str(), (uint32)bot->GetActiveSpec(), (uint32)bot->GetSpecialization());
 }
 
 void PlayerbotMgr::OnPlayerLogin(Player* player)

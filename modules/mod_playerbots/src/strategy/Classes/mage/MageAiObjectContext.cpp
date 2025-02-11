@@ -89,11 +89,11 @@ class MageAiObjectContextInternal : public NamedObjectContext<Action>
 public:
     MageAiObjectContextInternal()
     {
-        // -- generic
-        creators["molten armor"] = &MageAiObjectContextInternal::molten_armor;
-        creators["mage armor"] = &MageAiObjectContextInternal::mage_armor;
-        creators["frost armor"] = &MageAiObjectContextInternal::frost_armor;
-        creators["arcane brilliance"] = &MageAiObjectContextInternal::arcane_brilliance;
+        // -- generic needs triggers
+        //creators["molten armor"] = &MageAiObjectContextInternal::molten_armor;
+        //creators["mage armor"] = &MageAiObjectContextInternal::mage_armor;
+        //creators["frost armor"] = &MageAiObjectContextInternal::frost_armor;
+        //creators["arcane brilliance"] = &MageAiObjectContextInternal::arcane_brilliance;
 
         creators["frostfire bolt"] = &MageAiObjectContextInternal::frostfirebolt;
         creators["frost nova"] = &MageAiObjectContextInternal::frostnova;
