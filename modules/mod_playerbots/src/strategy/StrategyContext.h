@@ -1,8 +1,3 @@
-/*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU GPL v2 license, you may redistribute it
- * and/or modify it under version 2 of the License, or (at your option), any later version.
- */
-
 #ifndef _PLAYERBOT_STRATEGYCONTEXT_H
 #define _PLAYERBOT_STRATEGYCONTEXT_H
 
@@ -13,6 +8,8 @@
 
 #include "ConserveManaStrategy.h"
 #include "MeleeCombatStrategy.h"
+#include "DpsAssistStrategy.h"
+#include "TankAssistStrategy.h"
 #include "DeadStrategy.h"
 #include "HelloStrategy.h"
 #include "RangedCombatStrategy.h"
@@ -47,6 +44,22 @@ private:
     static Strategy* close(PlayerbotAI* botAI) { return new MeleeCombatStrategy(botAI); }
     static Strategy* ranged(PlayerbotAI* botAI) { return new RangedCombatStrategy(botAI); }
     static Strategy* dead(PlayerbotAI* botAI) { return new DeadStrategy(botAI); }
+};
+
+class AssistStrategyContext : public NamedObjectContext<Strategy>
+{
+public:
+    AssistStrategyContext() : NamedObjectContext<Strategy>(false, true)
+    {
+        creators["dps assist"] = &AssistStrategyContext::dps_assist;
+        creators["dps aoe"] = &AssistStrategyContext::dps_aoe;
+        creators["tank assist"] = &AssistStrategyContext::tank_assist;
+    }
+
+private:
+    static Strategy* dps_assist(PlayerbotAI* botAI) { return new DpsAssistStrategy(botAI); }
+    static Strategy* dps_aoe(PlayerbotAI* botAI) { return new DpsAoeStrategy(botAI); }
+    static Strategy* tank_assist(PlayerbotAI* botAI) { return new TankAssistStrategy(botAI); }
 };
 
 #endif

@@ -41,6 +41,8 @@ public:
         creators["enemy too close for melee"] = &TriggerContext::enemy_too_close_for_melee;
         creators["enemy is close"] = &TriggerContext::enemy_is_close;
         creators["enemy within melee"] = &TriggerContext::enemy_within_melee;
+        creators["not dps target active"] = &TriggerContext::not_dps_target_active;
+        creators["not dps aoe target active"] = &TriggerContext::not_dps_aoe_target_active;
 
         creators["party member to heal out of spell range"] = &TriggerContext::party_member_to_heal_out_of_spell_range;
         creators["no target"] = &TriggerContext::NoTarget;
@@ -83,6 +85,9 @@ private:
     static Trigger* enemy_too_close_for_melee(PlayerbotAI* botAI) { return new EnemyTooCloseForMeleeTrigger(botAI); }
     static Trigger* enemy_is_close(PlayerbotAI* botAI) { return new EnemyIsCloseTrigger(botAI); }
     static Trigger* enemy_within_melee(PlayerbotAI* botAI) { return new EnemyWithinMeleeTrigger(botAI); }
+    static Trigger* not_dps_target_active(PlayerbotAI* botAI) { return new NotDpsTargetActiveTrigger(botAI); }
+    static Trigger* not_dps_aoe_target_active(PlayerbotAI* botAI) { return new NotDpsAoeTargetActiveTrigger(botAI); }
+
     static Trigger* party_member_to_heal_out_of_spell_range(PlayerbotAI* botAI) { return new PartyMemberToHealOutOfSpellRangeTrigger(botAI); }
     static Trigger* target_changed(PlayerbotAI* botAI) { return new TargetChangedTrigger(botAI); }
     static Trigger* NoTarget(PlayerbotAI* botAI) { return new NoTargetTrigger(botAI); }

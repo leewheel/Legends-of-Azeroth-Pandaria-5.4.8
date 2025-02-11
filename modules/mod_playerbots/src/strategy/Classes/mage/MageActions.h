@@ -57,12 +57,6 @@ public:
     CastArcaneExplosionAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "arcane explosion") {}
 };
 
-class CastMageBombAction : public CastSpellAction
-{
-public:
-    CastMageBombAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "mage bomb") {}
-};
-
 class CastPyroblastAction : public CastSpellAction
 {
 public:
@@ -133,7 +127,7 @@ public:
 class CastArcaneBrillanceAction : public CastBuffSpellAction
 {
 public:
-    CastArcaneBrillanceAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "arcane brillance") {}
+    CastArcaneBrillanceAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "arcane brilliance") {}
 };
 
 class CastRemoveCurseAction : public CastCureSpellAction

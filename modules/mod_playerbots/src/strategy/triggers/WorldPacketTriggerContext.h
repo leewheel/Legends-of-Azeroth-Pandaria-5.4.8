@@ -21,6 +21,8 @@ public:
 
         creators["release spirit"] = &WorldPacketTriggerContext::release_spirit;
         creators["revive from corpse"] = &WorldPacketTriggerContext::revive_from_corpse;
+
+        creators["levelup"] = &WorldPacketTriggerContext::levelup;
     }
 
 private:
@@ -31,6 +33,8 @@ private:
 
     static Trigger* release_spirit(PlayerbotAI* botAI) { return new WorldPacketTrigger(botAI, "release spirit"); }
     static Trigger* revive_from_corpse(PlayerbotAI* botAI) { return new WorldPacketTrigger(botAI, "revive from corpse"); }
+
+    static Trigger* levelup(PlayerbotAI* botAI) { return new WorldPacketTrigger(botAI, "levelup"); }
 };
 
 #endif

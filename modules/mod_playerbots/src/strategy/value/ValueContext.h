@@ -6,6 +6,7 @@
 #include "AttackerCountValues.h"
 #include "CurrentTargetValue.h"
 #include "DistanceValue.h"
+#include "DpsTargetValue.h"
 #include "EnemyPlayerValue.h"
 #include "EstimatedLifetimeValue.h"
 #include "GroupValues.h"
@@ -31,6 +32,8 @@
 #include "SpellIdValue.h"
 #include "PossibleTargetsValue.h"
 #include "RangeValues.h"
+#include "RtiValue.h"
+#include "RtiTargetValue.h"
 
 class PlayerbotAI;
 class ValueContext : public NamedObjectContext<UntypedValue>
@@ -72,8 +75,13 @@ public:
         creators["balance"] = &ValueContext::balance;
         creators["attackers"] = &ValueContext::attackers;
         creators["possible adds"] = &ValueContext::possible_adds;
-        creators["prioritized targets"] = &ValueContext::prioritized_targets;
 
+        creators["rti target"] = &ValueContext::rti_target;
+        creators["rti cc target"] = &ValueContext::rti_cc_target;
+        creators["rti cc"] = &ValueContext::rti_cc;
+        creators["rti"] = &ValueContext::rti;
+
+        creators["prioritized targets"] = &ValueContext::prioritized_targets;
         creators["possible triggers"] = &ValueContext::possible_triggers;
         creators["possible targets"] = &ValueContext::possible_targets;
         creators["possible targets no los"] = &ValueContext::possible_targets_no_los;
@@ -94,6 +102,8 @@ public:
         creators["closest friendly players"] = &ValueContext::closest_friendly_players;
         creators["nearest enemy players"] = &ValueContext::nearest_enemy_players;
         creators["enemy player target"] = &ValueContext::enemy_player_target;
+        creators["dps target"] = &ValueContext::dps_target;
+        creators["dps aoe target"] = &ValueContext::dps_aoe_target;
 
         creators["can move around"] = &ValueContext::can_move_around;
         creators["should home bind"] = &ValueContext::should_home_bind;
@@ -163,6 +173,10 @@ private:
     static UntypedValue* moving(PlayerbotAI* botAI) { return new IsMovingValue(botAI); }
     static UntypedValue* swimming(PlayerbotAI* botAI) { return new IsSwimmingValue(botAI); }
     static UntypedValue* distance(PlayerbotAI* botAI) { return new DistanceValue(botAI); }
+    static UntypedValue* rti_target(PlayerbotAI* botAI) { return new RtiTargetValue(botAI); }
+    static UntypedValue* rti_cc_target(PlayerbotAI* botAI) { return new RtiCcTargetValue(botAI); }
+    static UntypedValue* rti(PlayerbotAI* botAI) { return new RtiValue(botAI); }
+    static UntypedValue* rti_cc(PlayerbotAI* botAI) { return new RtiCcValue(botAI); }
 
     static UntypedValue* balance(PlayerbotAI* botAI) { return new BalancePercentValue(botAI); }
     static UntypedValue* has_aggro(PlayerbotAI* botAI) { return new HasAggroValue(botAI); }
@@ -185,6 +199,8 @@ private:
     static UntypedValue* closest_friendly_players(PlayerbotAI* botAI) { return new NearestFriendlyPlayersValue(botAI, INTERACTION_DISTANCE); }
     static UntypedValue* nearest_enemy_players(PlayerbotAI* botAI) { return new NearestEnemyPlayersValue(botAI); }
     static UntypedValue* enemy_player_target(PlayerbotAI* botAI) { return new EnemyPlayerValue(botAI); }
+    static UntypedValue* dps_target(PlayerbotAI* botAI) { return new DpsTargetValue(botAI); }
+    static UntypedValue* dps_aoe_target(PlayerbotAI* botAI) { return new DpsAoeTargetValue(botAI); }
 
     static UntypedValue* can_move_around(PlayerbotAI* botAI) { return new CanMoveAroundValue(botAI); }
     static UntypedValue* should_home_bind(PlayerbotAI* botAI) { return new ShouldHomeBindValue(botAI); }

@@ -67,5 +67,5 @@ void MageBuffDpsStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 
 void MageBuffStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
-    triggers.push_back(new TriggerNode("arcane brilliance on party", NextAction::array(0, new NextAction("arcane brilliance on party", 20.0f), nullptr)));
+    //triggers.push_back(new TriggerNode("arcane brilliance on party", NextAction::array(0, new NextAction("arcane intellect on party", 20.0f), nullptr)));
 }

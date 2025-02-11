@@ -491,6 +491,98 @@ Engine* AiFactory::createCombatEngine(Player* player, PlayerbotAI* const facade,
 
 void AiFactory::AddDefaultNonCombatStrategies(Player* player, PlayerbotAI* const facade, Engine* nonCombatEngine)
 {
+    const uint8 tab = GetPlayerSpecTab(player);
+
+    switch (player->GetClass())
+    {
+        case CLASS_PRIEST:
+            nonCombatEngine->addStrategiesNoInit("dps assist", "cure", nullptr);
+            break;
+        case CLASS_PALADIN:
+            if (tab == 1)
+            {
+                nonCombatEngine->addStrategiesNoInit("bthreat", "tank assist", "barmor", nullptr);
+                if (player->GetLevel() >= 20)
+                {
+                    nonCombatEngine->addStrategy("bstats", false);
+                }
+                else
+                {
+                    nonCombatEngine->addStrategy("bdps", false);
+                }
+            }
+            else if (tab == 0)
+                nonCombatEngine->addStrategiesNoInit("dps assist", "bmana", "bcast", nullptr);
+            else
+                nonCombatEngine->addStrategiesNoInit("dps assist", "bdps", "baoe", nullptr);
+
+            nonCombatEngine->addStrategiesNoInit("cure", nullptr);
+            break;
+        case CLASS_HUNTER:
+            nonCombatEngine->addStrategiesNoInit("bdps", "dps assist", "pet", nullptr);
+            break;
+        case CLASS_SHAMAN:
+            if (tab == 0 || tab == 2)
+                nonCombatEngine->addStrategy("bmana", false);
+            else
+                nonCombatEngine->addStrategy("bdps", false);
+
+            nonCombatEngine->addStrategiesNoInit("dps assist", "cure", nullptr);
+            break;
+        case CLASS_MAGE:
+            if (tab == 0 || tab == 1)
+                nonCombatEngine->addStrategy("bdps", false);
+            else
+                nonCombatEngine->addStrategy("bmana", false);
+
+            nonCombatEngine->addStrategiesNoInit("dps assist", "cure", nullptr);
+            break;
+        case CLASS_DRUID:
+            if (tab == 1)
+            {
+                if (player->GetLevel() >= 20 && !player->HasAura(16931) /*thick hide*/)
+                {
+                    nonCombatEngine->addStrategy("dps assist", false);
+                }
+                else
+                {
+                    nonCombatEngine->addStrategy("tank assist", false);
+                }
+            }
+            else
+                nonCombatEngine->addStrategiesNoInit("dps assist", "cure", nullptr);
+            break;
+        case CLASS_WARRIOR:
+            if (tab == 2)
+                nonCombatEngine->addStrategy("tank assist", false);
+            else
+                nonCombatEngine->addStrategy("dps assist", false);
+            break;
+        case CLASS_WARLOCK:
+            if (tab == 0)
+            {
+                nonCombatEngine->addStrategiesNoInit("bmana", nullptr);
+            }
+            else if (tab == 1)
+            {
+                nonCombatEngine->addStrategiesNoInit("bdps", nullptr);
+            }
+            else if (tab == 2)
+            {
+                nonCombatEngine->addStrategiesNoInit("bhealth", nullptr);
+            }
+            nonCombatEngine->addStrategiesNoInit("dps assist", nullptr);
+            break;
+        case CLASS_DEATH_KNIGHT:
+            if (tab == 0)
+                nonCombatEngine->addStrategy("tank assist", false);
+            else
+                nonCombatEngine->addStrategy("dps assist", false);
+            break;
+        default:
+            nonCombatEngine->addStrategy("dps assist", false);
+            break;
+    }
     if (!player->InBattleground())
     {
         nonCombatEngine->addStrategiesNoInit("nc", "food", "chat", "follow", "default", "quest", "loot", "gather", "duel",

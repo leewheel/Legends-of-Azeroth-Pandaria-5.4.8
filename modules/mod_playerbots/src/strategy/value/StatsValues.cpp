@@ -120,7 +120,7 @@ Unit* ComboPointsValue::GetTarget()
 uint8 ComboPointsValue::Calculate()
 {
     Unit* target = GetTarget();
-    if (!target || target->GetGUID() != bot->GetComboTarget())
+    if (!target || target != bot->GetComboTarget())
         return 0;
 
     return bot->GetComboPoints();

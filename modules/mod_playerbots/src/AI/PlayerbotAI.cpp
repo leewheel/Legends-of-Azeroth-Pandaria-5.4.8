@@ -102,6 +102,7 @@ PlayerbotAI::PlayerbotAI(Player* bot)
     masterIncomingPacketHandlers.AddHandler(CMSG_REPOP_REQUEST, "release spirit");
     masterIncomingPacketHandlers.AddHandler(CMSG_RECLAIM_CORPSE, "revive from corpse");
 
+    botOutgoingPacketHandlers.AddHandler(SMSG_LEVELUP_INFO, "levelup");
     botOutgoingPacketHandlers.AddHandler(SMSG_GROUP_INVITE, "group invite");
     botOutgoingPacketHandlers.AddHandler(SMSG_GROUP_DESTROYED, "group destroyed");
 }
@@ -947,15 +948,14 @@ void PlayerbotAI::HandleTeleportAck()
     }
     if (bot->IsBeingTeleportedFar())
     {
-        /*while (bot->IsBeingTeleportedFar())
+        while (bot->IsBeingTeleportedFar())
         {
             bot->GetSession()->HandleMoveWorldportAck();
         }
         // SetNextCheckDelay(urand(2000, 5000));
-        if (sPlayerbotAIConfig->applyInstanceStrategies)
-            ApplyInstanceStrategies(bot->GetMapId(), true);
+        //if (sPlayerbotAIConfig->applyInstanceStrategies)
+            //ApplyInstanceStrategies(bot->GetMapId(), true);
         Reset(true);
-    }*/
     }
     SetNextCheckDelay(sPlayerbotAIConfig->globalCoolDown);
 }

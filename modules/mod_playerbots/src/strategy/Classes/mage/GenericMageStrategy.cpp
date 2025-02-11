@@ -26,7 +26,6 @@ public:
         creators["remove curse on party"] = &remove_curse_on_party;
         creators["evocation"] = &evocation;
         creators["deep freeze"] = &deep_freeze;
-        creators["mage bomb"] = &mage_bomb;
     }
 
 private:
@@ -62,7 +61,7 @@ private:
     {
         return new ActionNode("frost nova",
                               /*P*/ nullptr,
-                              /*A*/ nullptr,
+                              /*A*/ NextAction::array(0, new NextAction("cone of cold"), nullptr),
                               /*C*/ nullptr);
     }
     static ActionNode* cone_of_cold([[maybe_unused]] PlayerbotAI* botAI)
@@ -96,13 +95,6 @@ private:
     static ActionNode* arcane_missiles([[maybe_unused]] PlayerbotAI* botAI)
     {
         return new ActionNode("arcane missiles",
-            /*P*/ nullptr,
-            /*A*/ nullptr,
-            /*C*/ nullptr);
-    }
-    static ActionNode* mage_bomb([[maybe_unused]] PlayerbotAI* botAI)
-    {
-        return new ActionNode("mage bomb",
             /*P*/ nullptr,
             /*A*/ nullptr,
             /*C*/ nullptr);

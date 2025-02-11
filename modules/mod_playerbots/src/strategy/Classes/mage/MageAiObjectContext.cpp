@@ -77,11 +77,27 @@ class MageTriggerFactoryInternal : public NamedObjectContext<Trigger>
 public:
     MageTriggerFactoryInternal()
     {
-        
+        creators["fingers of frost single"] = &MageTriggerFactoryInternal::fingers_of_frost_single;
+        creators["fingers of frost double"] = &MageTriggerFactoryInternal::fingers_of_frost_double;
+        creators["arcane brilliance"] = &MageTriggerFactoryInternal::arcane_brilliance;
+        creators["mage armor"] = &MageTriggerFactoryInternal::mage_armor;
+        creators["living bomb"] = &MageTriggerFactoryInternal::living_bomb;
+        creators["missile barrage"] = &MageTriggerFactoryInternal::missile_barrage;
+        creators["arcane blast"] = &MageTriggerFactoryInternal::arcane_blast;
+        creators["arcane power"] = &MageTriggerFactoryInternal::arcane_power;
+        creators["presence of mind"] = &MageTriggerFactoryInternal::presence_of_mind;
     }
 
 private:
-    
+    static Trigger* presence_of_mind(PlayerbotAI* botAI) { return new PresenceOfMindTrigger(botAI); }
+    static Trigger* arcane_power(PlayerbotAI* botAI) { return new ArcanePowerTrigger(botAI); }
+    static Trigger* fingers_of_frost_single(PlayerbotAI* botAI) { return new FingersOfFrostSingleTrigger(botAI); }
+    static Trigger* fingers_of_frost_double(PlayerbotAI* botAI) { return new FingersOfFrostDoubleTrigger(botAI); }
+    static Trigger* arcane_brilliance(PlayerbotAI* botAI) { return new ArcaneBrillianceTrigger(botAI); }
+    static Trigger* mage_armor(PlayerbotAI* botAI) { return new MageArmorTrigger(botAI); }
+    static Trigger* living_bomb(PlayerbotAI* botAI) { return new LivingBombTrigger(botAI); }
+    static Trigger* missile_barrage(PlayerbotAI* botAI) { return new MissileBarrageTrigger(botAI); }
+    static Trigger* arcane_blast(PlayerbotAI* botAI) { return new ArcaneBlastTrigger(botAI); }
 };
 
 class MageAiObjectContextInternal : public NamedObjectContext<Action>
@@ -90,10 +106,10 @@ public:
     MageAiObjectContextInternal()
     {
         // -- generic needs triggers
-        //creators["molten armor"] = &MageAiObjectContextInternal::molten_armor;
-        //creators["mage armor"] = &MageAiObjectContextInternal::mage_armor;
-        //creators["frost armor"] = &MageAiObjectContextInternal::frost_armor;
-        //creators["arcane brilliance"] = &MageAiObjectContextInternal::arcane_brilliance;
+        creators["molten armor"] = &MageAiObjectContextInternal::molten_armor;
+        creators["mage armor"] = &MageAiObjectContextInternal::mage_armor;
+        creators["frost armor"] = &MageAiObjectContextInternal::frost_armor;
+        creators["arcane brilliance"] = &MageAiObjectContextInternal::arcane_brilliance;
 
         creators["frostfire bolt"] = &MageAiObjectContextInternal::frostfirebolt;
         creators["frost nova"] = &MageAiObjectContextInternal::frostnova;
@@ -108,7 +124,6 @@ public:
         creators["remove curse on party"] = &MageAiObjectContextInternal::removecurseonparty;
         creators["evocation"] = &MageAiObjectContextInternal::evocation;
         creators["deep freeze"] = &MageAiObjectContextInternal::deepfreeze;
-        creators["mage bomb"] = &MageAiObjectContextInternal::magebomb;
 
         // -- frost specific talent or spec
         creators["frostbolt"] = &MageAiObjectContextInternal::frostbolt;
@@ -140,7 +155,6 @@ private:
     static Action* removecurseonparty(PlayerbotAI* botAI) { return new CastRemoveCurseOnPartyAction(botAI); }
     static Action* evocation(PlayerbotAI* botAI) { return new CastEvocationAction(botAI); }
     static Action* deepfreeze(PlayerbotAI* botAI) { return new CastDeepFreezeAction(botAI); }
-    static Action* magebomb(PlayerbotAI* botAI) { return new CastMageBombAction(botAI); }
     static Action* fingers_of_frost(PlayerbotAI* botAI) { return new CastFingersOfFrostAction(botAI); }
     static Action* icy_veins(PlayerbotAI* botAI) { return new CastIcyVeinsAction(botAI); }
     static Action* frozen_orb(PlayerbotAI* botAI) { return new CastFrozenOrbAction(botAI); }
