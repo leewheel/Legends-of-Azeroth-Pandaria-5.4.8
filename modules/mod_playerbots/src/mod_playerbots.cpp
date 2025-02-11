@@ -5,20 +5,23 @@
 ** Made into a module by Micrah https://github.com/milestorme/
 */
 
+#include "Chat.h"
+#include "ChannelMgr.h"
+#include "Config.h"
+#include "cs_playerbots.h"
+#include "Log.h"
 #include "Player.h"
 #include "ScriptMgr.h"
-#include "Config.h"
 #include "World.h"
-#include "Chat.h"
 #include "WorldPacket.h"
-#include "Log.h"
-#include "CharacterHandler.h"
-#include "Authentication/AuthCrypt.h"
 #include "WorldSocket.h"
 
 #include "Playerbots.h"
 #include "PlayerbotAIConfig.h"
 #include "RandomPlayerbotMgr.h"
+
+#include "Authentication/AuthCrypt.h"
+#include "CharacterHandler.h"
 
 #include <vector>
 #include <future>
@@ -202,4 +205,6 @@ void AddSC_mod_playerbots()
     new PlayerbotsWorldScript();
     new PlayerbotsScript();
     new PlayerbotsPlayerScript();
+
+    AddSC_playerbots_commandscript();
 }

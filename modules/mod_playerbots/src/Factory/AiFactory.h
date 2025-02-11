@@ -29,7 +29,7 @@ public:
     static void AddDefaultDeadStrategies(Player* player, PlayerbotAI* const facade, Engine* deadEngine);
     static void AddDefaultCombatStrategies(Player* player, PlayerbotAI* const facade, Engine* engine);
 
-    static const Specializations& GetPlayerSpecTab(Player* player);
+    static Specializations GetPlayerSpecTab(Player* player);
     static std::map<uint8, uint32> GetPlayerSpecTabs(Player* player);
     static BotRoles GetPlayerRoles(Player* player);
     static std::string GetPlayerSpecName(Player* player);

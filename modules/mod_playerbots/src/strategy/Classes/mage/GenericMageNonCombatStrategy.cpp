@@ -14,7 +14,7 @@ public:
     {
         creators["molten armor"] = &molten_armor;
         creators["mage armor"] = &mage_armor;
-        creators["ice armor"] = &ice_armor;
+        creators["frost armor"] = &frost_armor;
     }
 
 private:
@@ -30,15 +30,15 @@ private:
     {
         return new ActionNode("mage armor",
                               /*P*/ nullptr,
-                              /*A*/ NextAction::array(0, new NextAction("ice armor"), nullptr),
+                              /*A*/ NextAction::array(0, new NextAction("frost armor"), nullptr),
                               /*C*/ nullptr);
     }
 
-    static ActionNode* ice_armor([[maybe_unused]] PlayerbotAI* botAI)
+    static ActionNode* frost_armor([[maybe_unused]] PlayerbotAI* botAI)
     {
-        return new ActionNode("ice armor",
+        return new ActionNode("frost armor",
                               /*P*/ nullptr,
-                              /*A*/ NextAction::array(0, new NextAction("frost armor"), nullptr),
+                              /*A*/ nullptr,
                               /*C*/ nullptr);
     }
 };
@@ -52,13 +52,12 @@ void GenericMageNonCombatStrategy::InitTriggers(std::vector<TriggerNode*>& trigg
 {
     NonCombatStrategy::InitTriggers(triggers);
 
-    triggers.push_back(new TriggerNode("arcane intellect", NextAction::array(0, new NextAction("arcane intellect", 21.0f), nullptr)));
+    triggers.push_back(new TriggerNode("arcane brilliance", NextAction::array(0, new NextAction("arcane brilliance", 21.0f), nullptr)));
 }
 
 void MageBuffManaStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
-    triggers.push_back(
-        new TriggerNode("mage armor", NextAction::array(0, new NextAction("mage armor", 19.0f), nullptr)));
+    triggers.push_back(new TriggerNode("mage armor", NextAction::array(0, new NextAction("mage armor", 19.0f), nullptr)));
 }
 
 void MageBuffDpsStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
@@ -68,5 +67,5 @@ void MageBuffDpsStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 
 void MageBuffStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
-    triggers.push_back(new TriggerNode("arcane intellect on party", NextAction::array(0, new NextAction("arcane intellect on party", 20.0f), nullptr)));
+    triggers.push_back(new TriggerNode("arcane brilliance on party", NextAction::array(0, new NextAction("arcane brilliance on party", 20.0f), nullptr)));
 }

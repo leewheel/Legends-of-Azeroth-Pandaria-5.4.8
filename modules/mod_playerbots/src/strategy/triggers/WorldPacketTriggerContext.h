@@ -17,6 +17,7 @@ public:
         creators["group invite"] = &WorldPacketTriggerContext::group_invite;
         creators["uninvite"] = &WorldPacketTriggerContext::uninvite;
         creators["uninvite guid"] = &WorldPacketTriggerContext::uninvite_guid;
+        creators["group destroyed"] = &WorldPacketTriggerContext::group_destroyed;
 
         creators["release spirit"] = &WorldPacketTriggerContext::release_spirit;
         creators["revive from corpse"] = &WorldPacketTriggerContext::revive_from_corpse;
@@ -26,6 +27,7 @@ private:
     static Trigger* group_invite(PlayerbotAI* botAI) { return new WorldPacketTrigger(botAI, "group invite"); }
     static Trigger* uninvite(PlayerbotAI* botAI) { return new WorldPacketTrigger(botAI, "uninvite"); }
     static Trigger* uninvite_guid(PlayerbotAI* botAI) { return new WorldPacketTrigger(botAI, "uninvite guid"); }
+    static Trigger* group_destroyed(PlayerbotAI* botAI) { return new WorldPacketTrigger(botAI, "group destroyed"); }
 
     static Trigger* release_spirit(PlayerbotAI* botAI) { return new WorldPacketTrigger(botAI, "release spirit"); }
     static Trigger* revive_from_corpse(PlayerbotAI* botAI) { return new WorldPacketTrigger(botAI, "revive from corpse"); }

@@ -14,8 +14,6 @@ public:
     {
         creators["arcane blast"] = &arcane_blast;
         creators["arcane barrage"] = &arcane_barrage;
-        creators["arcane missiles"] = &arcane_missiles;
-        // creators["firebolt"] = &firebolt;
     }
 
 private:
@@ -32,14 +30,6 @@ private:
         return new ActionNode("arcane barrage",
                               /*P*/ nullptr,
                               /*A*/ nullptr,
-                              /*C*/ nullptr);
-    }
-
-    static ActionNode* arcane_missiles([[maybe_unused]] PlayerbotAI* botAI)
-    {
-        return new ActionNode("arcane missiles",
-                              /*P*/ nullptr,
-                              /*A*/ NextAction::array(0, new NextAction("fireball"), nullptr),
                               /*C*/ nullptr);
     }
 };

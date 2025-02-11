@@ -706,7 +706,7 @@ void RandomPlayerbotMgr::OnPlayerLogin(Player* player)
                 if (!bot->InBattleground())
                 {
                     botAI->SetMaster(player);
-                    //botAI->ResetStrategies();
+                    botAI->ResetStrategies();
                     //botAI->TellMaster("Hello");
                 }
 
@@ -717,20 +717,16 @@ void RandomPlayerbotMgr::OnPlayerLogin(Player* player)
 
     if (botsNearby > 100 && false)
     {
-        //WorldPosition botPos(player);
+        WorldPosition botPos(player);
 
-        // botPos.GetReachableRandomPointOnGround(player, sPlayerbotAIConfig->reactDistance * 2, true);
-
-        // player->TeleportTo(botPos);
-        // player->Relocate(botPos.coord_x, botPos.coord_y, botPos.coord_z, botPos.orientation);
-
-        /*if (!player->GetFactionTemplateEntry())
+        if (!player->GetFactionTemplateEntry())
         {
             botPos.GetReachableRandomPointOnGround(player, sPlayerbotAIConfig->reactDistance * 2, true);
+            player->TeleportTo(botPos);
         }
         else
         {
-            std::vector<TravelDestination*> dests = sTravelMgr->getRpgTravelDestinations(player, true, true, 200000.0f);
+            /*std::vector<TravelDestination*> dests = sTravelMgr->getRpgTravelDestinations(player, true, true, 200000.0f);
 
             do
             {
@@ -747,10 +743,10 @@ void RandomPlayerbotMgr::OnPlayerLogin(Player* player)
                     botPos = *dest->nearestPoint(&botPos);
                     break;
                 }
-            } while (true);
+            } while (true);*/
         }
 
-        player->TeleportTo(botPos);*/
+        //player->TeleportTo(botPos);
     }
 
     if (!IsRandomBot(player))
@@ -773,4 +769,40 @@ Player* RandomPlayerbotMgr::GetRandomPlayer()
 
     uint32 index = std::rand() % _players.size();
     return _players[index];
+}
+
+void RandomPlayerbotMgr::PrepareAddclassCache()
+{
+    int32 maxAccountId = sPlayerbotAIConfig->randomBotAccounts.back();
+    int32 minIdx = 0;
+    int32 minAccountId = sPlayerbotAIConfig->randomBotAccounts[minIdx];
+    if (minAccountId < 0)
+    {
+        TC_LOG_ERROR("playerbots", "No available account for add class!");
+    }
+    int32 collected = 0;
+    for (uint8 claz = CLASS_WARRIOR; claz <= CLASS_DRUID; claz++)
+    {
+        if (claz == 10)
+            continue;
+        QueryResult results = CharacterDatabase.PQuery(
+            "SELECT guid, race FROM characters "
+            "WHERE account >= %u AND account <= %u AND class = '%u' AND online = 0 AND "
+            "guid NOT IN ( SELECT guid FROM guild_member ) "
+            "ORDER BY account DESC",
+            minAccountId, maxAccountId, claz);
+        if (results)
+        {
+            do
+            {
+                Field* fields = results->Fetch();
+                ObjectGuid guid = ObjectGuid(HighGuid::Player, fields[0].GetUInt32());
+                uint32 race = fields[1].GetUInt32();
+                bool isAlliance = race == 1 || race == 3 || race == 4 || race == 7 || race == 11;
+                AddclassCache()[GetTeamClassIdx(isAlliance, claz)].push_back(guid);
+                collected++;
+            } while (results->NextRow());
+        }
+    }
+    TC_LOG_INFO("playerbots", ">> {} characters collected for addclass command.", collected);
 }

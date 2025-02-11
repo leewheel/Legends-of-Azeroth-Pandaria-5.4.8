@@ -13,40 +13,30 @@ class GenericMageStrategyActionNodeFactory : public NamedObjectFactory<ActionNod
 public:
     GenericMageStrategyActionNodeFactory()
     {
-        creators["frostbolt"] = &frostbolt;
         creators["frostfire bolt"] = &frostfire_bolt;
-        creators["ice lance"] = &ice_lance;
-        creators["fire blast"] = &fire_blast;
-        creators["scorch"] = &scorch;
         creators["frost nova"] = &frost_nova;
+        creators["fire blast"] = &fire_blast;
+        creators["counterspell"] = &counterspell;
+        creators["arcane explosion"] = &arcane_explosion;
+        creators["blizzard"] = &blizzard;
+        creators["ice lance"] = &ice_lance;
+        creators["arcane missiles"] = &arcane_missiles;
         creators["cone of cold"] = &cone_of_cold;
-        creators["icy veins"] = &icy_veins;
-        creators["combustion"] = &combustion;
-        creators["evocation"] = &evocation;
-        creators["dragon's breath"] = &dragons_breath;
-        creators["blast wave"] = &blast_wave;
         creators["remove curse"] = &remove_curse;
         creators["remove curse on party"] = &remove_curse_on_party;
-        creators["fireball"] = &fireball;
+        creators["evocation"] = &evocation;
+        creators["deep freeze"] = &deep_freeze;
+        creators["mage bomb"] = &mage_bomb;
     }
 
 private:
-    static ActionNode* frostbolt([[maybe_unused]] PlayerbotAI* botAI)
-    {
-        return new ActionNode("frostbolt",
-                              /*P*/ nullptr,
-                              /*A*/ NextAction::array(0, new NextAction("shoot"), nullptr),
-                              /*C*/ nullptr);
-    }
-
     static ActionNode* frostfire_bolt([[maybe_unused]] PlayerbotAI* botAI)
     {
         return new ActionNode("frostfire bolt",
                               /*P*/ nullptr,
-                              /*A*/ NextAction::array(0, new NextAction("fireball"), nullptr),
+                              /*A*/ NextAction::array(0, new NextAction("shoot"), nullptr),
                               /*C*/ nullptr);
     }
-
     static ActionNode* ice_lance([[maybe_unused]] PlayerbotAI* botAI)
     {
         return new ActionNode("ice lance",
@@ -54,7 +44,13 @@ private:
                               /*A*/ nullptr,
                               /*C*/ nullptr);
     }
-
+    static ActionNode* deep_freeze([[maybe_unused]] PlayerbotAI* botAI)
+    {
+        return new ActionNode("deep freeze",
+            /*P*/ nullptr,
+            /*A*/ NextAction::array(0, new NextAction("ice lance"), nullptr),
+            /*C*/ nullptr);
+    }
     static ActionNode* fire_blast([[maybe_unused]] PlayerbotAI* botAI)
     {
         return new ActionNode("fire blast",
@@ -62,15 +58,6 @@ private:
                               /*A*/ nullptr,
                               /*C*/ nullptr);
     }
-
-    static ActionNode* scorch([[maybe_unused]] PlayerbotAI* botAI)
-    {
-        return new ActionNode("scorch",
-                              /*P*/ nullptr,
-                              /*A*/ NextAction::array(0, new NextAction("shoot"), nullptr),
-                              /*C*/ nullptr);
-    }
-
     static ActionNode* frost_nova([[maybe_unused]] PlayerbotAI* botAI)
     {
         return new ActionNode("frost nova",
@@ -78,7 +65,6 @@ private:
                               /*A*/ nullptr,
                               /*C*/ nullptr);
     }
-
     static ActionNode* cone_of_cold([[maybe_unused]] PlayerbotAI* botAI)
     {
         return new ActionNode("cone of cold",
@@ -86,23 +72,6 @@ private:
                               /*A*/ nullptr,
                               /*C*/ nullptr);
     }
-
-    static ActionNode* icy_veins([[maybe_unused]] PlayerbotAI* botAI)
-    {
-        return new ActionNode("icy veins",
-                              /*P*/ nullptr,
-                              /*A*/ nullptr,
-                              /*C*/ nullptr);
-    }
-
-    static ActionNode* combustion([[maybe_unused]] PlayerbotAI* botAI)
-    {
-        return new ActionNode("combustion",
-                              /*P*/ nullptr,
-                              /*A*/ nullptr,
-                              /*C*/ nullptr);
-    }
-
     static ActionNode* evocation([[maybe_unused]] PlayerbotAI* botAI)
     {
         return new ActionNode("evocation",
@@ -110,23 +79,6 @@ private:
                               /*A*/ NextAction::array(0, new NextAction("mana potion"), nullptr),
                               /*C*/ nullptr);
     }
-
-    static ActionNode* dragons_breath([[maybe_unused]] PlayerbotAI* botAI)
-    {
-        return new ActionNode("dragon's breath",
-                              /*P*/ nullptr,
-                              /*A*/ nullptr,
-                              /*C*/ nullptr);
-    }
-
-    static ActionNode* blast_wave([[maybe_unused]] PlayerbotAI* botAI)
-    {
-        return new ActionNode("blast wave",
-                              /*P*/ nullptr,
-                              /*A*/ nullptr,
-                              /*C*/ nullptr);
-    }
-
     static ActionNode* remove_curse([[maybe_unused]] PlayerbotAI* botAI)
     {
         return new ActionNode("remove curse",
@@ -134,7 +86,6 @@ private:
                               /*A*/ NextAction::array(0, new NextAction("remove lesser curse"), nullptr),
                               /*C*/ nullptr);
     }
-
     static ActionNode* remove_curse_on_party([[maybe_unused]] PlayerbotAI* botAI)
     {
         return new ActionNode("remove curse on party",
@@ -142,12 +93,40 @@ private:
                               /*A*/ NextAction::array(0, new NextAction("remove lesser curse on party"), nullptr),
                               /*C*/ nullptr);
     }
-    static ActionNode* fireball([[maybe_unused]] PlayerbotAI* botAI)
+    static ActionNode* arcane_missiles([[maybe_unused]] PlayerbotAI* botAI)
     {
-        return new ActionNode("fireball",
-                              /*P*/ nullptr,
-                              /*A*/ NextAction::array(0, new NextAction("shoot"), nullptr),
-                              /*C*/ nullptr);
+        return new ActionNode("arcane missiles",
+            /*P*/ nullptr,
+            /*A*/ nullptr,
+            /*C*/ nullptr);
+    }
+    static ActionNode* mage_bomb([[maybe_unused]] PlayerbotAI* botAI)
+    {
+        return new ActionNode("mage bomb",
+            /*P*/ nullptr,
+            /*A*/ nullptr,
+            /*C*/ nullptr);
+    }
+    static ActionNode* blizzard([[maybe_unused]] PlayerbotAI* botAI)
+    {
+        return new ActionNode("blizzard",
+            /*P*/ nullptr,
+            /*A*/ nullptr,
+            /*C*/ nullptr);
+    }
+    static ActionNode* counterspell([[maybe_unused]] PlayerbotAI* botAI)
+    {
+        return new ActionNode("counterspell",
+            /*P*/ nullptr,
+            /*A*/ nullptr,
+            /*C*/ nullptr);
+    }
+    static ActionNode* arcane_explosion([[maybe_unused]] PlayerbotAI* botAI)
+    {
+        return new ActionNode("arcane explosion",
+            /*P*/ nullptr,
+            /*A*/ nullptr,
+            /*C*/ nullptr);
     }
 };
 

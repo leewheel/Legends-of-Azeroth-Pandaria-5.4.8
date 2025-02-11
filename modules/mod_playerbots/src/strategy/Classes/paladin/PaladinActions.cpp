@@ -18,7 +18,7 @@ inline std::string const GetActualBlessingOfMight(Unit* target)
     {
         return "blessing of might";
     }
-    const Specializations& tab = AiFactory::GetPlayerSpecTab(target->ToPlayer());
+    const uint8 tab = AiFactory::GetPlayerSpecTab(target->ToPlayer());
     switch (target->GetClass())
     {
         case CLASS_MAGE:
@@ -27,19 +27,19 @@ inline std::string const GetActualBlessingOfMight(Unit* target)
             return "blessing of wisdom";
             break;
         case CLASS_SHAMAN:
-            if (tab == Specializations::SPEC_SHAMAN_ELEMENTAL || tab == Specializations::SPEC_SHAMAN_RESTORATION)
+            if (tab == 0 || tab == 2)
             {
                 return "blessing of wisdom";
             }
             break;
         case CLASS_DRUID:
-            if (tab == Specializations::SPEC_DRUID_RESTORATION || tab == Specializations::SPEC_DRUID_BALANCE)
+            if (tab == 3 || tab == 0)
             {
                 return "blessing of wisdom";
             }
             break;
         case CLASS_PALADIN:
-            if (tab == Specializations::SPEC_PALADIN_HOLY)
+            if (tab == 0)
             {
                 return "blessing of wisdom";
             }
@@ -55,7 +55,7 @@ inline std::string const GetActualBlessingOfWisdom(Unit* target)
     {
         return "blessing of might";
     }
-    const Specializations& tab = AiFactory::GetPlayerSpecTab(target->ToPlayer());
+    const uint8 tab = AiFactory::GetPlayerSpecTab(target->ToPlayer());
     switch (target->GetClass())
     {
         case CLASS_WARRIOR:
@@ -65,19 +65,19 @@ inline std::string const GetActualBlessingOfWisdom(Unit* target)
             return "blessing of might";
             break;
         case CLASS_SHAMAN:
-            if (tab == Specializations::SPEC_SHAMAN_ENHANCEMENT)
+            if (tab == 1)
             {
                 return "blessing of might";
             }
             break;
         case CLASS_DRUID:
-            if (tab == Specializations::SPEC_DRUID_FERAL)
+            if (tab == 1 || tab == 2)
             {
                 return "blessing of might";
             }
             break;
         case CLASS_PALADIN:
-            if (tab == Specializations::SPEC_PALADIN_PROTECTION || tab == Specializations::SPEC_PALADIN_RETRIBUTION)
+            if (tab == 1 || tab == 2)
             {
                 return "blessing of might";
             }

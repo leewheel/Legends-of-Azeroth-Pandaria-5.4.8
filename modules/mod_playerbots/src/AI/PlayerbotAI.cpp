@@ -103,6 +103,7 @@ PlayerbotAI::PlayerbotAI(Player* bot)
     masterIncomingPacketHandlers.AddHandler(CMSG_RECLAIM_CORPSE, "revive from corpse");
 
     botOutgoingPacketHandlers.AddHandler(SMSG_GROUP_INVITE, "group invite");
+    botOutgoingPacketHandlers.AddHandler(SMSG_GROUP_DESTROYED, "group destroyed");
 }
 
 PlayerbotAI::~PlayerbotAI()
@@ -643,6 +644,21 @@ void PlayerbotAI::Reset(bool full)
     }
 }
 
+void PlayerbotAI::ResetStrategies()
+{
+    for (uint8 i = 0; i < BOT_STATE_MAX; i++)
+        _engines[i]->removeAllStrategies();
+
+    AiFactory::AddDefaultCombatStrategies(bot, this, _engines[BOT_STATE_COMBAT]);
+    AiFactory::AddDefaultNonCombatStrategies(bot, this, _engines[BOT_STATE_NON_COMBAT]);
+    AiFactory::AddDefaultDeadStrategies(bot, this, _engines[BOT_STATE_DEAD]);
+    //if (sPlayerbotAIConfig->applyInstanceStrategies)
+        //ApplyInstanceStrategies(bot->GetMapId());
+
+    for (uint8 i = 0; i < BOT_STATE_MAX; i++)
+        _engines[i]->Init();
+}
+
 void PlayerbotAI::ReInitCurrentEngine()
 {
     // InterruptSpell();
@@ -662,13 +678,13 @@ void PlayerbotAI::ChangeEngine(BotState type)
         switch (type)
         {
         case BOT_STATE_COMBAT:
-            //TC_LOG_DEBUG("playerbots",  "=== %s COMBAT ===", bot->GetName().c_str());
+            TC_LOG_DEBUG("playerbots",  "=== %s COMBAT ===", bot->GetName().c_str());
             break;
         case BOT_STATE_NON_COMBAT:
-            //TC_LOG_DEBUG("playerbots",  "=== %s NON-COMBAT ===", bot->GetName().c_str());
+            TC_LOG_DEBUG("playerbots",  "=== %s NON-COMBAT ===", bot->GetName().c_str());
             break;
         case BOT_STATE_DEAD:
-            //TC_LOG_DEBUG("playerbots",  "=== %s DEAD ===", bot->GetName().c_str());
+            TC_LOG_DEBUG("playerbots",  "=== %s DEAD ===", bot->GetName().c_str());
             break;
         default:
             break;
@@ -777,10 +793,102 @@ void PlayerbotAI::DoNextAction(bool min)
     if (master)
         masterBotAI = GET_PLAYERBOT_AI(master);
 
-    if (bot->m_movementInfo.HasMovementFlag(MOVEMENTFLAG_WALKING))
+    // Test BG master set
+    if ((!master || (masterBotAI && !masterBotAI->IsRealPlayer())) && group)
+    {
+        PlayerbotAI* botAI = GET_PLAYERBOT_AI(bot);
+        if (!botAI)
+        {
+            return;
+        }
+
+        // Ideally we want to have the leader as master.
+        Player* newMaster = botAI->GetGroupMaster();
+        Player* playerMaster = nullptr;
+
+        // Are there any non-bot players in the group?
+        if (!newMaster || GET_PLAYERBOT_AI(newMaster))
+        {
+            for (GroupReference* gref = group->GetFirstMember(); gref; gref = gref->next())
+            {
+                Player* member = gref->GetSource();
+                if (!member || member == bot || member == newMaster || !member->IsInWorld() ||
+                    !member->IsInSameRaidWith(bot))
+                    continue;
+
+                PlayerbotAI* memberBotAI = GET_PLAYERBOT_AI(member);
+                if (memberBotAI)
+                {
+                    if (memberBotAI->IsRealPlayer() && !bot->InBattleground())
+                        playerMaster = member;
+
+                    continue;
+                }
+
+                // Same BG checks (optimize checking conditions here)
+                //if (bot->InBattleground() && bot->GetBattleground() &&
+                //    bot->GetBattleground()->GetBgTypeID() == BATTLEGROUND_AV && !GET_PLAYERBOT_AI(member) &&
+                //    member->InBattleground() && bot->GetMapId() == member->GetMapId())
+                //{
+                //    // Skip if same BG but same subgroup or lower level
+                //    if (!group->SameSubGroup(bot, member) || member->GetLevel() < bot->GetLevel())
+                //        continue;
+
+                //    // Follow real player only if higher honor points
+                //    uint32 honorpts = member->GetHonorPoints();
+                //    if (bot->GetHonorPoints() && honorpts < bot->GetHonorPoints())
+                //        continue;
+
+                //    playerMaster = member;
+                //    continue;
+                //}
+
+                //if (bot->InBattleground())
+                //    continue;
+
+                newMaster = member;
+                break;
+            }
+        }
+
+        if (!newMaster && playerMaster)
+            newMaster = playerMaster;
+
+        if (newMaster && (!master || master != newMaster) && bot != newMaster)
+        {
+            master = newMaster;
+            botAI->SetMaster(newMaster);
+            botAI->ResetStrategies();
+            botAI->ChangeStrategy("+follow", BOT_STATE_NON_COMBAT);
+
+            //if (botAI->GetMaster() == botAI->GetGroupMaster())
+                //botAI->TellMaster("Hello, I follow you!");
+            //else
+                //botAI->TellMaster(!urand(0, 2) ? "Hello!" : "Hi!");
+        }
+    }
+
+    if (master && master->IsInWorld())
+    {
+        float distance = sServerFacade->GetDistance2d(bot, master);
+        if (master->m_movementInfo.HasMovementFlag(MOVEMENTFLAG_WALKING) && distance < 20.0f)
+            bot->m_movementInfo.AddMovementFlag(MOVEMENTFLAG_WALKING);
+        else
+            bot->m_movementInfo.RemoveMovementFlag(MOVEMENTFLAG_WALKING);
+
+        if (master->IsSitState() && nextAICheckDelay < 1000)
+        {
+            if (!bot->isMoving() && distance < 10.0f)
+                bot->SetStandState(UNIT_STAND_STATE_SIT);
+        }
+        else if (nextAICheckDelay < 1000)
+            bot->SetStandState(UNIT_STAND_STATE_STAND);
+    }
+    else if (bot->m_movementInfo.HasMovementFlag(MOVEMENTFLAG_WALKING))
         bot->m_movementInfo.RemoveMovementFlag(MOVEMENTFLAG_WALKING);
     else if ((nextAICheckDelay < 1000) && bot->IsSitState())
         bot->SetStandState(UNIT_STAND_STATE_STAND);
+
 
     bool hasMountAura = bot->HasAuraType(SPELL_AURA_MOD_INCREASE_MOUNTED_SPEED) ||
         bot->HasAuraType(SPELL_AURA_MOD_INCREASE_MOUNTED_FLIGHT_SPEED);

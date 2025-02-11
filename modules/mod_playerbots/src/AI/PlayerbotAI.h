@@ -115,6 +115,7 @@ public:
     void ReInitCurrentEngine();
     virtual bool DoSpecificAction(std::string const name, Event event = Event(), bool silent = false, std::string const qualifier = "");
 
+    void ResetStrategies();
     void ChangeStrategy(std::string const name, BotState type);
     void ClearStrategies(BotState type);
     std::vector<std::string> GetStrategies(BotState type);

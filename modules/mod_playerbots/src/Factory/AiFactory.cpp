@@ -34,11 +34,6 @@
 
 AiObjectContext* AiFactory::createAiObjectContext(Player* player, PlayerbotAI* botAI)
 {
-    if (player->GetClass() == CLASS_WARRIOR)
-        return new WarriorAiObjectContext(botAI);
-    else if (player->GetClass() == CLASS_MAGE)
-        return new MageAiObjectContext(botAI);
-
     switch (player->GetClass())
     {
         case CLASS_PRIEST:
@@ -68,7 +63,7 @@ AiObjectContext* AiFactory::createAiObjectContext(Player* player, PlayerbotAI* b
     return new BotAiObjectContext(botAI);
 }
 
-const Specializations& AiFactory::GetPlayerSpecTab(Player* bot)
+Specializations AiFactory::GetPlayerSpecTab(Player* bot)
 {
     return bot->GetSpecialization();
 }
@@ -108,7 +103,7 @@ std::map<uint8, uint32> AiFactory::GetPlayerSpecTabs(Player* bot)
 BotRoles AiFactory::GetPlayerRoles(Player* player)
 {
     BotRoles role = BOT_ROLE_NONE;
-    const Specializations& spec = player->GetSpecialization();
+    const Specializations spec = player->GetSpecialization();
 
     switch (player->GetClass())
     {
@@ -165,7 +160,7 @@ BotRoles AiFactory::GetPlayerRoles(Player* player)
 std::string AiFactory::GetPlayerSpecName(Player* player)
 {
     std::string specName;
-    const Specializations& spec = GetPlayerSpecTab(player);
+    const Specializations spec = GetPlayerSpecTab(player);
     switch (player->GetClass())
     {
         case CLASS_PRIEST:
@@ -198,25 +193,25 @@ std::string AiFactory::GetPlayerSpecName(Player* player)
                 specName = "holy";
             else if (spec == Specializations::SPEC_PALADIN_PROTECTION)
                 specName = "prot";
-            else if (spec == Specializations::SPEC_PALADIN_RETRIBUTION)
+            else
                 specName = "retrib";
             break;
         case CLASS_DRUID:
-            if (spec == Specializations::SPEC_DRUID_BALANCE)
-                specName = "balance";
-            else if (spec == Specializations::SPEC_DRUID_FERAL)
+            if (spec == Specializations::SPEC_DRUID_FERAL)
                 specName = "feraldps";
             else if (spec == Specializations::SPEC_DRUID_GUARDIAN)
                 specName = "guardiantank";
             else if (spec == Specializations::SPEC_DRUID_RESTORATION)
                 specName = "resto";
+            else
+                specName = "balance";
             break;
         case CLASS_ROGUE:
             if (spec == Specializations::SPEC_ROGUE_ASSASSINATION)
                 specName = "assas";
             else if (spec == Specializations::SPEC_ROGUE_COMBAT)
                 specName = "combat";
-            else if (spec == Specializations::SPEC_ROGUE_SUBTLETY)
+            else
                 specName = "subtle";
             break;
         case CLASS_HUNTER:
@@ -224,23 +219,23 @@ std::string AiFactory::GetPlayerSpecName(Player* player)
                 specName = "beast";
             else if (spec == Specializations::SPEC_HUNTER_MARKSMANSHIP)
                 specName = "marks";
-            else if (spec == Specializations::SPEC_HUNTER_SURVIVAL)
+            else
                 specName = "surv";
             break;
         case CLASS_DEATH_KNIGHT:
-            if (spec == Specializations::SPEC_DEATH_KNIGHT_BLOOD)
-                specName = "blooddps";
-            else if (spec == Specializations::SPEC_DEATH_KNIGHT_FROST)
+            if (spec == Specializations::SPEC_DEATH_KNIGHT_FROST)
                 specName = "frostdps";
             else if (spec == Specializations::SPEC_DEATH_KNIGHT_UNHOLY)
                 specName = "unholydps";
+            else
+                specName = "blooddps";
             break;
         case CLASS_MAGE:
             if (spec == Specializations::SPEC_MAGE_ARCANE)
                 specName = "arcane";
             else if (spec == Specializations::SPEC_MAGE_FIRE)
                 specName = "fire";
-            else if (spec == Specializations::SPEC_MAGE_FROST)
+            else
                 specName = "frost";
             break;
         case CLASS_WARLOCK:
@@ -248,7 +243,7 @@ std::string AiFactory::GetPlayerSpecName(Player* player)
                 specName = "afflic";
             else if (spec == Specializations::SPEC_WARLOCK_DEMONOLOGY)
                 specName = "demo";
-            else if (spec == Specializations::SPEC_WARLOCK_DESTRUCTION)
+            else
                 specName = "destro";
             break;
         case CLASS_MONK:
@@ -256,7 +251,7 @@ std::string AiFactory::GetPlayerSpecName(Player* player)
                 specName = "brewmaster";
             else if (spec == Specializations::SPEC_MONK_MISTWEAVER)
                 specName = "mistweaver";
-            else if (spec == Specializations::SPEC_MONK_WINDWALKER)
+            else
                 specName = "windwalker";
         default:
             break;

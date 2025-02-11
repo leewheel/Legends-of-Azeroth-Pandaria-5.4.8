@@ -1,6 +1,8 @@
 #ifndef _PLAYERBOT_PLAYERBOTSPEC_H
 #define _PLAYERBOT_PLAYERBOTSPEC_H
 
+
+
 class Player;
 class PlayerBotSpec
 {

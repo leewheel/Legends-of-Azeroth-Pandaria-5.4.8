@@ -122,12 +122,11 @@ void PlayerbotHolder::HandlePlayerBotLoginCallback(PlayerbotLoginQueryHolder con
 
     std::ostringstream out;
     bool allowed = true;
-    /*if (botAccountId == masterAccount)
+    if (botAccountId == masterAccount)
     {
         allowed = true;
     }
-    else if (masterSession && sPlayerbotAIConfig->allowGuildBots && bot->GetGuildId() != 0 &&
-        bot->GetGuildId() == masterPlayer->GetGuildId())
+    else if (masterSession /* && sPlayerbotAIConfig->allowGuildBots*/ && bot->GetGuildId() != 0 && bot->GetGuildId() == masterPlayer->GetGuildId())
     {
         allowed = true;
     }
@@ -139,7 +138,7 @@ void PlayerbotHolder::HandlePlayerBotLoginCallback(PlayerbotLoginQueryHolder con
     {
         allowed = false;
         out << "Failure: You are not allowed to control bot " << bot->GetName().c_str();
-    }*/
+    }
 
     if (allowed && masterSession && masterPlayer)
     {
@@ -486,22 +485,17 @@ void PlayerbotHolder::OnBotLogin(Player* const bot)
         if (!groupValid)
         {
             bot->RemoveFromGroup();
-            // WorldPacket p;
-            // std::string const member = bot->GetName();
-            // p << uint32(PARTY_OP_LEAVE) << member << uint32(0);
-            // bot->GetSession()->HandleGroupDisbandOpcode(p);
         }
     }
 
     group = bot->GetGroup();
     if (group)
     {
-        //botAI->ResetStrategies();
+        botAI->ResetStrategies();
     }
     else
     {
-        // botAI->ResetStrategies(!sRandomPlayerbotMgr->IsRandomBot(bot));
-        //botAI->ResetStrategies();
+        botAI->ResetStrategies();
     }
 
     if (master && !master->HasUnitState(UNIT_STATE_IN_FLIGHT))
@@ -511,10 +505,10 @@ void PlayerbotHolder::OnBotLogin(Player* const bot)
     }
 
     // check activity
-    //botAI->AllowActivity(ALL_ACTIVITY, true);
+    botAI->AllowActivity(ALL_ACTIVITY, true);
 
     // set delay on login
-    //botAI->SetNextCheckDelay(urand(2000, 4000));
+    botAI->SetNextCheckDelay(urand(2000, 4000));
 
     //botAI->TellMaster("Hello!", PLAYERBOT_SECURITY_TALK);
 
@@ -544,10 +538,12 @@ void PlayerbotHolder::OnBotLogin(Player* const bot)
         sGroupMgr->AddGroup(newGroup);
         newGroup->AddMember(bot);
     }
-    // if (master)
-    // {
-    //     // bot->TeleportTo(master);
-    // }
+
+    if (master)
+    {
+        bot->TeleportTo(master->GetWorldLocation());
+    }
+
     uint32 accountId = bot->GetSession()->GetAccountId();
     /*bool isRandomAccount = sPlayerbotAIConfig->IsInRandomAccountList(accountId);
 
@@ -670,16 +666,15 @@ bool PlayerbotMgr::HandlePlayerbotMgrCommand(ChatHandler* handler, char const* a
 
     for (std::vector<std::string>::iterator i = messages.begin(); i != messages.end(); ++i)
     {
-        handler->PSendSysMessage("{}", i->c_str());
+        handler->PSendSysMessage("%s", i->c_str());
     }
 
     return true;
 }
 
-std::vector<std::string> PlayerbotHolder::HandlePlayerbotCommand(char const* /*args*/, Player* /*master*/)
+std::vector<std::string> PlayerbotHolder::HandlePlayerbotCommand(char const* args, Player* master)
 {
-    return {};
-    /*std::vector<std::string> messages;
+    std::vector<std::string> messages;
 
     if (!*args)
     {
@@ -696,7 +691,7 @@ std::vector<std::string> PlayerbotHolder::HandlePlayerbotCommand(char const* /*a
         return messages;
     }
 
-    if (!strcmp(cmd, "initself"))
+    /*if (!strcmp(cmd, "initself"))
     {
         if (master->GetSession()->GetSecurity() >= SEC_GAMEMASTER)
         {
@@ -854,11 +849,24 @@ std::vector<std::string> PlayerbotHolder::HandlePlayerbotCommand(char const* /*a
     {
         messages.push_back(LookupBots(master));
         return messages;
+    }*/
+
+    if (!strcmp(cmd, "setspec") && master && master->GetTarget())
+    {
+        WorldPacket p(CMSG_SET_PRIMARY_TALENT_TREE);
+        p << 2;
+
+        auto bot = ObjectAccessor::FindConnectedPlayer(master->GetTarget());
+        if (bot)
+        {
+            bot->GetSession()->HandeSetTalentSpecialization(p);
+        }
+        return StringVector();
     }
 
     if (!strcmp(cmd, "addclass"))
     {
-        if (sPlayerbotAIConfig->addClassCommand == 0 && master->GetSession()->GetSecurity() < SEC_GAMEMASTER)
+        if (master->GetSession()->GetSecurity() < SEC_GAMEMASTER)
         {
             messages.push_back("You do not have permission to create bot by addclass command");
             return messages;
@@ -910,20 +918,25 @@ std::vector<std::string> PlayerbotHolder::HandlePlayerbotCommand(char const* /*a
         {
             claz = 6;
         }
+        else if (!strcmp(charname, "monk"))
+        {
+            claz = 10;
+        }
         else
         {
             messages.push_back("Error: Invalid Class. Try again.");
             return messages;
         }
-        uint8 teamId = master->GetTeamId(true);
-        std::vector<uint64>& guidCache = sRandomPlayerbotMgr->addclassCache[RandomPlayerbotMgr::GetTeamClassIdx(teamId == TEAM_ALLIANCE, claz)];
+        TeamId teamId = master->GetTeamId();
+        GuidVector& guidCache = sRandomPlayerbotMgr->AddclassCache()[RandomPlayerbotMgr::GetTeamClassIdx(teamId == TEAM_ALLIANCE, claz)];
         for (size_t i = 0; i < guidCache.size(); i++)
         {
-            uint64 guid = guidCache[i];
+            ObjectGuid guid = guidCache[i];
             if (botLoading.find(guid) != botLoading.end())
                 continue;
             if (ObjectAccessor::FindConnectedPlayer(guid))
                 continue;
+
             AddPlayerBot(guid, master->GetSession()->GetAccountId());
             messages.push_back("Add class " + std::string(charname));
             return messages;
@@ -932,7 +945,7 @@ std::vector<std::string> PlayerbotHolder::HandlePlayerbotCommand(char const* /*a
         return messages;
     }
 
-    std::string charnameStr;
+    /*std::string charnameStr;
 
     if (!charname)
     {

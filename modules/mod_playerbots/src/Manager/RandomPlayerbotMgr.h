@@ -31,6 +31,8 @@ public:
 };
 
 class Player;
+class ObjectGuid;
+
 class RandomPlayerbotMgr : public PlayerbotHolder
 {
 public:
@@ -69,12 +71,12 @@ public:
     void SetValue(Player* bot, std::string const type, uint32 value, std::string const data = "");
     void Remove(Player* bot);
     void CheckPlayers();
-
     float getActivityMod() { return _activityMod; }
     float getActivityPercentage() { return _activityMod * 100.0f; }
     void setActivityPercentage(float percentage) { _activityMod = percentage / 100.0f; }
     static uint8 GetTeamClassIdx(bool isAlliance, uint8 claz) { return isAlliance * 20 + claz; }
-
+    void PrepareAddclassCache();
+    std::map<uint8, std::vector<ObjectGuid>>& AddclassCache() { return _addclassCache; };
 protected:
     void OnBotLoginInternal(Player* const bot) override;
 
@@ -99,6 +101,7 @@ private:
     uint32 _processTicks;
 
     std::map<uint32, std::map<std::string, CachedEvent>> _eventCache;
+    std::map<uint8, std::vector<ObjectGuid>> _addclassCache;
     std::list<uint32> _currentBots;
     uint32 _playersLevel;
 };

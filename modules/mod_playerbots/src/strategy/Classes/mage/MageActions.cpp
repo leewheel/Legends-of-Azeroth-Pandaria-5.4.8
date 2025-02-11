@@ -28,6 +28,13 @@ bool CastConeOfColdAction::isUseful()
     return facingTarget && targetClose;
 }
 
+bool CastFrozenOrbAction::isUseful()
+{
+    bool facingTarget = AI_VALUE2(bool, "facing", "current target");
+    bool targetClose = sServerFacade->IsDistanceLessOrEqualThan(AI_VALUE2(float, "distance", GetTargetName()), 10.f);
+    return facingTarget && targetClose;
+}
+
 bool CastDragonsBreathAction::isUseful()
 {
     Unit* target = AI_VALUE(Unit*, "current target");

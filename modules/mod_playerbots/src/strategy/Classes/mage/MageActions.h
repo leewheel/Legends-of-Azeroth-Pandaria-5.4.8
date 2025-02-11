@@ -51,6 +51,18 @@ public:
     CastArcaneMissilesAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "arcane missiles") {}
 };
 
+class CastArcaneExplosionAction : public CastSpellAction
+{
+public:
+    CastArcaneExplosionAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "arcane explosion") {}
+};
+
+class CastMageBombAction : public CastSpellAction
+{
+public:
+    CastMageBombAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "mage bomb") {}
+};
+
 class CastPyroblastAction : public CastSpellAction
 {
 public:
@@ -110,16 +122,18 @@ public:
     bool isUseful() override;
 };
 
-class CastArcaneIntellectAction : public CastBuffSpellAction
+class CastFrozenOrbAction : public CastCureSpellAction
 {
 public:
-    CastArcaneIntellectAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "arcane intellect") {}
+    CastFrozenOrbAction(PlayerbotAI* botAI) : CastCureSpellAction(botAI, "frozen orb") {}
+    ActionThreatType getThreatType() override { return ActionThreatType::Aoe; }
+    bool isUseful() override;
 };
 
-class CastArcaneIntellectOnPartyAction : public BuffOnPartyAction
+class CastArcaneBrillanceAction : public CastBuffSpellAction
 {
 public:
-    CastArcaneIntellectOnPartyAction(PlayerbotAI* botAI) : BuffOnPartyAction(botAI, "arcane intellect") {}
+    CastArcaneBrillanceAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "arcane brillance") {}
 };
 
 class CastRemoveCurseAction : public CastCureSpellAction
@@ -138,6 +152,12 @@ class CastIcyVeinsAction : public CastBuffSpellAction
 {
 public:
     CastIcyVeinsAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "icy veins") {}
+};
+
+class CastFingersOfFrostAction : public CastBuffSpellAction
+{
+public:
+    CastFingersOfFrostAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "fingers of frost") {}
 };
 
 class CastColdSnapAction : public CastBuffSpellAction

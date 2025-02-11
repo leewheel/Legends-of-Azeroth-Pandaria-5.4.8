@@ -12,13 +12,51 @@ class FrostMageStrategyActionNodeFactory : public NamedObjectFactory<ActionNode>
 public:
     FrostMageStrategyActionNodeFactory()
     {
+        creators["frostbolt"] = &frostbolt;
+        creators["summon water elemental"] = &summon_water_elemental;
+        creators["fingers of frost"] = &fingers_of_frost;
+        creators["icy veins"] = &icy_veins;
+        creators["frozen orb"] = &frozen_orb;
         creators["cold snap"] = &cold_snap;
         creators["ice barrier"] = &ice_barrier;
-        creators["summon water elemental"] = &summon_water_elemental;
-        creators["deep freeze"] = &deep_freeze;
     }
 
 private:
+    static ActionNode* frostbolt([[maybe_unused]] PlayerbotAI* botAI)
+    {
+        return new ActionNode("frostbolt",
+            /*P*/ nullptr,
+            /*A*/ NextAction::array(0, new NextAction("frostfire bolt"), nullptr),
+            /*C*/ nullptr);
+    }
+    static ActionNode* summon_water_elemental([[maybe_unused]] PlayerbotAI* botAI)
+    {
+        return new ActionNode("summon water elemental",
+            /*P*/ nullptr,
+            /*A*/ nullptr,
+            /*C*/ nullptr);
+    }
+    static ActionNode* fingers_of_frost([[maybe_unused]] PlayerbotAI* botAI)
+    {
+        return new ActionNode("fingers of frost",
+            /*P*/ nullptr,
+            /*A*/ nullptr,
+            /*C*/ nullptr);
+    }
+    static ActionNode* icy_veins([[maybe_unused]] PlayerbotAI* botAI)
+    {
+        return new ActionNode("ice veins",
+            /*P*/ nullptr,
+            /*A*/ nullptr,
+            /*C*/ nullptr);
+    }
+    static ActionNode* frozen_orb([[maybe_unused]] PlayerbotAI* botAI)
+    {
+        return new ActionNode("frozen orb",
+            /*P*/ nullptr,
+            /*A*/ nullptr,
+            /*C*/ nullptr);
+    }
     static ActionNode* cold_snap([[maybe_unused]] PlayerbotAI* botAI)
     {
         return new ActionNode("cold snap",
@@ -26,28 +64,11 @@ private:
                               /*A*/ nullptr,
                               /*C*/ nullptr);
     }
-
     static ActionNode* ice_barrier([[maybe_unused]] PlayerbotAI* botAI)
     {
         return new ActionNode("ice barrier",
                               /*P*/ nullptr,
                               /*A*/ nullptr,
-                              /*C*/ nullptr);
-    }
-
-    static ActionNode* summon_water_elemental([[maybe_unused]] PlayerbotAI* botAI)
-    {
-        return new ActionNode("summon water elemental",
-                              /*P*/ nullptr,
-                              /*A*/ nullptr,
-                              /*C*/ nullptr);
-    }
-
-    static ActionNode* deep_freeze([[maybe_unused]] PlayerbotAI* botAI)
-    {
-        return new ActionNode("deep freeze",
-                              /*P*/ nullptr,
-                              /*A*/ NextAction::array(0, new NextAction("ice lance"), nullptr),
                               /*C*/ nullptr);
     }
 };
@@ -60,10 +81,12 @@ FrostMageStrategy::FrostMageStrategy(PlayerbotAI* botAI) : GenericMageStrategy(b
 NextAction** FrostMageStrategy::getDefaultActions()
 {
     return NextAction::array(0,
-                             new NextAction("frostfire bolt", ACTION_DEFAULT + 0.3f),
-                             new NextAction("frostbolt", ACTION_DEFAULT + 0.2f),
-                             new NextAction("shoot", ACTION_DEFAULT + 0.1f),
-                             new NextAction("fireball", ACTION_DEFAULT), nullptr);
+                             new NextAction("frostbolt", ACTION_DEFAULT + 0.5f),
+                             new NextAction("frostfire bolt", ACTION_DEFAULT + 0.4f),
+                             new NextAction("ice lance", ACTION_DEFAULT + 0.3f),
+                             new NextAction("deep freeze", ACTION_DEFAULT + 0.2f),
+                             new NextAction("mage bomb", ACTION_DEFAULT + 0.1f),
+                             new NextAction("shoot", ACTION_DEFAULT), nullptr);
 }
 
 void FrostMageStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
