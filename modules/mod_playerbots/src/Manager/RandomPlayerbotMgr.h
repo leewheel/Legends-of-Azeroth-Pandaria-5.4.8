@@ -44,10 +44,36 @@ public:
         return &instance;
     }
 
+    /// <summary>
+    /// Allow pre load reserve on internal containers
+    /// </summary>
+    /// <param name="size"></param>
+    void Reserve(const uint32 size);
     void UpdateAIInternal(uint32 elapsed, bool minimal = false) override;
 
 private:
-    //void ScaleBotActivity();
+    struct farm_zone {
+        uint32 zone_id;
+        uint32 zone_type;
+        uint32 min_level;
+        uint32 max_level;
+        Team team_disabled;
+        uint32 map_id;
+        uint32 min_player;
+        uint32 max_player;
+    };
+
+    struct farm_spot {
+        uint32 zone_id;
+        uint32 id;
+        uint32 min_level;
+        uint32 max_level;
+        Team team_disabled;
+        float x;
+        float y;
+        float z;
+        uint32 radius;
+    };
 
 public:
     uint32 activeBots = 0;
@@ -76,33 +102,30 @@ public:
     void setActivityPercentage(float percentage) { _activityMod = percentage / 100.0f; }
     static uint8 GetTeamClassIdx(bool isAlliance, uint8 claz) { return isAlliance * 20 + claz; }
     void PrepareAddclassCache();
+    void PrepareTeleportCache();
     std::map<uint8, std::vector<ObjectGuid>>& AddclassCache() { return _addclassCache; };
 protected:
     void OnBotLoginInternal(Player* const bot) override;
 
 private:
+    void GetBots();
+    uint32 AddRandomBots();
+    bool ProcessBot(uint32 bot);
+
     // pid values are set in constructor
     float _activityMod = 0.25;
     bool _isBotInitializing = true;
     uint32 GetEventValue(uint32 bot, std::string const event);
     std::string const GetEventData(uint32 bot, std::string const event);
-    uint32 SetEventValue(uint32 bot, std::string const event, uint32 value, uint32 validIn,
-        std::string const data = "");
-    void GetBots();
-
+    uint32 SetEventValue(uint32 bot, std::string const event, uint32 value, uint32 validIn, std::string const data = "");
     time_t _playersCheckTimer;
-
-    uint32 AddRandomBots();
-    bool ProcessBot(uint32 bot);
-
     typedef void (RandomPlayerbotMgr::* ConsoleCommandHandler)(Player*);
-
     std::vector<Player*> _players;
     uint32 _processTicks;
-
     std::map<uint32, std::map<std::string, CachedEvent>> _eventCache;
     std::map<uint8, std::vector<ObjectGuid>> _addclassCache;
-    std::list<uint32> _currentBots;
+    std::list<std::pair<farm_zone, std::list<farm_spot>>> _farm_cache_data;
+    std::vector<uint32> _currentBots;
     uint32 _playersLevel;
 };
 

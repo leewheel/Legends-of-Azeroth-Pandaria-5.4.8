@@ -71,6 +71,7 @@ public:
             TC_LOG_INFO("playerbots", ">> Loaded playerbots config in %u ms", GetMSTimeDiffToNow(oldMSTime));
             TC_LOG_INFO("playerbots", " ");
 
+            sRandomPlayerbotMgr->Reserve(sPlayerbotAIConfig->maxRandomBots);
 
             TC_LOG_INFO("playerbots", "Playerbots enabled: %s", sPlayerbotAIConfig->enabled ? "Yes" : "No");
             TC_LOG_INFO("playerbots", "Playerbots min/max to load: %u/%u", sPlayerbotAIConfig->minRandomBots, sPlayerbotAIConfig->maxRandomBots);
@@ -85,12 +86,9 @@ public:
     PlayerbotsServerScript() : ServerScript("PlayerbotsServerScript") {}
     void OnPacketReceive(WorldSession* sessionBot, WorldPacket& packet) override
     {
-        if (sessionBot)
-        {
-            Player* playerBot = sessionBot->GetPlayer();
+        Player* playerBot = sessionBot->GetPlayer();
             if (PlayerbotMgr* playerbotMgr = GET_PLAYERBOT_MGR(playerBot))
                 playerbotMgr->HandleMasterIncomingPacket(packet);
-        }
     }
 };
 

@@ -69,6 +69,7 @@ void PacketHandlingHelper::AddPacket(WorldPacket const& packet)
 
 PlayerbotAI::PlayerbotAI()
     : PlayerbotAIBase(true),
+    _isBotInitializing{ true },
     bot(nullptr),
     accountId(0),
     master(nullptr),
@@ -77,16 +78,31 @@ PlayerbotAI::PlayerbotAI()
     _engines{ nullptr },
     _currentState(BOT_STATE_NON_COMBAT)
 {
+    for (uint8 i = 0; i < BOT_STATE_MAX; i++)
+        _engines[i] = nullptr;
+
+    for (uint8 i = 0; i < MAX_ACTIVITY_TYPE; i++)
+    {
+        _allowActiveCheckTimer[i] = time(nullptr);
+        _allowActive[i] = false;
+    }
 }
 
 PlayerbotAI::PlayerbotAI(Player* bot)
     : PlayerbotAIBase(true),
+    _isBotInitializing{ true },
     bot(bot),
     master(nullptr),
     _aiObjectContext{ nullptr },
     _currentEngine{ nullptr },
     _engines{ nullptr }
 {
+    for (uint8 i = 0; i < MAX_ACTIVITY_TYPE; i++)
+    {
+        _allowActiveCheckTimer[i] = time(nullptr);
+        _allowActive[i] = false;
+    }
+
     accountId = bot->GetSession()->GetAccountId();
     _aiObjectContext = AiFactory::createAiObjectContext(bot, this);
     _engines[BOT_STATE_COMBAT] = AiFactory::createCombatEngine(bot, this, _aiObjectContext);
@@ -369,10 +385,67 @@ bool PlayerbotAI::DoSpecificAction(std::string const name, Event event, bool sil
 
 bool PlayerbotAI::AllowActive(ActivityType activityType)
 {
+    auto HasRealPlayers = ([](Map* map)
+    {
+        Map::PlayerList const& players = map->GetPlayers();
+        if (players.isEmpty())
+        {
+            return false;
+        }
+
+        for (auto const& itr : players)
+        {
+            Player* player = itr.GetSource();
+            if (!player || !player->IsVisible())
+            {
+                continue;
+            }
+
+            PlayerbotAI* botAI = GET_PLAYERBOT_AI(player);
+            if (!botAI || botAI->IsRealPlayer() || botAI->HasRealPlayerMaster())
+            {
+                return true;
+            }
+        }
+
+        return false;
+    });
+
+    auto ZoneHasRealPlayers = ([](Player * bot)
+    {
+        Map* map = bot->GetMap();
+        if (!bot || !map)
+        {
+            return false;
+        }
+
+        for (Player* player : sRandomPlayerbotMgr->GetPlayers())
+        {
+            if (player->GetMapId() != bot->GetMapId())
+                continue;
+
+            if (player->IsGameMaster() && !player->IsVisible())
+            {
+                continue;
+            }
+
+            if (player->GetZoneId() == bot->GetZoneId())
+            {
+                PlayerbotAI* botAI = GET_PLAYERBOT_AI(player);
+                if (!botAI || botAI->IsRealPlayer() || botAI->HasRealPlayerMaster())
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    });
+
     // when botActiveAlone is 100% and smartScale disabled
     //if (sPlayerbotAIConfig->botActiveAlone >= 100 && !sPlayerbotAIConfig->botActiveAloneSmartScale)
     {
-        return true;
+        //return true;
     }
 
     // Is in combat. Always defend yourself.
@@ -383,12 +456,12 @@ bool PlayerbotAI::AllowActive(ActivityType activityType)
             return true;
         }
     }
-    /*
+    
     // only keep updating till initializing time has completed,
     // which prevents unneeded expensive GameTime calls.
     if (_isBotInitializing)
     {
-        _isBotInitializing = GameTime::GetUptime().count() < sPlayerbotAIConfig->maxRandomBots * 0.11;
+        _isBotInitializing = sWorld->GetUptime() < sPlayerbotAIConfig->maxRandomBots * 0.11;
 
         // no activity allowed during bot initialization
         if (_isBotInitializing)
@@ -407,19 +480,19 @@ bool PlayerbotAI::AllowActive(ActivityType activityType)
     if (!WorldPosition(bot).isOverworld())
     {
         return true;
-    }*/
+    }
 
     // bot map has active players.
-    /*if (sPlayerbotAIConfig->BotActiveAloneForceWhenInMap)
+    //if (sPlayerbotAIConfig->BotActiveAloneForceWhenInMap)
     {
         if (HasRealPlayers(bot->GetMap()))
         {
             return true;
         }
-    }*/
+    }
 
     // bot zone has active players.
-    /*if (sPlayerbotAIConfig->BotActiveAloneForceWhenInZone)
+    //if (sPlayerbotAIConfig->BotActiveAloneForceWhenInZone)
     {
         if (ZoneHasRealPlayers(bot))
         {
@@ -428,19 +501,19 @@ bool PlayerbotAI::AllowActive(ActivityType activityType)
     }
 
     // when in real guild
-    if (sPlayerbotAIConfig->BotActiveAloneForceWhenInGuild)
+    /*if (sPlayerbotAIConfig->BotActiveAloneForceWhenInGuild)
     {
         if (IsInRealGuild())
         {
             return true;
         }
-    }
+    }*/
 
     // Player is near. Always active.
-    if (HasPlayerNearby(sPlayerbotAIConfig->BotActiveAloneForceWhenInRadius))
+    /*if (HasPlayerNearby(sPlayerbotAIConfig->BotActiveAloneForceWhenInRadius))
     {
         return true;
-    }
+    }*/
 
     // Has player master. Always active.
     if (GetMaster())
@@ -493,48 +566,48 @@ bool PlayerbotAI::AllowActive(ActivityType activityType)
         return true;
     }
 
-    bool isLFG = false;
-    if (group)
-    {
-        if (sLFGMgr->GetState(group->GetGUID()) != lfg::LFG_STATE_NONE)
-        {
-            isLFG = true;
-        }
-    }
-    if (sLFGMgr->GetState(bot->GetGUID()) != lfg::LFG_STATE_NONE)
-    {
-        isLFG = true;
-    }
-    if (isLFG)
-    {
-        return true;
-    }
+    //bool isLFG = false;
+    //if (group)
+    //{
+    //    if (sLFGMgr->GetState(group->GetGUID()) != lfg::LFG_STATE_NONE)
+    //    {
+    //        isLFG = true;
+    //    }
+    //}
+    //if (sLFGMgr->GetState(bot->GetGUID()) != lfg::LFG_STATE_NONE)
+    //{
+    //    isLFG = true;
+    //}
+    //if (isLFG)
+    //{
+    //    return true;
+    //}
 
-    // HasFriend
-    if (sPlayerbotAIConfig->BotActiveAloneForceWhenIsFriend)
-    {
-        for (auto& player : sRandomPlayerbotMgr->GetPlayers())
-        {
-            if (!player || !player->IsInWorld() || !player->GetSocial() || !bot->GetGUID())
-            {
-                continue;
-            }
+    //// HasFriend
+    //if (sPlayerbotAIConfig->BotActiveAloneForceWhenIsFriend)
+    //{
+    //    for (auto& player : sRandomPlayerbotMgr->GetPlayers())
+    //    {
+    //        if (!player || !player->IsInWorld() || !player->GetSocial() || !bot->GetGUID())
+    //        {
+    //            continue;
+    //        }
 
-            if (player->GetSocial()->HasFriend(bot->GetGUID()))
-            {
-                return true;
-            }
-        }
-    }
+    //        if (player->GetSocial()->HasFriend(bot->GetGUID()))
+    //        {
+    //            return true;
+    //        }
+    //    }
+    //}
 
-    // Force the bots to spread
-    if (activityType == OUT_OF_PARTY_ACTIVITY || activityType == GRIND_ACTIVITY)
-    {
-        if (HasManyPlayersNearby(10, 40))
-        {
-            return true;
-        }
-    }
+    //// Force the bots to spread
+    //if (activityType == OUT_OF_PARTY_ACTIVITY || activityType == GRIND_ACTIVITY)
+    //{
+    //    if (HasManyPlayersNearby(10, 40))
+    //    {
+    //        return true;
+    //    }
+    //}
 
     // Bots don't need to move using PathGenerator.
     if (activityType == DETAILED_MOVE_ACTIVITY)
@@ -542,10 +615,10 @@ bool PlayerbotAI::AllowActive(ActivityType activityType)
         return false;
     }
 
-    if (sPlayerbotAIConfig->botActiveAlone <= 0)
+    /*if (sPlayerbotAIConfig->botActiveAlone <= 0)
     {
         return false;
-    }
+    }*/
 
     // #######################################################################################
     // All mandatory conditations are checked to be active or not, from here the remaining
@@ -554,7 +627,7 @@ bool PlayerbotAI::AllowActive(ActivityType activityType)
 
     // Below is code to have a specified % of bots active at all times.
     // The default is 10%. With 0.1% of all bots going active or inactive each minute.
-    uint32 mod = sPlayerbotAIConfig->botActiveAlone > 100 ? 100 : sPlayerbotAIConfig->botActiveAlone;
+    /*uint32 mod = sPlayerbotAIConfig->botActiveAlone > 100 ? 100 : sPlayerbotAIConfig->botActiveAlone;
     if (sPlayerbotAIConfig->botActiveAloneSmartScale &&
         bot->GetLevel() >= sPlayerbotAIConfig->botActiveAloneSmartScaleWhenMinLevel &&
         bot->GetLevel() <= sPlayerbotAIConfig->botActiveAloneSmartScaleWhenMaxLevel)
@@ -570,6 +643,8 @@ bool PlayerbotAI::AllowActive(ActivityType activityType)
         (sPlayerbotAIConfig->botActiveAlone * mod) /
         100;  // The given percentage of bots should be active and rotate 1% of those active bots each minute.
     */
+
+    return false;
 }
 
 bool PlayerbotAI::AllowActivity(ActivityType activityType, bool checkNow)
@@ -630,7 +705,7 @@ void PlayerbotAI::Reset(bool full)
         _rpgInfo = NewRpgInfo();
     }
 
-    _aiObjectContext->GetValue<GuidSet&>("ignore rpg target")->Get().clear();
+    //_aiObjectContext->GetValue<GuidSet&>("ignore rpg target")->Get().clear();
 
     bot->GetMotionMaster()->Clear();
 
@@ -679,13 +754,13 @@ void PlayerbotAI::ChangeEngine(BotState type)
         switch (type)
         {
         case BOT_STATE_COMBAT:
-            TC_LOG_DEBUG("playerbots",  "=== %s COMBAT ===", bot->GetName().c_str());
+            //TC_LOG_DEBUG("playerbots",  "=== %s COMBAT ===", bot->GetName().c_str());
             break;
         case BOT_STATE_NON_COMBAT:
-            TC_LOG_DEBUG("playerbots",  "=== %s NON-COMBAT ===", bot->GetName().c_str());
+            //TC_LOG_DEBUG("playerbots",  "=== %s NON-COMBAT ===", bot->GetName().c_str());
             break;
         case BOT_STATE_DEAD:
-            TC_LOG_DEBUG("playerbots",  "=== %s DEAD ===", bot->GetName().c_str());
+            //TC_LOG_DEBUG("playerbots",  "=== %s DEAD ===", bot->GetName().c_str());
             break;
         default:
             break;
@@ -1752,8 +1827,7 @@ bool PlayerbotAI::CanCastSpell(uint32 spellid, Unit* target, bool checkHasSpell,
         target = bot;
 
     // if (!sPlayerbotAIConfig->logInGroupOnly || (bot->GetGroup() && HasRealPlayerMaster()))
-    //     LOG_DEBUG("playerbots", "Can cast spell? - target name: {}, spellid: {}, bot name: {}",
-    //             target->GetName(), spellid, bot->GetName());
+    //TC_LOG_DEBUG("playerbots", "Can cast spell? - target name: %s, spellid: %u, bot name: %s", target->GetName().c_str(), spellid, bot->GetName().c_str());
 
     if (Pet* pet = bot->GetPet())
         if (pet->HasSpell(spellid))
@@ -1772,10 +1846,7 @@ bool PlayerbotAI::CanCastSpell(uint32 spellid, Unit* target, bool checkHasSpell,
     {
         //if (!sPlayerbotAIConfig->logInGroupOnly || (bot->GetGroup() && HasRealPlayerMaster()))
         {
-            //TC_LOG_DEBUG(
-            //    "playerbots",
-            //    "CanCastSpell() target name: %d, spellid: %u, bot name: %s, failed because has current channeled spell",
-            //    target->GetName().c_str(), spellid, bot->GetName().c_str());
+            //TC_LOG_DEBUG("playerbots", "CanCastSpell() target name: %d, spellid: %u, bot name: %s, failed because has current channeled spell", target->GetName().c_str(), spellid, bot->GetName().c_str());
         }
         return false;
     }
@@ -1784,9 +1855,7 @@ bool PlayerbotAI::CanCastSpell(uint32 spellid, Unit* target, bool checkHasSpell,
     {
         //if (!sPlayerbotAIConfig->logInGroupOnly || (bot->GetGroup() && HasRealPlayerMaster()))
         {
-           // TC_LOG_DEBUG("playerbots",
-            //    "Can cast spell failed. Spell not has cooldown. - target name: %s, spellid: %u, bot name: %s",
-            //    target->GetName().c_str(), spellid, bot->GetName().c_str());
+            //TC_LOG_DEBUG("playerbots", "Can cast spell failed. Spell not has cooldown. - target name: %s, spellid: %u, bot name: %s", target->GetName().c_str(), spellid, bot->GetName().c_str());
         }
         return false;
     }
@@ -1796,8 +1865,7 @@ bool PlayerbotAI::CanCastSpell(uint32 spellid, Unit* target, bool checkHasSpell,
     {
         //if (!sPlayerbotAIConfig->logInGroupOnly || (bot->GetGroup() && HasRealPlayerMaster()))
         {
-            //TC_LOG_DEBUG("playerbots", "Can cast spell failed. No spellInfo. - target name: %s, spellid: %u, bot name: %s",
-             //   target->GetName().c_str(), spellid, bot->GetName().c_str());
+            //TC_LOG_DEBUG("playerbots", "Can cast spell failed. No spellInfo. - target name: %s, spellid: %u, bot name: %s", target->GetName().c_str(), spellid, bot->GetName().c_str());
         }
         return false;
     }
@@ -1808,8 +1876,7 @@ bool PlayerbotAI::CanCastSpell(uint32 spellid, Unit* target, bool checkHasSpell,
     {
         //if (!sPlayerbotAIConfig->logInGroupOnly || (bot->GetGroup() && HasRealPlayerMaster()))
         {
-            //TC_LOG_DEBUG("playerbots", "Casting time and bot is moving - target name: %s, spellid: %u, bot name: %s",
-             //   target->GetName().c_str(), spellid, bot->GetName().c_str());
+            //TC_LOG_DEBUG("playerbots", "Casting time and bot is moving - target name: %s, spellid: %u, bot name: %s", target->GetName().c_str(), spellid, bot->GetName().c_str());
         }
         return false;
     }
@@ -1837,8 +1904,7 @@ bool PlayerbotAI::CanCastSpell(uint32 spellid, Unit* target, bool checkHasSpell,
         {
             //if (!sPlayerbotAIConfig->logInGroupOnly || (bot->GetGroup() && HasRealPlayerMaster()))
             {
-               // TC_LOG_DEBUG("playerbots", "target is immuned to spell - target name: %s, spellid: %u, bot name: %s",
-                //    target->GetName(), spellid, bot->GetName());
+                //TC_LOG_DEBUG("playerbots", "target is immuned to spell - target name: %s, spellid: %u, bot name: %s", target->GetName(), spellid, bot->GetName());
             }
             return false;
         }
@@ -1862,8 +1928,7 @@ bool PlayerbotAI::CanCastSpell(uint32 spellid, Unit* target, bool checkHasSpell,
         {
             //if (!sPlayerbotAIConfig->logInGroupOnly || (bot->GetGroup() && HasRealPlayerMaster()))
             {
-               // TC_LOG_DEBUG("playerbots", "target is out of sight distance - target name: %s, spellid: %u, bot name: %s",
-               //     target->GetName(), spellid, bot->GetName());
+                //TC_LOG_DEBUG("playerbots", "target is out of sight distance - target name: %s, spellid: %u, bot name: %s", target->GetName(), spellid, bot->GetName());
             }
             return false;
         }
@@ -1901,12 +1966,10 @@ bool PlayerbotAI::CanCastSpell(uint32 spellid, Unit* target, bool checkHasSpell,
         return true;
     default:
         //if (!sPlayerbotAIConfig->logInGroupOnly || (bot->GetGroup() && HasRealPlayerMaster()))
-        {
-            // if (result != SPELL_FAILED_NOT_READY && result != SPELL_CAST_OK) {
-           // TC_LOG_DEBUG("playerbots",
-            //    "CanCastSpell Check Failed. - target name: %s, spellid: %u, bot name: %s, result: %u",
-            //    target->GetName().c_str(), spellid, bot->GetName().c_str(), (uint32)result);
-        }
+        //{
+            //if (result != SPELL_FAILED_NOT_READY && result != SPELL_CAST_OK)
+                //TC_LOG_DEBUG("playerbots", "CanCastSpell Check Failed. - target name: %s, spellid: %u, bot name: %s, result: %u", target->GetName().c_str(), spellid, bot->GetName().c_str(), (uint32)result);
+        //}
         return false;
     }
 }

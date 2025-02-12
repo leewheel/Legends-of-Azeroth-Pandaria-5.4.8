@@ -43,6 +43,11 @@ RandomPlayerbotMgr::RandomPlayerbotMgr()
 
 RandomPlayerbotMgr::~RandomPlayerbotMgr() {}
 
+void RandomPlayerbotMgr::Reserve(const uint32 size)
+{
+    _currentBots.reserve(size);
+}
+
 uint32 RandomPlayerbotMgr::GetMaxAllowedBotCount() { return GetEventValue(0, "bot_count"); }
 
 void RandomPlayerbotMgr::UpdateAIInternal(uint32 elapsed, bool /*minimal*/)
@@ -61,13 +66,20 @@ void RandomPlayerbotMgr::UpdateAIInternal(uint32 elapsed, bool /*minimal*/)
     }
 
     GetBots();
-    std::list<uint32> availableBots = _currentBots;
+    std::vector<uint32> availableBots = _currentBots;
     uint32 availableBotCount = _currentBots.size();
     uint32 onlineBotCount = playerBots.size();
 
     uint32 onlineBotFocus = 75;
     if (onlineBotCount < (uint32)(sPlayerbotAIConfig->minRandomBots * 90 / 100))
         onlineBotFocus = 25;
+
+    // only keep updating till initializing time has completed,
+    // which prevents unneeded expensive GameTime calls.
+    if (_isBotInitializing)
+    {
+        _isBotInitializing = sWorld->GetUptime() < sPlayerbotAIConfig->maxRandomBots * (0.11 + 0.4);
+    }
 
     uint32 updateIntervalTurboBoost = _isBotInitializing ? 1 : sPlayerbotAIConfig->randomBotUpdateInterval;
     SetNextCheckDelay(updateIntervalTurboBoost * (onlineBotFocus + 25) * 10);
@@ -187,6 +199,20 @@ uint32 RandomPlayerbotMgr::AddRandomBots()
     }
 
     return _currentBots.size();
+}
+
+void RandomPlayerbotMgr::Remove(Player* bot)
+{
+    ObjectGuid owner = bot->GetGUID();
+
+    PlayerbotsPreparedStatement* stmt = PlayerbotsDatabase.GetPreparedStatement(PLAYERBOTS_DEL_RANDOM_BOTS_BY_OWNER);
+    stmt->setUInt32(0, 0);
+    stmt->setUInt32(1, owner.GetCounter());
+    PlayerbotsDatabase.Execute(stmt);
+
+    _eventCache[owner.GetCounter()].clear();
+
+    LogoutPlayerBot(owner);
 }
 
 void RandomPlayerbotMgr::CheckPlayers()
@@ -803,5 +829,68 @@ void RandomPlayerbotMgr::PrepareAddclassCache()
             } while (results->NextRow());
         }
     }
-    TC_LOG_INFO("playerbots", ">> {} characters collected for addclass command.", collected);
+    TC_LOG_INFO("playerbots", ">> %u characters collected for addclass command.", collected);
+}
+
+void RandomPlayerbotMgr::PrepareTeleportCache()
+{
+    uint32 zone_count = 0, farm_spot_count = 0;
+    QueryResult results = PlayerbotsDatabase.PQuery("SELECT ZoneId, ZoneTyp, MinLevel, MaxLevel, TeamsDisabled, MapId, MinPlayers, MaxPlayers FROM playerbot_farming_zone");
+    if (results)
+    {
+        do
+        {
+            Field* field = results->Fetch();
+
+            farm_zone new_zone = {
+                field->GetUInt32(),         /* ZoneId */
+                field->GetUInt32(),         /* ZoneType */
+                field->GetUInt32(),         /* MinLevel */
+                field->GetUInt32(),         /* MaxLevel */
+                (Team)field->GetUInt32(),   /* TeamDisabled */
+                field->GetUInt32(),         /* MapId */
+                field->GetUInt32(),         /* MinPlayer */
+                field->GetUInt32()         /* MaxPlayer */
+            };
+
+            _farm_cache_data.emplace_back(std::move(new_zone), std::list<farm_spot>());
+            zone_count++;
+        } while (results->NextRow());
+    }
+
+    results = PlayerbotsDatabase.PQuery("SELECT ZoneId, Id, MinLevel, MaxLevel, TeamsDisabled, X, Y, Z, Radius FROM playerbot_farming_spot");
+    if (results)
+    {
+        do
+        {
+            Field* field = results->Fetch();
+
+            farm_spot new_spot = {
+                field->GetUInt32(),         /* ZoneId */
+                field->GetUInt32(),         /* Id */
+                field->GetUInt32(),         /* MinLevel */
+                field->GetUInt32(),         /* MaxLevel */
+                (Team)field->GetUInt32(),   /* TeamDisabled */
+                field->GetFloat(),          /* X */
+                field->GetFloat(),          /* Y */
+                field->GetFloat(),          /* Z */
+                field->GetUInt32()          /* Radius */
+            };
+
+            for (auto& zone_data : _farm_cache_data)
+            {
+                farm_zone& farming_zone = zone_data.first;
+                std::list<farm_spot>& farming_spot = zone_data.second;
+
+                if (farming_zone.zone_id == new_spot.zone_id)
+                {
+                    farming_spot.emplace_back(std::move(new_spot));
+                    break;
+                }
+            }
+            farm_spot_count++;
+        } while (results->NextRow());
+    }
+
+    TC_LOG_INFO("server.loading", ">> Loaded %u cache zone for %u farm spot", zone_count, farm_spot_count);
 }

@@ -190,7 +190,7 @@ public:
     bool SayToParty(const std::string& msg);
     bool TellError(std::string const text);
 private:
-    bool _isBotInitializing = false;
+    bool _isBotInitializing;
 
 protected:
     Player* bot;

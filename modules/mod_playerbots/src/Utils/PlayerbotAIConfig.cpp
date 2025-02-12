@@ -156,6 +156,7 @@ bool PlayerbotAIConfig::Initialize()
     }
 
     sRandomPlayerbotMgr->PrepareAddclassCache();
+    sRandomPlayerbotMgr->PrepareTeleportCache();
 
     TC_LOG_INFO("server.loading", "---------------------------------------");
     TC_LOG_INFO("server.loading", "        AI Playerbots initialized       ");

@@ -131,7 +131,7 @@ public:
 class CastCallPetAction : public CastBuffSpellAction
 {
 public:
-    CastCallPetAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "call pet") {}
+    CastCallPetAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "call pet 1") {}
 };
 
 class CastMendPetAction : public CastAuraSpellAction

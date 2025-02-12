@@ -88,7 +88,7 @@ public:
         creators["mend pet"] = &HunterAiObjectContextInternal::mend_pet;
         creators["kill command"] = &HunterAiObjectContextInternal::kill_command;
         creators["revive pet"] = &HunterAiObjectContextInternal::revive_pet;
-        creators["call pet"] = &HunterAiObjectContextInternal::call_pet;
+        creators["call pet 1"] = &HunterAiObjectContextInternal::call_pet;
         creators["black arrow"] = &HunterAiObjectContextInternal::black_arrow;
         creators["freezing trap"] = &HunterAiObjectContextInternal::freezing_trap;
         creators["rapid fire"] = &HunterAiObjectContextInternal::rapid_fire;
