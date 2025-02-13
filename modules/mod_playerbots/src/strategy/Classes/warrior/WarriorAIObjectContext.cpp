@@ -3,7 +3,7 @@
  * and/or modify it under version 2 of the License, or (at your option), any later version.
  */
 
-#include "WarriorAiObjectContext.h"
+#include "WarriorAIObjectContext.h"
 
 #include "ArmsWarriorStrategy.h"
 #include "FuryWarriorStrategy.h"

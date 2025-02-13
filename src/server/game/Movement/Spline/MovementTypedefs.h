@@ -19,6 +19,7 @@
 #define TRINITYSERVER_TYPEDEFS_H
 
 #include "Common.h"
+#include "UnitDefines.h"
 
 namespace G3D
 {
@@ -27,7 +28,6 @@ namespace G3D
     class Vector4;
 }
 
-enum UnitMoveType;
 namespace Movement
 {
     using G3D::Vector2;

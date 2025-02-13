@@ -1501,19 +1501,19 @@ bool PlayerbotAI::canDispel(SpellInfo const* spellInfo, uint32 dispelType)
 
     for (std::string& wl : dispel_whitelist)
     {
-        if (strcmpi((const char*)spellInfo->SpellName[0], wl.c_str()) == 0)
+        if (caseInsensitiveEqual(spellInfo->SpellName[0], wl) == 0)
         {
             return false;
         }
     }
 
-    return !spellInfo->SpellName[0] || (strcmpi((const char*)spellInfo->SpellName[0], "demon skin") &&
-        strcmpi((const char*)spellInfo->SpellName[0], "mage armor") &&
-        strcmpi((const char*)spellInfo->SpellName[0], "frost armor") &&
-        strcmpi((const char*)spellInfo->SpellName[0], "wavering will") &&
-        strcmpi((const char*)spellInfo->SpellName[0], "chilled") &&
-        strcmpi((const char*)spellInfo->SpellName[0], "mana tap") &&
-        strcmpi((const char*)spellInfo->SpellName[0], "ice armor"));
+    return !spellInfo->SpellName[0] || (caseInsensitiveEqual(spellInfo->SpellName[0], "demon skin") &&
+        caseInsensitiveEqual(spellInfo->SpellName[0], "mage armor") &&
+        caseInsensitiveEqual(spellInfo->SpellName[0], "frost armor") &&
+        caseInsensitiveEqual(spellInfo->SpellName[0], "wavering will") &&
+        caseInsensitiveEqual(spellInfo->SpellName[0], "chilled") &&
+        caseInsensitiveEqual(spellInfo->SpellName[0], "mana tap") &&
+        caseInsensitiveEqual(spellInfo->SpellName[0], "ice armor"));
 }
 
 bool PlayerbotAI::HasAuraToDispel(Unit* target, uint32 dispelType)

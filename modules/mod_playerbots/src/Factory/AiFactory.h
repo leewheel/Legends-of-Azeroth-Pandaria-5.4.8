@@ -9,6 +9,7 @@
 #include <map>
 
 #include "Common.h"
+#include "SharedDefines.h"
 
 class AiObjectContext;
 class Engine;

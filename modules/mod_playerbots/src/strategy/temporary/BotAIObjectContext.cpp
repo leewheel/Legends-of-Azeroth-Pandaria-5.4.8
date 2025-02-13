@@ -3,7 +3,7 @@
  * and/or modify it under version 2 of the License, or (at your option), any later version.
  */
 
-#include "BotAiObjectContext.h"
+#include "BotAIObjectContext.h"
 
 #include "HelloStrategy.h"
 #include "MeleeCombatStrategy.h"

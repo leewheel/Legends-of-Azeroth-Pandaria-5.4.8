@@ -17,10 +17,6 @@
 #include "Spell.h"
 #include "SpellMgr.h"
 
-#ifndef WIN32
-int strcmpi(char const* s1, char const* s2);
-#endif
-
 #define CAST_ANGLE_IN_FRONT (2.f * static_cast<float>(M_PI) / 3.f)
 #define EMOTE_ANGLE_IN_FRONT (2.f * static_cast<float>(M_PI) / 6.f)
 

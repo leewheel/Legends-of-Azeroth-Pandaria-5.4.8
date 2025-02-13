@@ -7,6 +7,15 @@
 #include <sstream>
 #include <string>
 
+inline bool caseInsensitiveEqual(std::string_view str1, std::string_view str2)
+{
+    return str1.size() == str2.size() && std::equal(str1.begin(), str1.end(), str2.begin(), str2.end(), [](unsigned char a, unsigned char b)
+    {
+        return std::tolower(a) == std::tolower(b);
+    });
+}
+
+
 inline std::vector<std::string>& split(std::string const s, char delim, std::vector<std::string>& elems)
 {
     std::stringstream ss(s);
@@ -36,7 +45,6 @@ inline void split(std::vector<std::string>& dest, std::string const str, char co
         start = end + 1;
     }
 
-    // Ajouter le dernier segment (ou la chaîne complète si aucun délimiteur trouvé)
     dest.emplace_back(str.substr(start));
 }
 
