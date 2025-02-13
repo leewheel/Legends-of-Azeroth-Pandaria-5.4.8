@@ -36,22 +36,6 @@ class ObjectGuid;
 class RandomPlayerbotMgr : public PlayerbotHolder
 {
 public:
-    RandomPlayerbotMgr();
-    virtual ~RandomPlayerbotMgr();
-    static RandomPlayerbotMgr* instance()
-    {
-        static RandomPlayerbotMgr instance;
-        return &instance;
-    }
-
-    /// <summary>
-    /// Allow pre load reserve on internal containers
-    /// </summary>
-    /// <param name="size"></param>
-    void Reserve(const uint32 size);
-    void UpdateAIInternal(uint32 elapsed, bool minimal = false) override;
-
-private:
     struct farm_zone {
         uint32 zone_id;
         uint32 zone_type;
@@ -74,6 +58,37 @@ private:
         float z;
         uint32 radius;
     };
+
+    struct city
+    {
+        uint32 zone_id;
+        uint32 city_id;
+        uint32 map_id;
+        uint32 min_level;
+        uint32 max_level;
+        Team team_disabled;
+        float x;
+        float y;
+        float z;
+        uint32 radius;
+    };
+public:
+    RandomPlayerbotMgr();
+    virtual ~RandomPlayerbotMgr();
+    static RandomPlayerbotMgr* instance()
+    {
+        static RandomPlayerbotMgr instance;
+        return &instance;
+    }
+
+    /// <summary>
+    /// Allow pre load reserve on internal containers
+    /// </summary>
+    /// <param name="size"></param>
+    void Reserve(const uint32 size);
+    void UpdateAIInternal(uint32 elapsed, bool minimal = false) override;
+
+    
 
 public:
     uint32 activeBots = 0;
@@ -101,9 +116,12 @@ public:
     float getActivityPercentage() { return _activityMod * 100.0f; }
     void setActivityPercentage(float percentage) { _activityMod = percentage / 100.0f; }
     static uint8 GetTeamClassIdx(bool isAlliance, uint8 claz) { return isAlliance * 20 + claz; }
+
     void PrepareAddclassCache();
-    void PrepareTeleportCache();
     std::map<uint8, std::vector<ObjectGuid>>& AddclassCache() { return _addclassCache; };
+    void PrepareTeleportCache();
+    const farm_spot& GetFarmZoneForPlayer(Player* player);
+
 protected:
     void OnBotLoginInternal(Player* const bot) override;
 
@@ -124,6 +142,7 @@ private:
     uint32 _processTicks;
     std::map<uint32, std::map<std::string, CachedEvent>> _eventCache;
     std::map<uint8, std::vector<ObjectGuid>> _addclassCache;
+    std::list<city> _city_cache_data;
     std::list<std::pair<farm_zone, std::list<farm_spot>>> _farm_cache_data;
     std::vector<uint32> _currentBots;
     uint32 _playersLevel;

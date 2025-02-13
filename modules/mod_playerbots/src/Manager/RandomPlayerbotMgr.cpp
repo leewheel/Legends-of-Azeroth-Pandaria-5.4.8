@@ -834,7 +834,7 @@ void RandomPlayerbotMgr::PrepareAddclassCache()
 
 void RandomPlayerbotMgr::PrepareTeleportCache()
 {
-    uint32 zone_count = 0, farm_spot_count = 0;
+    uint32 zone_count = 0, farm_spot_count = 0, city_count = 0;
     QueryResult results = PlayerbotsDatabase.PQuery("SELECT ZoneId, ZoneTyp, MinLevel, MaxLevel, TeamsDisabled, MapId, MinPlayers, MaxPlayers FROM playerbot_farming_zone");
     if (results)
     {
@@ -892,5 +892,102 @@ void RandomPlayerbotMgr::PrepareTeleportCache()
         } while (results->NextRow());
     }
 
+    results = PlayerbotsDatabase.PQuery("SELECT ZoneId, CityId, MinLevel, MaxLevel, TeamsDisabled, X, Y, Z, Radius FROM playerbot_city");
+    if (results)
+    {
+        do
+        {
+            Field* field = results->Fetch();
+
+            uint32 ZoneId = field->GetUInt32();
+            uint32 city_id = field->GetUInt32();
+            uint32 map_id = 0;
+            for (auto& zone_data : _farm_cache_data)
+            {
+                farm_zone& farming_zone = zone_data.first;
+
+                if (farming_zone.zone_id == ZoneId)
+                {
+                    map_id = farming_zone.map_id;
+                    break;
+                }
+            }
+
+            if (map_id == 0)
+            {
+                TC_LOG_ERROR("server.loading", "City {%u} in ZoneId {%U} is not found in zone cache", city_id, ZoneId);
+                continue;
+            }
+
+            city new_city = {
+                ZoneId,                     /* ZoneId */
+                city_id,                    /* CityId */
+                map_id,                     /* map_id */
+                field->GetUInt32(),         /* MinLevel */
+                field->GetUInt32(),         /* MaxLevel */
+                (Team)field->GetUInt32(),   /* TeamDisabled */
+                field->GetFloat(),          /* X */
+                field->GetFloat(),          /* Y */
+                field->GetFloat(),          /* Z */
+                field->GetUInt32()          /* Radius */
+            };
+
+            _city_cache_data.emplace_back(std::move(new_city));
+            city_count++;
+        } while (results->NextRow());
+    }
+
+
     TC_LOG_INFO("server.loading", ">> Loaded %u cache zone for %u farm spot", zone_count, farm_spot_count);
+    TC_LOG_INFO("server.loading", ">> Loaded %u city zone", city_count);
+}
+
+const RandomPlayerbotMgr::farm_spot& RandomPlayerbotMgr::GetFarmZoneForPlayer(Player* player)
+{
+    if (_farm_cache_data.empty())
+    {
+        return farm_spot();
+    }
+
+    std::mt19937 gen(std::chrono::system_clock::now().time_since_epoch().count());
+    std::shuffle(_farm_cache_data.begin(), _farm_cache_data.end(), gen);
+
+    for (auto& [zone, spots] : _farm_cache_data)
+    {
+        if (player->GetLevel() < zone.min_level || player->GetLevel() > zone.max_level || zone.team_disabled == player->GetTeam())
+            continue;
+
+        uint32 playercount = 0;
+        for (const auto& _internal_player : _players)
+        {
+            if (_internal_player->GetZoneId() == zone.zone_id && _internal_player != player)
+                ++playercount;
+        }
+        for (PlayerBotMap::const_iterator itr = GetPlayerBotsBegin(); itr != GetPlayerBotsEnd(); ++itr)
+        {
+            Player* const bot = itr->second;
+            if (!bot || bot == player || !bot->IsInWorld() || bot->IsBeingTeleported()
+            || bot->GetZoneId() != zone.zone_id) continue;
+
+            ++playercount;
+        }
+
+        if (zone.max_player <= playercount)
+            continue;
+
+        std::shuffle(spots.begin(), spots.end(), gen);
+        for (auto& spot : spots)
+        {
+            if (player->GetLevel() >= spot.min_level && player->GetLevel() <= spot.max_level && spot.team_disabled != player->GetTeam())
+            {
+                continue;
+            }
+
+            // -- 
+            return spot;
+        }
+    }
+
+    std::cout << "Aucune zone valide trouvée pour le joueur " << player->GetName() << " level: " << player->GetLevel() << std::endl;
+    return farm_spot();
 }

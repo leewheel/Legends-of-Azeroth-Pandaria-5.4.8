@@ -1,23 +1,3 @@
--- --------------------------------------------------------
--- Hôte:                         127.0.0.1
--- Version du serveur:           8.0.39 - MySQL Community Server - GPL
--- SE du serveur:                Win64
--- HeidiSQL Version:             12.8.0.6908
--- --------------------------------------------------------
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET NAMES binary */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-
-
--- Listage de la structure de la base pour mop_playerbots
-CREATE DATABASE IF NOT EXISTS `mop_playerbots` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-USE `mop_playerbots`;
-
 -- Listage de la structure de table mop_playerbots. ai_playerbot_texts
 CREATE TABLE IF NOT EXISTS `ai_playerbot_texts` (
   `id` smallint NOT NULL AUTO_INCREMENT,
@@ -5798,12 +5778,17 @@ CREATE TABLE IF NOT EXISTS `playerbot_farming_zone` (
 -- Listage des données de la table mop_playerbots.playerbot_farming_zone : ~58 rows (environ)
 DELETE FROM `playerbot_farming_zone`;
 INSERT INTO `playerbot_farming_zone` (`ZoneId`, `ZoneTyp`, `MinLevel`, `MaxLevel`, `TeamsDisabled`, `MapId`, `MinPlayers`, `MaxPlayers`) VALUES
+       (1, 0, 1, 10, 64, 0, 10, 20),
+       (10, 0, 20, 25, 67, 0, 10, 20),
+       (11, 0, 20, 25, 67, 0, 10, 20),
 	(12, 0, 4, 10, 67, 0, 10, 20),
 	(14, 0, 5, 10, 469, 1, 10, 20),
 	(15, 0, 35, 40, 0, 1, 10, 20),
 	(16, 0, 10, 20, 469, 1, 10, 20),
 	(17, 0, 10, 19, 469, 1, 10, 20),
+	(38, 0, 10, 20, 67, 0, 10, 20),
 	(40, 0, 10, 15, 67, 0, 10, 20),
+	(44, 0, 15, 20, 67, 0, 10, 20),
 	(141, 0, 5, 10, 67, 1, 10, 20),
 	(148, 0, 10, 20, 67, 1, 10, 20),
 	(215, 0, 4, 10, 469, 1, 10, 20),
@@ -56122,8 +56107,3 @@ INSERT INTO `playerbot_item_store` (`Id`, `Minlevel`, `Class`, `Subclass`, `Item
 	(107217, 90, 1, 0, 470, 12, 4, 13),
 	(107218, 90, 1, 0, 470, 12, 4, 13);
 
-/*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
-/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
-/*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40111 SET SQL_NOTES=IFNULL(@OLD_SQL_NOTES, 1) */;

@@ -244,11 +244,17 @@ Async<int> async_main(boost::asio::thread_pool& pool)
     timer.expires_after(std::chrono::seconds(2));
     co_await timer.async_wait(boost::asio::use_awaitable);
 
-    if (sRealmList->GetRealms().empty())
+    int i = 0;
+    while (sRealmList->GetRealms().empty() && i < 5)
     {
-        TC_LOG_ERROR("server.authserver", "No valid realms specified.");
-        pool.stop();
-        co_return 1;
+      if (i >= 5)
+	{
+	  TC_LOG_ERROR("server.authserver", "No valid realms specified.");
+	  pool.stop();
+	  co_return 1;
+	}
+      timer.expires_after(std::chrono::seconds(1));
+      co_await timer.async_wait(boost::asio::use_awaitable);
     }
 
     // Launch the listening network socket
