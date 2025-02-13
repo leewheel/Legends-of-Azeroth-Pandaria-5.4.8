@@ -1112,6 +1112,58 @@ bool PlayerbotAI::HasActivePlayerMaster()
     return master && !GET_PLAYERBOT_AI(master);
 }
 
+bool PlayerbotAI::HasPlayerNearby(WorldPosition* pos, float range)
+{
+    float sqRange = range * range;
+    bool nearPlayer = false;
+    for (auto& player : sRandomPlayerbotMgr->GetPlayers())
+    {
+        if (!player->IsGameMaster() || player->isGMVisible())
+        {
+            if (player->GetMapId() != bot->GetMapId())
+                continue;
+
+            if (pos->sqDistance(WorldPosition(player)) < sqRange)
+                nearPlayer = true;
+
+            // if player is far check farsight/cinematic camera
+            WorldObject* viewObj = player->GetViewpoint();
+            if (viewObj && viewObj != player)
+            {
+                if (pos->sqDistance(WorldPosition(viewObj)) < sqRange)
+                    nearPlayer = true;
+            }
+        }
+    }
+
+    return nearPlayer;
+}
+
+bool PlayerbotAI::HasPlayerNearby(float range)
+{
+    WorldPosition botPos(bot);
+    return HasPlayerNearby(&botPos, range);
+};
+
+bool PlayerbotAI::HasManyPlayersNearby(uint32 trigerrValue, float range)
+{
+    float sqRange = range * range;
+    uint32 found = 0;
+
+    for (auto& player : sRandomPlayerbotMgr->GetPlayers())
+    {
+        if ((!player->IsGameMaster() || player->isGMVisible()) && sServerFacade->GetDistance2d(player, bot) < sqRange)
+        {
+            found++;
+
+            if (found >= trigerrValue)
+                return true;
+        }
+    }
+
+    return false;
+}
+
 bool PlayerbotAI::IsAlt()
 {
     return HasRealPlayerMaster() && !sRandomPlayerbotMgr->IsRandomBot(bot);

@@ -31,6 +31,7 @@
 #include "SpellCastUsefulValue.h"
 #include "SpellIdValue.h"
 #include "PossibleTargetsValue.h"
+#include "RandomBotUpdateValue.h"
 #include "RangeValues.h"
 #include "RtiValue.h"
 #include "RtiTargetValue.h"
@@ -65,6 +66,7 @@ public:
         creators["last flee angle"] = &ValueContext::last_flee_angle;
         creators["last flee timestamp"] = &ValueContext::last_flee_timestamp;
         creators["recently flee info"] = &ValueContext::recently_flee_info;
+        creators["random bot update"] = &ValueContext::random_bot_update_value;
 
         creators["distance"] = &ValueContext::distance;
         creators["moving"] = &ValueContext::moving;
@@ -166,6 +168,8 @@ private:
     static UntypedValue* last_flee_angle(PlayerbotAI* ai) { return new LastFleeAngleValue(ai); }
     static UntypedValue* last_flee_timestamp(PlayerbotAI* ai) { return new LastFleeTimestampValue(ai); }
     static UntypedValue* recently_flee_info(PlayerbotAI* ai) { return new RecentlyFleeInfo(ai); }
+    static UntypedValue* random_bot_update_value(PlayerbotAI* botAI) { return new RandomBotUpdateValue(botAI); }
+
     static UntypedValue* position(PlayerbotAI* botAI) { return new PositionValue(botAI); }
     static UntypedValue* current_position(PlayerbotAI* botAI) { return new CurrentPositionValue(botAI); }
     static UntypedValue* behind(PlayerbotAI* botAI) { return new IsBehindValue(botAI); }

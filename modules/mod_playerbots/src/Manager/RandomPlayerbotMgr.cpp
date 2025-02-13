@@ -26,6 +26,7 @@
 #include "GridNotifiersImpl.h"
 #include "GuildMgr.h"
 #include "LFGMgr.h"
+#include "MapManager.h"
 #include "Player.h"
 #include "PlayerbotAI.h"
 #include "Playerbots.h"
@@ -48,7 +49,23 @@ void RandomPlayerbotMgr::Reserve(const uint32 size)
     _currentBots.reserve(size);
 }
 
-uint32 RandomPlayerbotMgr::GetMaxAllowedBotCount() { return GetEventValue(0, "bot_count"); }
+uint32 RandomPlayerbotMgr::GetMaxAllowedBotCount()
+{
+    return GetEventValue(0, "bot_count");
+}
+
+void RandomPlayerbotMgr::ScheduleRandomize(uint32 bot, uint32 time)
+{
+    SetEventValue(bot, "randomize", 1, time);
+}
+
+void RandomPlayerbotMgr::ScheduleTeleport(uint32 bot, uint32 time)
+{
+    if (!time)
+        time = 60 + urand(sPlayerbotAIConfig->randomBotUpdateInterval, sPlayerbotAIConfig->randomBotUpdateInterval * 3);
+
+    SetEventValue(bot, "teleport", 1, time);
+}
 
 void RandomPlayerbotMgr::UpdateAIInternal(uint32 elapsed, bool /*minimal*/)
 {
@@ -268,7 +285,7 @@ bool RandomPlayerbotMgr::ProcessBot(uint32 bot)
             int maxValue = std::max(4, static_cast<int>(randomBotUpdateInterval * 0.4));
             randomTime = minValue + (std::rand() % (maxValue - minValue + 1));
 
-            //ScheduleRandomize(bot, randomTime);
+            ScheduleRandomize(bot, randomTime);
         }
         if (!GetEventValue(bot, "teleport"))
         {
@@ -277,7 +294,7 @@ bool RandomPlayerbotMgr::ProcessBot(uint32 bot)
 
             randomTime = minValue + (std::rand() % (maxValue - minValue + 1));
 
-            //ScheduleTeleport(bot, randomTime);
+            ScheduleTeleport(bot, randomTime);
         }
 
         return true;
@@ -289,7 +306,7 @@ bool RandomPlayerbotMgr::ProcessBot(uint32 bot)
     if (player->GetGroup() || player->HasUnitState(UNIT_STATE_IN_FLIGHT))
         return false;
 
-    /*uint32 update = GetEventValue(bot, "update");
+    uint32 update = GetEventValue(bot, "update");
     if (!update)
     {
         if (botAI)
@@ -302,7 +319,7 @@ bool RandomPlayerbotMgr::ProcessBot(uint32 bot)
             if (!sRandomPlayerbotMgr->IsRandomBot(player))
                 update = false;
 
-            if (player->GetGroup()/* && botAI->GetGroupMaster())
+            if (player->GetGroup() && botAI->GetGroupMaster())
             {
                 PlayerbotAI* groupMasterBotAI = GET_PLAYERBOT_AI(botAI->GetGroupMaster());
                 if (!groupMasterBotAI || groupMasterBotAI->IsRealPlayer())
@@ -315,31 +332,38 @@ bool RandomPlayerbotMgr::ProcessBot(uint32 bot)
         if (update)
             ProcessBot(player);
 
-        randomTime = urand(sPlayerbotAIConfig->minRandomBotReviveTime, sPlayerbotAIConfig->maxRandomBotReviveTime);
+        randomTime = urand(60/*sPlayerbotAIConfig->minRandomBotReviveTime*/, 300/*sPlayerbotAIConfig->maxRandomBotReviveTime*/);
         SetEventValue(bot, "update", 1, randomTime);
 
         return true;
     }
 
-    uint32 logout = GetEventValue(bot, "logout");
+    /*uint32 logout = GetEventValue(bot, "logout");
     if (player && !logout && !isValid)
     {
         auto side = (player->GetTeamId() == TeamId::TEAM_ALLIANCE ? "A" : "H");
-        TC_LOG_INFO("playerbots", "Bot #%u %s:%u <%s>: log out", bot, side, player->getLevel(), player->GetName().c_str());
-        LogoutPlayerBot(bot);
-        currentBots.remove(bot);
-        //SetEventValue(bot, "logout", 1, urand(sPlayerbotAIConfig->minRandomBotInWorldTime, sPlayerbotAIConfig->maxRandomBotInWorldTime));
+        TC_LOG_INFO("playerbots", "Bot #%u %s:%u <%s>: log out", bot, side, player->GetLevel(), player->GetName().c_str());
+        LogoutPlayerBot(botGUID);
+        for (auto it = _currentBots.begin(); it != _currentBots.end();)
+        {
+            if (*it == bot)
+            {
+                it = _currentBots.erase(it);
+                break;
+            }
+            else
+                ++it;
+        }
+        SetEventValue(bot, "logout", 1, urand(sPlayerbotAIConfig->minRandomBotInWorldTime, sPlayerbotAIConfig->maxRandomBotInWorldTime));
         return true;
-    }
+    }*/
 
-    return false;*/
-
-    return true;
+    return false;
 }
 
 bool RandomPlayerbotMgr::ProcessBot(Player* player)
 {
-    uint64 bot = player->GetGUID();
+    ObjectGuid bot = player->GetGUID();
 
     if (player->InBattleground())
         return false;
@@ -368,32 +392,32 @@ bool RandomPlayerbotMgr::ProcessBot(Player* player)
         }
 
         return false;
-    }
+    }*/
 
     // leave group if leader is rndbot
-    Group* group = player->GetGroup();
+    /*Group* group = player->GetGroup();
     if (group && !group->isLFGGroup() && IsRandomBot(group->GetLeader()))
     {
         player->RemoveFromGroup();
         LOG_INFO("playerbots", "Bot {} remove from group since leader is random bot.", player->GetName().c_str());
-    }
+    }*/
 
     // only randomize and teleport idle bots
     bool idleBot = false;
     PlayerbotAI* botAI = GET_PLAYERBOT_AI(player);
     if (botAI)
     {
-        if (TravelTarget* target = botAI->GetAiObjectContext()->GetValue<TravelTarget*>("travel target")->Get())
+        /*if (TravelTarget* target = botAI->GetAiObjectContext()->GetValue<TravelTarget*>("travel target")->Get())
         {
             if (target->getTravelState() == TravelState::TRAVEL_STATE_IDLE)
             {
                 idleBot = true;
             }
         }
-        else
-        {
+        else*/
+        //{
             idleBot = true;
-        }
+        //}
     }
     if (idleBot)
     {
@@ -402,10 +426,8 @@ bool RandomPlayerbotMgr::ProcessBot(Player* player)
         if (!randomize)
         {
             Randomize(player);
-            LOG_DEBUG("playerbots", "Bot #{} {}:{} <{}>: randomized", bot,
-                player->GetTeamId() == TEAM_ALLIANCE ? "A" : "H", player->GetLevel(), player->GetName());
-            uint32 randomTime =
-                urand(sPlayerbotAIConfig->minRandomBotRandomizeTime, sPlayerbotAIConfig->maxRandomBotRandomizeTime);
+            TC_LOG_DEBUG("playerbots", "Bot #%u %s:%u <%s>: randomized", bot.GetCounter(), player->GetTeamId() == TEAM_ALLIANCE ? "A" : "H", player->GetLevel(), player->GetName().c_str());
+            uint32 randomTime = urand(sPlayerbotAIConfig->minRandomBotRandomizeTime, sPlayerbotAIConfig->maxRandomBotRandomizeTime);
             ScheduleRandomize(bot, randomTime);
             return true;
         }
@@ -413,37 +435,113 @@ bool RandomPlayerbotMgr::ProcessBot(Player* player)
         uint32 teleport = GetEventValue(bot, "teleport");
         if (!teleport)
         {
-            LOG_DEBUG("playerbots", "Bot #{} <{}>: teleport for level and refresh", bot, player->GetName());
+            TC_LOG_DEBUG("playerbots", "Bot #%u <%s>: teleport for level and refresh", bot.GetCounter(), player->GetName().c_str());
             Refresh(player);
             RandomTeleportForLevel(player);
-            uint32 time = urand(sPlayerbotAIConfig->minRandomBotTeleportInterval,
-                sPlayerbotAIConfig->maxRandomBotTeleportInterval);
+            uint32 time = urand(sPlayerbotAIConfig->minRandomBotTeleportInterval, sPlayerbotAIConfig->maxRandomBotTeleportInterval);
             ScheduleTeleport(bot, time);
             return true;
         }
     }
 
-    return false;*/
-
-    return true;
+    return false;
 }
 
 void RandomPlayerbotMgr::Revive(Player* player)
 {
     uint64 bot = player->GetGUID();
 
-    // LOG_INFO("playerbots", "Bot {} revived", player->GetName().c_str());
     SetEventValue(bot, "dead", 0, 0);
     SetEventValue(bot, "revive", 0, 0);
 
     Refresh(player);
-    //RandomTeleportGrindForLevel(player);
 }
 
 void RandomPlayerbotMgr::Clear(Player* bot)
 {
     //PlayerbotFactory factory(bot, bot->GetLevel());
     //factory.ClearEverything();
+}
+
+void RandomPlayerbotMgr::RandomizeFirst(Player* bot)
+{
+    uint32 maxLevel = sPlayerbotAIConfig->randomBotMaxLevel;
+    if (maxLevel > sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL))
+        maxLevel = sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL);
+
+    // if lvl sync is enabled, max level is limited by online players lvl
+    /*if (sPlayerbotAIConfig->syncLevelWithPlayers)
+        maxLevel = std::max(sPlayerbotAIConfig->randomBotMinLevel,
+            std::min(playersLevel, sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL)));*/
+
+    //PerformanceMonitorOperation* pmo = sPerformanceMonitor->start(PERF_MON_RNDBOT, "RandomizeFirst");
+
+    uint32 level;
+
+    level = urand(sPlayerbotAIConfig->randomBotMinLevel, maxLevel);
+    if (urand(1, 100) < 100 * sPlayerbotAIConfig->randomBotMaxLevelChance)
+        level = maxLevel;
+
+    if (bot->GetClass() == CLASS_DEATH_KNIGHT)
+        level = urand(std::max(sPlayerbotAIConfig->randomBotMinLevel, sWorld->getIntConfig(CONFIG_START_HEROIC_PLAYER_LEVEL)), std::max(sWorld->getIntConfig(CONFIG_START_HEROIC_PLAYER_LEVEL), maxLevel));
+
+    if (sPlayerbotAIConfig->disableRandomLevels)
+    {
+        level = bot->GetClass() == CLASS_DEATH_KNIGHT ? std::max(uint32(55), sWorld->getIntConfig(CONFIG_START_HEROIC_PLAYER_LEVEL)) : uint32(55);
+    }
+
+    SetValue(bot, "level", level);
+
+    //PlayerbotFactory factory(bot, level);
+    //factory.Randomize(false);
+
+    uint32 randomTime   = urand(sPlayerbotAIConfig->minRandomBotRandomizeTime, sPlayerbotAIConfig->maxRandomBotRandomizeTime);
+    uint32 inworldTime  = urand(sPlayerbotAIConfig->minRandomBotInWorldTime, sPlayerbotAIConfig->maxRandomBotInWorldTime);
+
+    PlayerbotsPreparedStatement* stmt = PlayerbotsDatabase.GetPreparedStatement(PLAYERBOTS_UPD_RANDOM_BOTS);
+    stmt->setUInt32(0, randomTime);
+    stmt->setString(1, "bot_delete");
+    stmt->setUInt32(2, bot->GetGUID().GetCounter());
+    PlayerbotsDatabase.Execute(stmt);
+
+    stmt = PlayerbotsDatabase.GetPreparedStatement(PLAYERBOTS_UPD_RANDOM_BOTS);
+    stmt->setUInt32(0, inworldTime);
+    stmt->setString(1, "logout");
+    stmt->setUInt32(2, bot->GetGUID().GetCounter());
+    PlayerbotsDatabase.Execute(stmt);
+
+    // teleport to a random inn for bot level
+    if (GET_PLAYERBOT_AI(bot))
+        GET_PLAYERBOT_AI(bot)->Reset(true);
+
+    if (bot->GetGroup())
+        bot->RemoveFromGroup();
+
+    //if (pmo)
+        //pmo->finish();
+
+    RandomTeleportForLevel(bot);
+}
+
+void RandomPlayerbotMgr::Randomize(Player* bot)
+{
+    if (bot->InBattleground())
+        return;
+
+    if (bot->GetLevel() < 3 || (bot->GetLevel() < 56 && bot->GetClass() == CLASS_DEATH_KNIGHT))
+    {
+        RandomizeFirst(bot);
+    }
+    /*else if (bot->GetLevel() < sPlayerbotAIConfig->randomBotMaxLevel || !sPlayerbotAIConfig->downgradeMaxLevelBot)
+    {
+        uint8 level = bot->GetLevel();
+        PlayerbotFactory factory(bot, level);
+        factory.Randomize(true);
+    }*/
+    else
+    {
+        RandomizeFirst(bot);
+    }
 }
 
 void RandomPlayerbotMgr::Refresh(Player* bot)
@@ -456,7 +554,7 @@ void RandomPlayerbotMgr::Refresh(Player* bot)
     {
         bot->ResurrectPlayer(1.0f);
         bot->SpawnCorpseBones();
-        //botAI->ResetStrategies(false);
+        botAI->ResetStrategies();
     }
 
     // if (sPlayerbotAIConfig->disableRandomLevels)
@@ -467,7 +565,7 @@ void RandomPlayerbotMgr::Refresh(Player* bot)
 
     TC_LOG_INFO("playerbots", "Refreshing bot #%u <%s>", bot->GetGUID(), bot->GetName().c_str());
 
-    //botAI->Reset();
+    botAI->Reset();
     bot->DurabilityRepairAll(false, 1.0f, false);
     bot->SetFullHealth();
     //bot->SetPvP(true);
@@ -840,20 +938,30 @@ void RandomPlayerbotMgr::PrepareTeleportCache()
     {
         do
         {
-            Field* field = results->Fetch();
+            Field* fields = results->Fetch();
 
-            farm_zone new_zone = {
-                field->GetUInt32(),         /* ZoneId */
-                field->GetUInt32(),         /* ZoneType */
-                field->GetUInt32(),         /* MinLevel */
-                field->GetUInt32(),         /* MaxLevel */
-                (Team)field->GetUInt32(),   /* TeamDisabled */
-                field->GetUInt32(),         /* MapId */
-                field->GetUInt32(),         /* MinPlayer */
-                field->GetUInt32()         /* MaxPlayer */
+            uint32 zoneId = fields[0].GetUInt32();
+            uint32 zoneType = fields[1].GetUInt32();
+            uint32 minLevel = fields[2].GetUInt32();
+            uint32 maxLevel = fields[3].GetUInt32();
+            Team disabled = (Team)fields[4].GetUInt32();
+            uint32 mapid = fields[5].GetUInt32();
+            uint32 minPlayer = fields[6].GetUInt32();
+            uint32 maxPlayer = fields[7].GetUInt32();
+
+            farm_zone new_zone
+            {
+                zoneId,     /* ZoneId */
+                zoneType,   /* ZoneType */
+                minLevel,   /* MinLevel */
+                maxLevel,   /* MaxLevel */
+                disabled,   /* TeamDisabled */
+                mapid,      /* MapId */
+                minPlayer,  /* MinPlayer */
+                maxPlayer   /* MaxPlayer */
             };
 
-            _farm_cache_data.emplace_back(std::move(new_zone), std::list<farm_spot>());
+            _farm_cache_data.emplace_back(std::move(new_zone), std::vector<farm_spot>());
             zone_count++;
         } while (results->NextRow());
     }
@@ -863,31 +971,50 @@ void RandomPlayerbotMgr::PrepareTeleportCache()
     {
         do
         {
-            Field* field = results->Fetch();
+            Field* fields = results->Fetch();
 
-            farm_spot new_spot = {
-                field->GetUInt32(),         /* ZoneId */
-                field->GetUInt32(),         /* Id */
-                field->GetUInt32(),         /* MinLevel */
-                field->GetUInt32(),         /* MaxLevel */
-                (Team)field->GetUInt32(),   /* TeamDisabled */
-                field->GetFloat(),          /* X */
-                field->GetFloat(),          /* Y */
-                field->GetFloat(),          /* Z */
-                field->GetUInt32()          /* Radius */
+            uint32 zoneid = fields[0].GetUInt32();
+            uint32 id = fields[1].GetUInt32();
+            uint32 minLevel = fields[2].GetUInt32();
+            uint32 maxLevel = fields[3].GetUInt32();
+            Team disabled = (Team)fields[4].GetUInt32();
+            float x = fields[5].GetFloat();
+            float y = fields[6].GetFloat();
+            float z = fields[7].GetFloat();
+            uint32 radius = fields[8].GetUInt32();
+
+            farm_spot new_spot
+            {
+                zoneid,     /* ZoneId */
+                0,          /* MapId */
+                minLevel,   /* MinLevel */
+                maxLevel,   /* MaxLevel */
+                disabled,   /* TeamDisabled */
+                x,          /* X */
+                y,          /* Y */
+                z,          /* Z */
+                radius      /* Radius */
             };
 
+            bool moved = false;
             for (auto& zone_data : _farm_cache_data)
             {
                 farm_zone& farming_zone = zone_data.first;
-                std::list<farm_spot>& farming_spot = zone_data.second;
+                std::vector<farm_spot>& farming_spot = zone_data.second;
 
                 if (farming_zone.zone_id == new_spot.zone_id)
                 {
+                    new_spot.map_id = farming_zone.map_id;
                     farming_spot.emplace_back(std::move(new_spot));
+                    moved = true;
                     break;
                 }
             }
+            if (moved == false)
+            {
+                TC_LOG_ERROR("server.loading", "FarmSpot {%u} unable to insert in FarmZone", new_spot.zone_id);
+            }
+
             farm_spot_count++;
         } while (results->NextRow());
     }
@@ -897,11 +1024,19 @@ void RandomPlayerbotMgr::PrepareTeleportCache()
     {
         do
         {
-            Field* field = results->Fetch();
+            Field* fields = results->Fetch();
 
-            uint32 ZoneId = field->GetUInt32();
-            uint32 city_id = field->GetUInt32();
-            uint32 map_id = 0;
+            uint32 ZoneId = fields[0].GetUInt32();
+            uint32 city_id = fields[1].GetUInt32();
+            uint32 minLevel = fields[2].GetUInt32();
+            uint32 maxLevel = fields[3].GetUInt32();
+            Team disabled = (Team)fields[4].GetUInt32();
+            float x = fields[5].GetFloat();
+            float y = fields[6].GetFloat();
+            float z = fields[7].GetFloat();
+            uint32 radius = fields[8].GetUInt32();
+            uint32 map_id = UINT32_MAX;
+
             for (auto& zone_data : _farm_cache_data)
             {
                 farm_zone& farming_zone = zone_data.first;
@@ -913,23 +1048,24 @@ void RandomPlayerbotMgr::PrepareTeleportCache()
                 }
             }
 
-            if (map_id == 0)
+            if (map_id == UINT32_MAX)
             {
-                TC_LOG_ERROR("server.loading", "City {%u} in ZoneId {%U} is not found in zone cache", city_id, ZoneId);
+                TC_LOG_ERROR("server.loading", "City {%u} in ZoneId {%u} is not found in zone cache", city_id, ZoneId);
                 continue;
             }
 
-            city new_city = {
-                ZoneId,                     /* ZoneId */
-                city_id,                    /* CityId */
-                map_id,                     /* map_id */
-                field->GetUInt32(),         /* MinLevel */
-                field->GetUInt32(),         /* MaxLevel */
-                (Team)field->GetUInt32(),   /* TeamDisabled */
-                field->GetFloat(),          /* X */
-                field->GetFloat(),          /* Y */
-                field->GetFloat(),          /* Z */
-                field->GetUInt32()          /* Radius */
+            city new_city
+            {
+                ZoneId,     /* ZoneId */
+                city_id,    /* CityId */
+                map_id,     /* map_id */
+                minLevel,   /* MinLevel */
+                maxLevel,   /* MaxLevel */
+                disabled,   /* TeamDisabled */
+                x,          /* X */
+                y,          /* Y */
+                z,          /* Z */
+                radius      /* Radius */
             };
 
             _city_cache_data.emplace_back(std::move(new_city));
@@ -942,12 +1078,62 @@ void RandomPlayerbotMgr::PrepareTeleportCache()
     TC_LOG_INFO("server.loading", ">> Loaded %u city zone", city_count);
 }
 
-const RandomPlayerbotMgr::farm_spot& RandomPlayerbotMgr::GetFarmZoneForPlayer(Player* player)
+void RandomPlayerbotMgr::RandomTeleportForLevel(Player* bot)
 {
-    if (_farm_cache_data.empty())
+    if (!bot) return;
+
+    // Teleport to city
+    if (bot->GetLevel() >= 10 && urand(0, 100) < 0.25 * 100)
     {
-        return farm_spot();
+        if (const auto city_data = GetCityForPlayer(bot))
+        {
+            Map* map = sMapMgr->FindMap(city_data->map_id, 0);
+
+            bot->TeleportTo(city_data->map_id, city_data->x, city_data->y, city_data->z, 0.0f, 0);
+            TC_LOG_INFO("playerbots", "Bot #%u <%s> teleported to City: map{%u} %f:%f:%f", bot->GetGUID(), bot->GetName().c_str(), city_data->map_id, city_data->x, city_data->y, city_data->z);
+        }
+        else if (const auto farm_zone = GetFarmZoneForPlayer(bot))
+        {
+            Map* map = sMapMgr->FindMap(farm_zone->map_id, 0);
+
+            bot->TeleportTo(farm_zone->map_id, farm_zone->x, farm_zone->y, farm_zone->z, 0.0f, 0);
+            TC_LOG_INFO("playerbots", "Bot #%u <%s> teleported to FarmZone: map{%u} %f:%f:%f", bot->GetGUID(), bot->GetName().c_str(), farm_zone->map_id, farm_zone->x, farm_zone->y, farm_zone->z);
+        }
     }
+    else
+    {
+        if (const auto farm_zone = GetFarmZoneForPlayer(bot))
+        {
+            Map* map = sMapMgr->FindMap(farm_zone->map_id, 0);
+
+            bot->TeleportTo(farm_zone->map_id, farm_zone->x, farm_zone->y, farm_zone->z, 0.0f, 0);
+            TC_LOG_INFO("playerbots", "Bot #%u <%s> teleported to FarmZone: map{%u} %f:%f:%f", bot->GetGUID(), bot->GetName().c_str(), farm_zone->map_id, farm_zone->x, farm_zone->y, farm_zone->z);
+        }
+    }
+}
+
+const RandomPlayerbotMgr::city* RandomPlayerbotMgr::GetCityForPlayer(Player* player)
+{
+    if (_city_cache_data.empty()) return nullptr;
+
+    std::mt19937 gen(std::chrono::system_clock::now().time_since_epoch().count());
+    std::shuffle(_city_cache_data.begin(), _city_cache_data.end(), gen);
+
+    for (const auto& city_data : _city_cache_data)
+    {
+        if (city_data.team_disabled == player->GetTeam()) continue;
+        if (city_data.min_level > player->GetLevel()) continue;
+        if (city_data.max_level < player->GetLevel()) continue;
+
+        return &city_data;
+    }
+
+    return nullptr;
+}
+
+const RandomPlayerbotMgr::farm_spot* RandomPlayerbotMgr::GetFarmZoneForPlayer(Player* player)
+{
+    if (_farm_cache_data.empty()) return nullptr;
 
     std::mt19937 gen(std::chrono::system_clock::now().time_since_epoch().count());
     std::shuffle(_farm_cache_data.begin(), _farm_cache_data.end(), gen);
@@ -957,37 +1143,46 @@ const RandomPlayerbotMgr::farm_spot& RandomPlayerbotMgr::GetFarmZoneForPlayer(Pl
         if (player->GetLevel() < zone.min_level || player->GetLevel() > zone.max_level || zone.team_disabled == player->GetTeam())
             continue;
 
-        uint32 playercount = 0;
-        for (const auto& _internal_player : _players)
+        if (zone.max_player != 0)
         {
-            if (_internal_player->GetZoneId() == zone.zone_id && _internal_player != player)
+            uint32 playercount = 0;
+            for (const auto& _internal_player : _players)
+            {
+                if (_internal_player && _internal_player->IsInWorld() && !_internal_player->IsBeingTeleported() && _internal_player->GetZoneId() == zone.zone_id && _internal_player != player)
+                    ++playercount;
+            }
+
+            for (PlayerBotMap::const_iterator itr = GetPlayerBotsBegin(); itr != GetPlayerBotsEnd(); ++itr)
+            {
+                Player* const bot = itr->second;
+                if (!bot || bot == player || !bot->IsInWorld() || bot->IsBeingTeleported()
+                    || bot->GetZoneId() != zone.zone_id) continue;
+
                 ++playercount;
-        }
-        for (PlayerBotMap::const_iterator itr = GetPlayerBotsBegin(); itr != GetPlayerBotsEnd(); ++itr)
-        {
-            Player* const bot = itr->second;
-            if (!bot || bot == player || !bot->IsInWorld() || bot->IsBeingTeleported()
-            || bot->GetZoneId() != zone.zone_id) continue;
+            }
 
-            ++playercount;
-        }
+            if (zone.max_player <= playercount)
+            {
+                TC_LOG_DEBUG("playerbots", "Zone {%u} has too many players for: %s {%u} : %u/%u", zone.zone_id, player->GetName().c_str(), player->GetLevel(), playercount, zone.max_player);
 
-        if (zone.max_player <= playercount)
-            continue;
+                continue;
+            }
+        }
 
         std::shuffle(spots.begin(), spots.end(), gen);
         for (auto& spot : spots)
         {
             if (player->GetLevel() >= spot.min_level && player->GetLevel() <= spot.max_level && spot.team_disabled != player->GetTeam())
             {
-                continue;
+                // -- 
+                TC_LOG_DEBUG("playerbots", "Farm spot found for : %s {%u}", player->GetName().c_str(), player->GetLevel());
+                return &spot;
             }
-
-            // -- 
-            return spot;
+            else
+                continue;
         }
     }
 
-    std::cout << "Aucune zone valide trouvée pour le joueur " << player->GetName() << " level: " << player->GetLevel() << std::endl;
-    return farm_spot();
+    TC_LOG_WARN("playerbots", "No valid zone farm found for %s level: %u", player->GetName().c_str(), player->GetLevel());
+    return nullptr;
 }

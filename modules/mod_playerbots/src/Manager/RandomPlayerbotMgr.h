@@ -49,7 +49,7 @@ public:
 
     struct farm_spot {
         uint32 zone_id;
-        uint32 id;
+        uint32 map_id;
         uint32 min_level;
         uint32 max_level;
         Team team_disabled;
@@ -94,6 +94,8 @@ public:
     uint32 activeBots = 0;
     bool IsRandomBot(Player* bot);
     bool IsRandomBot(ObjectGuid::LowType bot);
+    void RandomizeFirst(Player* bot);
+    void Randomize(Player* bot);
     void Clear(Player* bot);
     void OnPlayerLogout(Player* player);
     void OnPlayerLogin(Player* player);
@@ -117,10 +119,11 @@ public:
     void setActivityPercentage(float percentage) { _activityMod = percentage / 100.0f; }
     static uint8 GetTeamClassIdx(bool isAlliance, uint8 claz) { return isAlliance * 20 + claz; }
 
+    void ScheduleTeleport(uint32 bot, uint32 time = 0);
     void PrepareAddclassCache();
     std::map<uint8, std::vector<ObjectGuid>>& AddclassCache() { return _addclassCache; };
     void PrepareTeleportCache();
-    const farm_spot& GetFarmZoneForPlayer(Player* player);
+    void RandomTeleportForLevel(Player* bot);
 
 protected:
     void OnBotLoginInternal(Player* const bot) override;
@@ -129,6 +132,9 @@ private:
     void GetBots();
     uint32 AddRandomBots();
     bool ProcessBot(uint32 bot);
+    void ScheduleRandomize(uint32 bot, uint32 time);
+    const farm_spot* GetFarmZoneForPlayer(Player* player);
+    const city* GetCityForPlayer(Player* player);
 
     // pid values are set in constructor
     float _activityMod = 0.25;
@@ -142,8 +148,8 @@ private:
     uint32 _processTicks;
     std::map<uint32, std::map<std::string, CachedEvent>> _eventCache;
     std::map<uint8, std::vector<ObjectGuid>> _addclassCache;
-    std::list<city> _city_cache_data;
-    std::list<std::pair<farm_zone, std::list<farm_spot>>> _farm_cache_data;
+    std::vector<city> _city_cache_data;
+    std::vector<std::pair<farm_zone, std::vector<farm_spot>>> _farm_cache_data;
     std::vector<uint32> _currentBots;
     uint32 _playersLevel;
 };

@@ -55,9 +55,13 @@ public:
     bool tellWhenAvoidAoe;
 
     uint32 openGoSpell;
-    bool randomBotAutologin;
+    bool randomBotAutologin, disableRandomLevels;
+    uint32 randomBotMaxLevel, randomBotMinLevel;
+    float randomBotMaxLevelChance;
     uint32 minRandomBots, maxRandomBots, maxAddedBotsPerClass, maxAddedBots;
     uint32 randomBotUpdateInterval, randomBotCountChangeMinInterval, randomBotCountChangeMaxInterval;
+    uint32 minRandomBotRandomizeTime, maxRandomBotRandomizeTime;
+    uint32 minRandomBotTeleportInterval, maxRandomBotTeleportInterval;
     uint32 minRandomBotInWorldTime, maxRandomBotInWorldTime;
     uint32 randomBotsPerInterval;
     float randomChangeMultiplier;

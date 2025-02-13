@@ -478,7 +478,7 @@ void AiFactory::AddDefaultCombatStrategies(Player* player, PlayerbotAI* const fa
     // temporary
     //engine->addStrategy("ranged");
     //engine->addStrategy("melee");
-    engine->addStrategy("say hello");
+    //engine->addStrategy("say hello");
 }
 
 Engine* AiFactory::createCombatEngine(Player* player, PlayerbotAI* const facade, AiObjectContext* aiObjectContext)
@@ -588,7 +588,7 @@ void AiFactory::AddDefaultNonCombatStrategies(Player* player, PlayerbotAI* const
         nonCombatEngine->addStrategiesNoInit("nc", "food", "chat", "follow", "default", "quest", "loot", "gather", "duel",
             "buff", "mount", "emote", nullptr);
     }
-    nonCombatEngine->addStrategy("say hello");
+    //nonCombatEngine->addStrategy("say hello");
 }
 
 Engine* AiFactory::createNonCombatEngine(Player* player, PlayerbotAI* const facade, AiObjectContext* aiObjectContext)

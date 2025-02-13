@@ -13,6 +13,7 @@
 #include "GenericActions.h"
 #include "RtiAction.h"
 #include "MovementActions.h"
+#include "RandomBotUpdateAction.h"
 #include "ReachTargetActions.h"
 
 class PlayerbotAI;
@@ -24,6 +25,7 @@ public:
         creators["say hello"] = &ActionContext::hello;
         creators["move random"] = &ActionContext::move_random;
 
+        creators["random bot update"] = &ActionContext::random_bot_update;
         creators["mark rti"] = &ActionContext::mark_rti;
         creators["attack rti target"] = &ActionContext::attack_rti_target;
         creators["auto maintenance on levelup"] = &ActionContext::auto_maintenance_on_levelup;
@@ -49,6 +51,7 @@ private:
     static Action* hello(PlayerbotAI* botAI) { return new SayHelloAction(botAI); }
     static Action* move_random(PlayerbotAI* botAI) { return new MoveRandomAction(botAI); }
 
+    static Action* random_bot_update(PlayerbotAI* botAI) { return new RandomBotUpdateAction(botAI); }
     static Action* mark_rti(PlayerbotAI* botAI) { return new MarkRtiAction(botAI); }
     static Action* attack_rti_target(PlayerbotAI* botAI) { return new AttackRtiTargetAction(botAI); }
     static Action* auto_maintenance_on_levelup(PlayerbotAI* botAI) { return new AutoMaintenanceOnLevelupAction(botAI); }
