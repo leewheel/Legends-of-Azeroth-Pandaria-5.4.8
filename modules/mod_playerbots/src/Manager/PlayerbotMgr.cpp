@@ -861,7 +861,7 @@ std::vector<std::string> PlayerbotHolder::HandlePlayerbotCommand(char const* arg
         if (bot)
         {
             bot->GetSession()->HandeSetTalentSpecialization(p);
-            bot->SetActiveSpec(1);
+            bot->ActivateSpec(0);
         }
         return StringVector();
     }

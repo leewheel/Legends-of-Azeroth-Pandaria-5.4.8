@@ -1,5 +1,6 @@
 #include "AutoMaintenanceOnLevelupAction.h"
 
+#include "BotFactory.h"
 #include "GuildMgr.h"
 #include "PlayerbotAIConfig.h"
 #include "Playerbots.h"
@@ -42,6 +43,10 @@ void AutoMaintenanceOnLevelupAction::AutoPickTalents()
 
 void AutoMaintenanceOnLevelupAction::AutoUpgradeEquip()
 {
+    if (!sRandomPlayerbotMgr->IsRandomBot(bot)) return;
+
+    BotFactory factory(bot, bot->GetLevel());
+    factory.InitEquipment(true);
     /*if (!sPlayerbotAIConfig->autoUpgradeEquip || !sRandomPlayerbotMgr->IsRandomBot(bot))
     {
         return;

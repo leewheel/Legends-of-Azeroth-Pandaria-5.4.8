@@ -16,8 +16,6 @@
 class Player;
 class WorldSession;
 
-enum ArenaType : uint8;
-
 class RandomPlayerbotFactory
 {
 public:
@@ -26,13 +24,10 @@ public:
 
     Player* CreateRandomBot(WorldSession* session, Classes cls, std::unordered_map<Gender, std::vector<std::string>>& names);
     static void CreateRandomBots();
-    static void CreateRandomGuilds();
-    static void CreateRandomArenaTeams(ArenaType slot, uint32 count);
-    static std::string const CreateRandomGuildName();
 
 private:
     std::string const CreateRandomBotName(Gender g);
-    static std::string const CreateRandomArenaTeamName();
+
 
     uint32 accountId;
     static std::map<uint8, std::vector<uint8>> availableRaces;

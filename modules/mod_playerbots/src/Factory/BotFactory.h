@@ -15,10 +15,16 @@ public:
     void Randomize(bool incremental);
     void ClearEverything();
 
+    void InitEquipment(bool incremental, bool second_chance = false);
     void InitPet();
 private:
     void Prepare();
     void CancelAuras();
+
+    // -- GEARING
+    bool CanEquipItem(ItemTemplate const* proto);
+    bool CanEquipUnseenItem(uint8 slot, uint16& dest, uint32 item);
+    std::vector<InventoryType> GetPossibleInventoryTypeListBySlot(EquipmentSlots slot);
 
     uint32 level;
 protected:

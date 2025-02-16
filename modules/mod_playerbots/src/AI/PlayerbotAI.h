@@ -55,6 +55,8 @@ class WorldObject;
 
 struct CreatureData;
 
+enum InventoryResult;
+
 class MinValueCalculator
 {
 public:
@@ -184,6 +186,9 @@ public:
     bool HasAura(uint32 spellId, Unit const* player);
 
     int32 GetNearGroupMemberCount(float dis = sPlayerbotAIConfig->sightDistance);
+
+    InventoryResult CanEquipItem(uint8 slot, uint16& dest, Item* pItem, bool swap, bool not_loading = true) const;
+    uint8 FindEquipSlot(ItemTemplate const* proto, uint32 slot, bool swap) const;
 
     bool TellMasterNoFacing(std::string const text);
     bool TellMasterNoFacing(std::ostringstream& stream);

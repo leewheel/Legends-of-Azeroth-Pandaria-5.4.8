@@ -19,6 +19,7 @@
 #include "Playerbots.h"
 #include "PlayerbotAIConfig.h"
 #include "RandomPlayerbotMgr.h"
+#include "RandomItemManager.h"
 
 #include "Authentication/AuthCrypt.h"
 #include "CharacterHandler.h"
@@ -72,6 +73,7 @@ public:
             TC_LOG_INFO("playerbots", " ");
 
             sRandomPlayerbotMgr->Reserve(sPlayerbotAIConfig->maxRandomBots);
+            sRandomItemMgr->Init();
 
             TC_LOG_INFO("playerbots", "Playerbots enabled: %s", sPlayerbotAIConfig->enabled ? "Yes" : "No");
             TC_LOG_INFO("playerbots", "Playerbots min/max to load: %u/%u", sPlayerbotAIConfig->minRandomBots, sPlayerbotAIConfig->maxRandomBots);

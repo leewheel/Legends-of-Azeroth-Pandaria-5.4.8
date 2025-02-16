@@ -638,22 +638,3 @@ void RandomPlayerbotFactory::CreateRandomBots()
     TC_LOG_INFO("server.loading", ">> %u random bot accounts with %u characters available", sPlayerbotAIConfig->randomBotAccounts.size(), totalRandomBotChars);
 }
 
-void RandomPlayerbotFactory::CreateRandomGuilds()
-{
-}
-
-std::string const RandomPlayerbotFactory::CreateRandomGuildName()
-{
-    std::string guildName = "";
-    return std::move(guildName);
-}
-
-void RandomPlayerbotFactory::CreateRandomArenaTeams(ArenaType type, uint32 count)
-{
-}
-
-std::string const RandomPlayerbotFactory::CreateRandomArenaTeamName()
-{
-    std::string arenaTeamName = "";
-    return std::move(arenaTeamName);
-}

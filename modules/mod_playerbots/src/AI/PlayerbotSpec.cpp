@@ -77,7 +77,13 @@ bool PlayerBotSpec::IsTank(Player* player, bool bySpec)
     if (!bySpec && botAi)
         return botAi->ContainsStrategy(STRATEGY_TYPE_TANK);
 
-    return player->GetRoleForGroup() == ROLES_TANK;
+    if (player->GetSpecialization() == Specializations::SPEC_PALADIN_PROTECTION ||
+        player->GetSpecialization() == Specializations::SPEC_WARRIOR_PROTECTION ||
+        player->GetSpecialization() == Specializations::SPEC_MONK_BREWMASTER ||
+        player->GetSpecialization() == Specializations::SPEC_DRUID_GUARDIAN ||
+        player->GetSpecialization() == Specializations::SPEC_DEATH_KNIGHT_BLOOD)
+        return true;
+    return false;
 }
 
 bool PlayerBotSpec::IsHeal(Player* player, bool bySpec)
@@ -86,7 +92,15 @@ bool PlayerBotSpec::IsHeal(Player* player, bool bySpec)
     if (!bySpec && botAi)
         return botAi->ContainsStrategy(STRATEGY_TYPE_HEAL);
 
-    return player->GetRoleForGroup() == ROLES_HEALER;
+    if (player->GetSpecialization() == Specializations::SPEC_PALADIN_HOLY ||
+        player->GetSpecialization() == Specializations::SPEC_PRIEST_DISCIPLINE||
+        player->GetSpecialization() == Specializations::SPEC_PRIEST_HOLY ||
+        player->GetSpecialization() == Specializations::SPEC_DRUID_RESTORATION ||
+        player->GetSpecialization() == Specializations::SPEC_SHAMAN_RESTORATION ||
+        player->GetSpecialization() == Specializations::SPEC_MONK_MISTWEAVER)
+        return true;
+
+    return false;
 }
 
 bool PlayerBotSpec::IsDps(Player* player, bool bySpec)
@@ -95,7 +109,7 @@ bool PlayerBotSpec::IsDps(Player* player, bool bySpec)
     if (!bySpec && botAi)
         return botAi->ContainsStrategy(STRATEGY_TYPE_DPS);
 
-    return player->GetRoleForGroup() == ROLES_DPS;
+    return (!IsTank(player) && !IsHeal(player));
 }
 
 bool PlayerBotSpec::IsMainTank(Player* player)

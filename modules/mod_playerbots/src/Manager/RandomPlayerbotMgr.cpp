@@ -14,6 +14,7 @@
 #include "AccountMgr.h"
 #include "Battleground.h"
 #include "BattlegroundMgr.h"
+#include "BotFactory.h"
 #include "CharacterCache.h"
 #include "CellImpl.h"
 #include "ChannelMgr.h"
@@ -30,6 +31,7 @@
 #include "Player.h"
 #include "PlayerbotAI.h"
 #include "Playerbots.h"
+#include "RandomItemManager.h"
 #include "SharedDefines.h"
 #include "Unit.h"
 #include "World.h"
@@ -466,8 +468,7 @@ void RandomPlayerbotMgr::Clear(Player* bot)
 void RandomPlayerbotMgr::RandomizeFirst(Player* bot)
 {
     uint32 maxLevel = sPlayerbotAIConfig->randomBotMaxLevel;
-    if (maxLevel > sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL))
-        maxLevel = sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL);
+    maxLevel = std::min(maxLevel, sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL));
 
     // if lvl sync is enabled, max level is limited by online players lvl
     /*if (sPlayerbotAIConfig->syncLevelWithPlayers)
@@ -476,10 +477,10 @@ void RandomPlayerbotMgr::RandomizeFirst(Player* bot)
 
     //PerformanceMonitorOperation* pmo = sPerformanceMonitor->start(PERF_MON_RNDBOT, "RandomizeFirst");
 
-    uint32 level;
-
-    level = urand(sPlayerbotAIConfig->randomBotMinLevel, maxLevel);
-    if (urand(1, 100) < 100 * sPlayerbotAIConfig->randomBotMaxLevelChance)
+    
+    uint32 level = urand(sPlayerbotAIConfig->randomBotMinLevel, maxLevel);
+    uint32 chance = std::clamp<uint32>(sPlayerbotAIConfig->randomBotMaxLevelChance * 100, 0, 100);
+    if (urand(1, 100) <= chance)
         level = maxLevel;
 
     if (bot->GetClass() == CLASS_DEATH_KNIGHT)
@@ -491,9 +492,8 @@ void RandomPlayerbotMgr::RandomizeFirst(Player* bot)
     }
 
     SetValue(bot, "level", level);
-
-    //PlayerbotFactory factory(bot, level);
-    //factory.Randomize(false);
+    BotFactory factory(bot, level);
+    factory.Randomize(false);
 
     uint32 randomTime   = urand(sPlayerbotAIConfig->minRandomBotRandomizeTime, sPlayerbotAIConfig->maxRandomBotRandomizeTime);
     uint32 inworldTime  = urand(sPlayerbotAIConfig->minRandomBotInWorldTime, sPlayerbotAIConfig->maxRandomBotInWorldTime);
@@ -520,6 +520,11 @@ void RandomPlayerbotMgr::RandomizeFirst(Player* bot)
     //if (pmo)
         //pmo->finish();
 
+    //for (int i = 1; i < MAX_INVTYPE; ++i)
+    //{
+        //sRandomItemMgr->FindBestItemForLevelAndEquip(bot, InventoryType(i));
+    //}
+
     RandomTeleportForLevel(bot);
 }
 
@@ -532,12 +537,12 @@ void RandomPlayerbotMgr::Randomize(Player* bot)
     {
         RandomizeFirst(bot);
     }
-    /*else if (bot->GetLevel() < sPlayerbotAIConfig->randomBotMaxLevel || !sPlayerbotAIConfig->downgradeMaxLevelBot)
+    else if (bot->GetLevel() < sPlayerbotAIConfig->randomBotMaxLevel/* || !sPlayerbotAIConfig->downgradeMaxLevelBot*/)
     {
         uint8 level = bot->GetLevel();
-        PlayerbotFactory factory(bot, level);
+        BotFactory factory(bot, level);
         factory.Randomize(true);
-    }*/
+    }
     else
     {
         RandomizeFirst(bot);
@@ -1121,10 +1126,8 @@ const RandomPlayerbotMgr::city* RandomPlayerbotMgr::GetCityForPlayer(Player* pla
 
     for (const auto& city_data : _city_cache_data)
     {
-        if (city_data.team_disabled == player->GetTeam()) continue;
-        if (city_data.min_level > player->GetLevel()) continue;
-        if (city_data.max_level < player->GetLevel()) continue;
-
+        if (player->GetLevel() < city_data.min_level || player->GetLevel() > city_data.max_level || city_data.team_disabled == player->GetTeam())
+            continue;
         return &city_data;
     }
 
