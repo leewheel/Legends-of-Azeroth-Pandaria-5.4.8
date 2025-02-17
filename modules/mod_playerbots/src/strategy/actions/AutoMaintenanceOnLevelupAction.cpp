@@ -36,6 +36,9 @@ void AutoMaintenanceOnLevelupAction::AutoPickTalents()
     if ((bot->CalculateTalentsPoints() - bot->GetUsedTalentCount()) <= 0)
         return;
 
+    BotFactory factory(bot, bot->GetLevel());
+    factory.InitTalentsTree();
+
     //PlayerbotFactory factory(bot, bot->GetLevel());
     //factory.InitTalentsTree(true, true, true);
     //factory.InitPetTalents();

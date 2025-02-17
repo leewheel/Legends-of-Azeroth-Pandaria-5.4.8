@@ -52,6 +52,59 @@ public:
     bool IsActive() override;
 };
 
+class RageAvailable : public StatAvailable
+{
+public:
+    RageAvailable(PlayerbotAI* botAI, int32 amount) : StatAvailable(botAI, amount, "rage available") {}
+
+    bool IsActive() override;
+};
+
+class LightRageAvailableTrigger : public RageAvailable
+{
+public:
+    LightRageAvailableTrigger(PlayerbotAI* botAI) : RageAvailable(botAI, 20) {}
+};
+
+class MediumRageAvailableTrigger : public RageAvailable
+{
+public:
+    MediumRageAvailableTrigger(PlayerbotAI* botAI) : RageAvailable(botAI, 40) {}
+};
+
+class HighRageAvailableTrigger : public RageAvailable
+{
+public:
+    HighRageAvailableTrigger(PlayerbotAI* botAI) : RageAvailable(botAI, 60) {}
+};
+
+class EnergyAvailable : public StatAvailable
+{
+public:
+    EnergyAvailable(PlayerbotAI* botAI, int32 amount) : StatAvailable(botAI, amount, "energy available") {}
+
+    bool IsActive() override;
+};
+
+class LightEnergyAvailableTrigger : public EnergyAvailable
+{
+public:
+    LightEnergyAvailableTrigger(PlayerbotAI* botAI) : EnergyAvailable(botAI, 20) {}
+};
+
+class MediumEnergyAvailableTrigger : public EnergyAvailable
+{
+public:
+    MediumEnergyAvailableTrigger(PlayerbotAI* botAI) : EnergyAvailable(botAI, 40) {}
+};
+
+class HighEnergyAvailableTrigger : public EnergyAvailable
+{
+public:
+    HighEnergyAvailableTrigger(PlayerbotAI* botAI) : EnergyAvailable(botAI, 60) {}
+};
+
+
 class LoseAggroTrigger : public Trigger
 {
 public:

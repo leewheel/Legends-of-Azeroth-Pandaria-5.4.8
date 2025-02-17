@@ -478,7 +478,7 @@ void AiFactory::AddDefaultCombatStrategies(Player* player, PlayerbotAI* const fa
     // temporary
     //engine->addStrategy("ranged");
     //engine->addStrategy("melee");
-    //engine->addStrategy("say hello");
+    engine->addStrategy("say hello");
 }
 
 Engine* AiFactory::createCombatEngine(Player* player, PlayerbotAI* const facade, AiObjectContext* aiObjectContext)
@@ -491,7 +491,7 @@ Engine* AiFactory::createCombatEngine(Player* player, PlayerbotAI* const facade,
 
 void AiFactory::AddDefaultNonCombatStrategies(Player* player, PlayerbotAI* const facade, Engine* nonCombatEngine)
 {
-    const uint8 tab = GetPlayerSpecTab(player);
+    const Specializations tab = GetPlayerSpecTab(player);
 
     switch (player->GetClass())
     {
@@ -499,7 +499,7 @@ void AiFactory::AddDefaultNonCombatStrategies(Player* player, PlayerbotAI* const
             nonCombatEngine->addStrategiesNoInit("dps assist", "cure", nullptr);
             break;
         case CLASS_PALADIN:
-            if (tab == 1)
+            if (tab == Specializations::SPEC_PALADIN_PROTECTION)
             {
                 nonCombatEngine->addStrategiesNoInit("bthreat", "tank assist", "barmor", nullptr);
                 if (player->GetLevel() >= 20)
@@ -511,7 +511,7 @@ void AiFactory::AddDefaultNonCombatStrategies(Player* player, PlayerbotAI* const
                     nonCombatEngine->addStrategy("bdps", false);
                 }
             }
-            else if (tab == 0)
+            else if (tab == Specializations::SPEC_PALADIN_HOLY)
                 nonCombatEngine->addStrategiesNoInit("dps assist", "bmana", "bcast", nullptr);
             else
                 nonCombatEngine->addStrategiesNoInit("dps assist", "bdps", "baoe", nullptr);
@@ -522,7 +522,7 @@ void AiFactory::AddDefaultNonCombatStrategies(Player* player, PlayerbotAI* const
             nonCombatEngine->addStrategiesNoInit("bdps", "dps assist", "pet", nullptr);
             break;
         case CLASS_SHAMAN:
-            if (tab == 0 || tab == 2)
+            if (tab == Specializations::SPEC_SHAMAN_ELEMENTAL || tab == Specializations::SPEC_SHAMAN_RESTORATION)
                 nonCombatEngine->addStrategy("bmana", false);
             else
                 nonCombatEngine->addStrategy("bdps", false);
@@ -530,7 +530,7 @@ void AiFactory::AddDefaultNonCombatStrategies(Player* player, PlayerbotAI* const
             nonCombatEngine->addStrategiesNoInit("dps assist", "cure", nullptr);
             break;
         case CLASS_MAGE:
-            if (tab == 0 || tab == 1)
+            if (tab == Specializations::SPEC_MAGE_ARCANE || tab == Specializations::SPEC_MAGE_FIRE)
                 nonCombatEngine->addStrategy("bdps", false);
             else
                 nonCombatEngine->addStrategy("bmana", false);
@@ -538,7 +538,7 @@ void AiFactory::AddDefaultNonCombatStrategies(Player* player, PlayerbotAI* const
             nonCombatEngine->addStrategiesNoInit("dps assist", "cure", nullptr);
             break;
         case CLASS_DRUID:
-            if (tab == 1)
+            if (tab == Specializations::SPEC_DRUID_FERAL)
             {
                 if (player->GetLevel() >= 20 && !player->HasAura(16931) /*thick hide*/)
                 {
@@ -549,32 +549,36 @@ void AiFactory::AddDefaultNonCombatStrategies(Player* player, PlayerbotAI* const
                     nonCombatEngine->addStrategy("tank assist", false);
                 }
             }
+            else if (tab == Specializations::SPEC_DRUID_GUARDIAN)
+            {
+                nonCombatEngine->addStrategy("tank assist", false);
+            }
             else
                 nonCombatEngine->addStrategiesNoInit("dps assist", "cure", nullptr);
             break;
         case CLASS_WARRIOR:
-            if (tab == 2)
+            if (tab == Specializations::SPEC_WARRIOR_PROTECTION)
                 nonCombatEngine->addStrategy("tank assist", false);
             else
                 nonCombatEngine->addStrategy("dps assist", false);
             break;
         case CLASS_WARLOCK:
-            if (tab == 0)
+            if (tab == Specializations::SPEC_WARLOCK_AFFLICTION)
             {
                 nonCombatEngine->addStrategiesNoInit("bmana", nullptr);
             }
-            else if (tab == 1)
+            else if (tab == Specializations::SPEC_WARLOCK_DEMONOLOGY)
             {
                 nonCombatEngine->addStrategiesNoInit("bdps", nullptr);
             }
-            else if (tab == 2)
+            else if (tab == Specializations::SPEC_WARLOCK_DESTRUCTION)
             {
                 nonCombatEngine->addStrategiesNoInit("bhealth", nullptr);
             }
             nonCombatEngine->addStrategiesNoInit("dps assist", nullptr);
             break;
         case CLASS_DEATH_KNIGHT:
-            if (tab == 0)
+            if (tab == Specializations::SPEC_DEATH_KNIGHT_BLOOD)
                 nonCombatEngine->addStrategy("tank assist", false);
             else
                 nonCombatEngine->addStrategy("dps assist", false);
@@ -588,7 +592,7 @@ void AiFactory::AddDefaultNonCombatStrategies(Player* player, PlayerbotAI* const
         nonCombatEngine->addStrategiesNoInit("nc", "food", "chat", "follow", "default", "quest", "loot", "gather", "duel",
             "buff", "mount", "emote", nullptr);
     }
-    //nonCombatEngine->addStrategy("say hello");
+    nonCombatEngine->addStrategy("say hello");
 }
 
 Engine* AiFactory::createNonCombatEngine(Player* player, PlayerbotAI* const facade, AiObjectContext* aiObjectContext)

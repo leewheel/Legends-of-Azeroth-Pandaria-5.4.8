@@ -82,6 +82,10 @@ bool EnoughManaTrigger::IsActive()
     return AI_VALUE2(bool, "has mana", "self target") && AI_VALUE2(uint8, "mana", "self target") > sPlayerbotAIConfig->highMana;
 }
 
+bool RageAvailable::IsActive() { return AI_VALUE2(uint8, "rage", "self target") >= amount; }
+
+bool EnergyAvailable::IsActive() { return AI_VALUE2(uint8, "energy", "self target") >= amount; }
+
 bool LoseAggroTrigger::IsActive() { return !AI_VALUE2(bool, "has aggro", "current target"); }
 
 bool HasAggroTrigger::IsActive() { return AI_VALUE2(bool, "has aggro", "current target"); }

@@ -860,6 +860,7 @@ std::vector<std::string> PlayerbotHolder::HandlePlayerbotCommand(char const* arg
         auto bot = ObjectAccessor::FindConnectedPlayer(master->GetTarget());
         if (bot)
         {
+            bot->ActivateSpec(0);
             bot->GetSession()->HandeSetTalentSpecialization(p);
             bot->ActivateSpec(0);
         }

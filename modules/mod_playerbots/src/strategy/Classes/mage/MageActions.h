@@ -39,6 +39,13 @@ public:
     std::string const GetTargetName() override { return "current target"; }
 };
 
+class CastSlowAction : public CastSpellAction
+{
+public:
+    CastSlowAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "slow") {}
+    bool isUseful() override;
+};
+
 class CastArcaneBarrageAction : public CastSpellAction
 {
 public:
@@ -74,6 +81,13 @@ class CastFrostNovaAction : public CastSpellAction
 {
 public:
     CastFrostNovaAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "frost nova") {}
+    bool isUseful() override;
+};
+
+class CastBlinkAction : public CastSpellAction
+{
+public:
+    CastBlinkAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "blink") {}
     bool isUseful() override;
 };
 
@@ -257,6 +271,18 @@ public:
     CastLivingBombAction(PlayerbotAI* botAI) : CastDebuffSpellAction(botAI, "living bomb", true) {}
 };
 
+class CastFrostBombAction : public CastDebuffSpellAction
+{
+public:
+    CastFrostBombAction(PlayerbotAI* botAI) : CastDebuffSpellAction(botAI, "frost bomb", true) {}
+};
+
+class CastNetherTempestAction : public CastDebuffSpellAction
+{
+public:
+    CastNetherTempestAction(PlayerbotAI* botAI) : CastDebuffSpellAction(botAI, "nether tempest", true) {}
+};
+
 class CastLivingBombOnAttackersAction : public CastDebuffSpellOnAttackerAction
 {
 public:
@@ -268,6 +294,14 @@ class CastDragonsBreathAction : public CastSpellAction
 public:
     CastDragonsBreathAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "dragon's breath") {}
     ActionThreatType getThreatType() override { return ActionThreatType::Aoe; }
+    bool isUseful() override;
+};
+
+class CastInfernoBlastAction : public CastSpellAction
+{
+public:
+    CastInfernoBlastAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "inferno blast") {}
+    ActionThreatType getThreatType() override { return ActionThreatType::Single; }
     bool isUseful() override;
 };
 
@@ -283,6 +317,14 @@ class CastInvisibilityAction : public CastBuffSpellAction
 {
 public:
     CastInvisibilityAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "invisibility") {}
+};
+
+class CastRuneOfPowerAction : public CastSpellAction
+{
+public:
+    CastRuneOfPowerAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "rune of power") {}
+    ActionThreatType getThreatType() override { return ActionThreatType::Aoe; }
+    bool Execute(Event event) override;
 };
 
 class CastEvocationAction : public CastSpellAction

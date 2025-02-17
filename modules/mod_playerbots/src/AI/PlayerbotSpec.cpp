@@ -5,6 +5,63 @@
 #include "PlayerbotAI.h"
 #include "Player.h"
 
+unsigned int PlayerBotSpec::GetSpectab(Player* player)
+{
+    const Specializations& spec = player->GetSpecialization();
+    switch (spec)
+    {
+        case SPEC_HUNTER_BEAST_MASTERY:
+        case SPEC_DEATH_KNIGHT_BLOOD:
+        case SPEC_DRUID_BALANCE:
+        case SPEC_WARRIOR_ARMS:
+        case SPEC_PALADIN_HOLY:
+        case SPEC_MAGE_ARCANE:
+        case SPEC_PRIEST_DISCIPLINE:
+        case SPEC_ROGUE_ASSASSINATION:
+        case SPEC_SHAMAN_ELEMENTAL:
+        case SPEC_WARLOCK_AFFLICTION:
+        case SPEC_MONK_BREWMASTER:
+        {
+            return static_cast<unsigned int>(0);
+        }
+
+        case SPEC_HUNTER_MARKSMANSHIP:
+        case SPEC_DEATH_KNIGHT_FROST:
+        case SPEC_DRUID_FERAL:
+        case SPEC_WARRIOR_FURY:
+        case SPEC_PALADIN_PROTECTION:
+        case SPEC_MAGE_FIRE:
+        case SPEC_PRIEST_HOLY:
+        case SPEC_ROGUE_COMBAT:
+        case SPEC_SHAMAN_ENHANCEMENT:
+        case SPEC_WARLOCK_DEMONOLOGY:
+        case SPEC_MONK_WINDWALKER:
+        {
+            return static_cast<unsigned int>(1);
+        }
+
+        case SPEC_HUNTER_SURVIVAL:
+        case SPEC_DEATH_KNIGHT_UNHOLY:
+        case SPEC_DRUID_GUARDIAN:
+        case SPEC_WARRIOR_PROTECTION:
+        case SPEC_PALADIN_RETRIBUTION:
+        case SPEC_MAGE_FROST:
+        case SPEC_PRIEST_SHADOW:
+        case SPEC_ROGUE_SUBTLETY:
+        case SPEC_SHAMAN_RESTORATION:
+        case SPEC_WARLOCK_DESTRUCTION:
+        case SPEC_MONK_MISTWEAVER:
+        {
+            return static_cast<unsigned int>(2);
+        }
+        case SPEC_DRUID_RESTORATION:
+        {
+            return static_cast<unsigned int>(3);
+        }
+    }
+    return 99;
+}
+
 bool PlayerBotSpec::IsRanged(Player* player, bool bySpec)
 {
     PlayerbotAI* botAi = GET_PLAYERBOT_AI(player);

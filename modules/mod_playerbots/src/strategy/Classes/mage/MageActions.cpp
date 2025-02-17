@@ -16,9 +16,19 @@ Value<Unit*>* CastPolymorphAction::GetTargetValue() { return context->GetValue<U
 bool CastFrostNovaAction::isUseful()
 {
     Unit* target = AI_VALUE(Unit*, "current target");
-    //if (target && target->ToCreature() && target->ToCreature()->HasMechanicTemplateImmunity(1 << (MECHANIC_FREEZE - 1)))
-        //return false;
     return sServerFacade->IsDistanceLessOrEqualThan(AI_VALUE2(float, "distance", GetTargetName()), 10.f);
+}
+
+bool CastBlinkAction::isUseful()
+{
+    Unit* target = AI_VALUE(Unit*, "current target");
+    return sServerFacade->IsDistanceLessOrEqualThan(AI_VALUE2(float, "distance", GetTargetName()), 5.0f);
+}
+
+bool CastSlowAction::isUseful()
+{
+    Unit* target = AI_VALUE(Unit*, "current target");
+    return sServerFacade->IsDistanceLessOrEqualThan(AI_VALUE2(float, "distance", GetTargetName()), 25.0f);
 }
 
 bool CastConeOfColdAction::isUseful()
@@ -36,6 +46,16 @@ bool CastFrozenOrbAction::isUseful()
 }
 
 bool CastDragonsBreathAction::isUseful()
+{
+    Unit* target = AI_VALUE(Unit*, "current target");
+    if (!target)
+        return false;
+    bool facingTarget = AI_VALUE2(bool, "facing", "current target");
+    bool targetClose = bot->IsWithinCombatRange(target, 10.0f);
+    return facingTarget && targetClose;
+}
+
+bool CastInfernoBlastAction::isUseful()
 {
     Unit* target = AI_VALUE(Unit*, "current target");
     if (!target)
@@ -95,4 +115,9 @@ Unit* CastFocusMagicOnPartyAction::GetTarget()
         return healer;
 
     return target;
+}
+
+bool CastRuneOfPowerAction::Execute(Event event)
+{
+    return botAI->CastSpell(spell, bot);
 }

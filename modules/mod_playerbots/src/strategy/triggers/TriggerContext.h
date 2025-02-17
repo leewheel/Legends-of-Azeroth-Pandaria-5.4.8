@@ -9,7 +9,7 @@
 
 #include "NamedObjectContext.h"
 #include "GenericTriggers.h"
-#include "HealthTrigger.h"
+#include "HealthTriggers.h"
 #include "RangeTriggers.h"
 
 class PlayerbotAI;
@@ -25,8 +25,39 @@ public:
         creators["always trigger"] = &TriggerContext::always;
         creators["random bot update"] = &TriggerContext::random_bot_update_trigger;
 
+        creators["target critical health"] = &TriggerContext::TargetCriticalHealth;
+
+        creators["critical health"] = &TriggerContext::CriticalHealth;
+        creators["low health"] = &TriggerContext::LowHealth;
+        creators["medium health"] = &TriggerContext::MediumHealth;
+        creators["almost full health"] = &TriggerContext::AlmostFullHealth;
+
+        creators["low mana"] = &TriggerContext::LowMana;
+        creators["medium mana"] = &TriggerContext::MediumMana;
+        creators["high mana"] = &TriggerContext::HighMana;
+        creators["almost full mana"] = &TriggerContext::AlmostFullMana;
+        creators["enough mana"] = &TriggerContext::EnoughMana;
+
+        creators["light rage available"] = &TriggerContext::LightRageAvailable;
+        creators["medium rage available"] = &TriggerContext::MediumRageAvailable;
+        creators["high rage available"] = &TriggerContext::HighRageAvailable;
+
+        creators["light energy available"] = &TriggerContext::LightEnergyAvailable;
+        creators["medium energy available"] = &TriggerContext::MediumEnergyAvailable;
+        creators["high energy available"] = &TriggerContext::HighEnergyAvailable;
+        creators["almost full energy available"] = &TriggerContext::AlmostFullEnergyAvailable;
+
+        creators["party member critical health"] = &TriggerContext::PartyMemberCriticalHealth;
+        creators["party member low health"] = &TriggerContext::PartyMemberLowHealth;
+        creators["party member medium health"] = &TriggerContext::PartyMemberMediumHealth;
+        creators["party member almost full health"] = &TriggerContext::PartyMemberAlmostFullHealth;
+
         creators["dead"] = &TriggerContext::Dead;
         creators["corpse near"] = &TriggerContext::corpse_near;
+
+        creators["light aoe"] = &TriggerContext::LightAoe;
+        creators["medium aoe"] = &TriggerContext::MediumAoe;
+        creators["high aoe"] = &TriggerContext::HighAoe;
 
         creators["panic"] = &TriggerContext::panic;
         creators["outnumbered"] = &TriggerContext::outnumbered;
@@ -70,8 +101,37 @@ private:
     static Trigger* always(PlayerbotAI* botAI) { return new AlwaysTrigger(botAI); }
     static Trigger* random_bot_update_trigger(PlayerbotAI* botAI) { return new RandomBotUpdateTrigger(botAI); }
 
+    static Trigger* LowHealth(PlayerbotAI* botAI) { return new LowHealthTrigger(botAI); }
+    static Trigger* MediumHealth(PlayerbotAI* botAI) { return new MediumHealthTrigger(botAI); }
+    static Trigger* AlmostFullHealth(PlayerbotAI* botAI) { return new AlmostFullHealthTrigger(botAI); }
+    static Trigger* CriticalHealth(PlayerbotAI* botAI) { return new CriticalHealthTrigger(botAI); }
+    static Trigger* TargetCriticalHealth(PlayerbotAI* botAI) { return new TargetCriticalHealthTrigger(botAI); }
+    static Trigger* PartyMemberDead(PlayerbotAI* botAI) { return new PartyMemberDeadTrigger(botAI); }
+    static Trigger* CombatPartyMemberDead(PlayerbotAI* botAI) { return new CombatPartyMemberDeadTrigger(botAI); }
+    static Trigger* PartyMemberLowHealth(PlayerbotAI* botAI) { return new PartyMemberLowHealthTrigger(botAI); }
+    static Trigger* PartyMemberMediumHealth(PlayerbotAI* botAI) { return new PartyMemberMediumHealthTrigger(botAI); }
+    static Trigger* PartyMemberAlmostFullHealth(PlayerbotAI* botAI) { return new PartyMemberAlmostFullHealthTrigger(botAI); }
+    static Trigger* LightRageAvailable(PlayerbotAI* botAI) { return new LightRageAvailableTrigger(botAI); }
+    static Trigger* MediumRageAvailable(PlayerbotAI* botAI) { return new MediumRageAvailableTrigger(botAI); }
+    static Trigger* HighRageAvailable(PlayerbotAI* botAI) { return new HighRageAvailableTrigger(botAI); }
+    static Trigger* LightEnergyAvailable(PlayerbotAI* botAI) { return new LightEnergyAvailableTrigger(botAI); }
+    static Trigger* MediumEnergyAvailable(PlayerbotAI* botAI) { return new MediumEnergyAvailableTrigger(botAI); }
+    static Trigger* HighEnergyAvailable(PlayerbotAI* botAI) { return new HighEnergyAvailableTrigger(botAI); }
+    static Trigger* AlmostFullEnergyAvailable(PlayerbotAI* botAI) { return new EnergyAvailable(botAI, 90); }
+    static Trigger* generic_boost(PlayerbotAI* botAI) { return new GenericBoostTrigger(botAI); }
+    static Trigger* PartyMemberCriticalHealth(PlayerbotAI* botAI) { return new PartyMemberCriticalHealthTrigger(botAI); }
+    static Trigger* LowMana(PlayerbotAI* botAI) { return new LowManaTrigger(botAI); }
+    static Trigger* MediumMana(PlayerbotAI* botAI) { return new MediumManaTrigger(botAI); }
+    static Trigger* HighMana(PlayerbotAI* botAI) { return new HighManaTrigger(botAI); }
+    static Trigger* AlmostFullMana(PlayerbotAI* botAI) { return new AlmostFullManaTrigger(botAI); }
+    static Trigger* EnoughMana(PlayerbotAI* botAI) { return new EnoughManaTrigger(botAI); }
+
     static Trigger* Dead(PlayerbotAI* botAI) { return new DeadTrigger(botAI); }
     static Trigger* corpse_near(PlayerbotAI* botAI) { return new CorpseNearTrigger(botAI); }
+
+    static Trigger* LightAoe(PlayerbotAI* botAI) { return new LightAoeTrigger(botAI); }
+    static Trigger* MediumAoe(PlayerbotAI* botAI) { return new MediumAoeTrigger(botAI); }
+    static Trigger* HighAoe(PlayerbotAI* botAI) { return new HighAoeTrigger(botAI); }
 
     static Trigger* panic(PlayerbotAI* botAI) { return new PanicTrigger(botAI); }
     static Trigger* outnumbered(PlayerbotAI* botAI) { return new OutNumberedTrigger(botAI); }

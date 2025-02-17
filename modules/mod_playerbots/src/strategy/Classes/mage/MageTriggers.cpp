@@ -13,10 +13,39 @@ bool ArcaneBrillianceTrigger::IsActive()
     return BuffTrigger::IsActive() && !botAI->HasAura("arcane brilliance", GetTarget());
 }
 
+bool RuneOfPowerTrigger::IsActive()
+{
+    return BuffTrigger::IsActive() && !botAI->HasAura("rune of power", GetTarget());
+}
+
 bool MageArmorTrigger::IsActive()
 {
     Unit* target = GetTarget();
+    if (!target || !target->IsAlive() || !target->IsInWorld())
+    {
+        return false;
+    }
     return !botAI->HasAura("frost armor", target) && !botAI->HasAura("molten armor", target) && !botAI->HasAura("mage armor", target);
+}
+
+bool FrostNovaOnTargetTrigger::IsActive()
+{
+    Unit* target = GetTarget();
+    if (!target || !target->IsAlive() || !target->IsInWorld())
+    {
+        return false;
+    }
+    return botAI->HasAura(spell, target);
+}
+
+bool IcyVeinsTrigger::IsActive()
+{
+    Unit* target = GetTarget();
+    if (!target || !target->IsAlive() || !target->IsInWorld())
+    {
+        return false;
+    }
+    return !botAI->HasAura("icy veins", target);
 }
 
 bool FingersOfFrostSingleTrigger::IsActive()
@@ -25,4 +54,14 @@ bool FingersOfFrostSingleTrigger::IsActive()
     // The value is instead stored in the charges.
     Aura* aura = botAI->GetAura("fingers of frost", bot, false, true, -1);
     return (aura && aura->GetCharges() == 1);
+}
+
+bool SlowNotOnTargetTrigger::IsActive()
+{
+    Unit* target = GetTarget();
+    if (!target || !target->IsAlive() || !target->IsInWorld())
+    {
+        return false;
+    }
+    return !botAI->HasAura(spell, target);
 }

@@ -26,6 +26,12 @@ public:
         creators["remove curse on party"] = &remove_curse_on_party;
         creators["evocation"] = &evocation;
         creators["deep freeze"] = &deep_freeze;
+        creators["blink"] = &blink;
+
+        // talents generic define
+        creators["rune of power"] = &rune_of_power;
+        creators["ice barrier"] = &ice_barrier;
+        creators["flameglow"] = &flameglow;
     }
 
 private:
@@ -61,7 +67,7 @@ private:
     {
         return new ActionNode("frost nova",
                               /*P*/ nullptr,
-                              /*A*/ NextAction::array(0, new NextAction("cone of cold"), nullptr),
+                              /*A*/ nullptr,
                               /*C*/ nullptr);
     }
     static ActionNode* cone_of_cold([[maybe_unused]] PlayerbotAI* botAI)
@@ -120,6 +126,34 @@ private:
             /*A*/ nullptr,
             /*C*/ nullptr);
     }
+    static ActionNode* ice_barrier([[maybe_unused]] PlayerbotAI* botAI)
+    {
+        return new ActionNode("ice barrier",
+            /*P*/ nullptr,
+            /*A*/ nullptr,
+            /*C*/ nullptr);
+    }
+    static ActionNode* flameglow([[maybe_unused]] PlayerbotAI* botAI)
+    {
+        return new ActionNode("flameglow",
+            /*P*/ nullptr,
+            /*A*/ nullptr,
+            /*C*/ nullptr);
+    }
+    static ActionNode* rune_of_power([[maybe_unused]] PlayerbotAI* botAI)
+    {
+        return new ActionNode("rune of power",
+            /*P*/ nullptr,
+            /*A*/ nullptr,
+            /*C*/ nullptr);
+    }
+    static ActionNode* blink([[maybe_unused]] PlayerbotAI* botAI)
+    {
+        return new ActionNode("blink",
+            /*P*/ nullptr,
+            /*A*/ nullptr,
+            /*C*/ nullptr);
+    }
 };
 
 GenericMageStrategy::GenericMageStrategy(PlayerbotAI* botAI) : RangedCombatStrategy(botAI)
@@ -131,7 +165,12 @@ void GenericMageStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
     RangedCombatStrategy::InitTriggers(triggers);
 
-    triggers.push_back(new TriggerNode("enemy is close", NextAction::array(0, new NextAction("frost nova", 50.0f), nullptr)));
+    triggers.push_back(new TriggerNode("enemy is close", NextAction::array(0,
+        new NextAction("frost nova", 50.0f),
+        //new NextAction("cone of cold", 50.0f),
+        new NextAction("dragon's breath", 50.0f),
+        new NextAction("blink", 50.0f),
+        nullptr)));
     triggers.push_back(new TriggerNode("counterspell on enemy healer",NextAction::array(0, new NextAction("counterspell on enemy healer", 40.0f), nullptr)));
     triggers.push_back(new TriggerNode("critical health", NextAction::array(0, new NextAction("ice block", 80.0f), nullptr)));
     triggers.push_back(new TriggerNode("spellsteal", NextAction::array(0, new NextAction("spellsteal", 40.0f), nullptr)));
@@ -139,4 +178,5 @@ void GenericMageStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
     triggers.push_back(new TriggerNode("low mana", NextAction::array(0, new NextAction("evocation", ACTION_EMERGENCY + 5), nullptr)));
     triggers.push_back(new TriggerNode("fire ward", NextAction::array(0, new NextAction("fire ward", ACTION_EMERGENCY), nullptr)));
     triggers.push_back(new TriggerNode("frost ward", NextAction::array(0, new NextAction("frost ward", ACTION_EMERGENCY), nullptr)));
+    triggers.push_back(new TriggerNode("rune of power", NextAction::array(0, new NextAction("rune of power", 50.0f), nullptr)));
 }

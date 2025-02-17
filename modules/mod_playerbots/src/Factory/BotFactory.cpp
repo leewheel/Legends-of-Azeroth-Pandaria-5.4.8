@@ -285,7 +285,76 @@ void BotFactory::InitPet()
         pet->ToggleAutocast(spellInfo, true);
     }*/
 }
-  
+#include <fstream>
+void BotFactory::InitTalentsTree()
+{
+    /*std::map<uint32, std::list<const TalentEntry*>> talents_dbc;
+    for (auto entry = sTalentStore.begin(); entry != sTalentStore.end(); ++entry)
+    {
+        if (talents_dbc.find(entry->PlayerClass) == talents_dbc.end())
+            talents_dbc[entry->PlayerClass] = std::list<const TalentEntry*>();
+        talents_dbc[entry->PlayerClass].push_back(*entry);
+    }
+
+    for (auto& ref : talents_dbc)
+    {
+        ref.second.sort([](const TalentEntry* a, const TalentEntry* b)
+        {
+            return (a->Row < b->Row) || (a->Row == b->Row && a->Col < b->Col);
+        });
+    }
+
+    std::ofstream os("./talent_export.txt", std::ios::app);
+    for (const auto& ref : talents_dbc)
+    {
+        auto classe = ClassToString((Classes)ref.first);
+        os << classe << ":\n";
+        uint32 currentRow = 0;
+        for (const auto& tal : ref.second)
+        {
+            if (tal->Row != currentRow)
+            {
+                currentRow = tal->Row;
+                os << "\n";
+            }
+            os << tal->TalentID << "\t";
+        }
+        os << "\n";
+    }
+    os.close();*/
+
+    WorldPacket p(CMSG_LEARN_TALENT);
+    uint32 alreadyUsedPoints = bot->GetUsedTalentCount();
+    uint8 spec_tab = PlayerBotSpec::GetSpectab(bot);
+    uint32 availablepoints = bot->CalculateTalentsPoints() - bot->GetUsedTalentCount();
+    uint32 learnCount = 0;
+
+    if (!availablepoints || spec_tab == 99) return;
+
+    const std::vector<uint16>& talents = sPlayerbotAIConfig->premadeSpecLink[bot->GetClass()][spec_tab];
+    if (talents.empty()) return;
+
+    
+    std::vector<uint16> talent_to_learn;
+    for (size_t i = alreadyUsedPoints; i < talents.size() && availablepoints > 0; ++i)
+    {
+        uint16 talentId = talents[i];
+        if (!bot->HasTalent(talentId, bot->GetActiveSpec()))
+        {
+            learnCount++;
+            talent_to_learn.push_back(talentId);
+            availablepoints--;
+        }
+    }
+    if (learnCount > 0)
+    {
+        p.WriteBits(learnCount, 23);
+        for (const auto& c : talent_to_learn)
+            p << c;
+        bot->GetSession()->HandleLearnTalentOpcode(p);
+    }
+}
+
 void BotFactory::ClearEverything()
 {
     bot->GiveLevel(bot->GetClass() == CLASS_DEATH_KNIGHT ? sWorld->getIntConfig(CONFIG_START_HEROIC_PLAYER_LEVEL)

@@ -14,6 +14,8 @@ public:
     {
         creators["arcane blast"] = &arcane_blast;
         creators["arcane barrage"] = &arcane_barrage;
+        creators["slow"] = &slow;
+        creators["nether tempest"] = &nether_tempest;
     }
 
 private:
@@ -32,6 +34,22 @@ private:
                               /*A*/ nullptr,
                               /*C*/ nullptr);
     }
+
+    static ActionNode* slow([[maybe_unused]] PlayerbotAI* botAI)
+    {
+        return new ActionNode("slow",
+            /*P*/ nullptr,
+            /*A*/ nullptr,
+            /*C*/ nullptr);
+    }
+
+    static ActionNode* nether_tempest([[maybe_unused]] PlayerbotAI* botAI)
+    {
+        return new ActionNode("nether tempest",
+            /*P*/ nullptr,
+            /*A*/ nullptr,
+            /*C*/ nullptr);
+    }
 };
 
 ArcaneMageStrategy::ArcaneMageStrategy(PlayerbotAI* botAI) : GenericMageStrategy(botAI)
@@ -41,20 +59,28 @@ ArcaneMageStrategy::ArcaneMageStrategy(PlayerbotAI* botAI) : GenericMageStrategy
 
 NextAction** ArcaneMageStrategy::getDefaultActions()
 {
-    return NextAction::array(0, new NextAction("arcane blast", ACTION_DEFAULT + 0.3f),
-                             new NextAction("fire blast", ACTION_DEFAULT + 0.1f), // cast during movement
-                             new NextAction("shoot", ACTION_DEFAULT), nullptr);
+    return NextAction::array(0,
+        new NextAction("nether tempest", ACTION_DEFAULT + 0.3f),
+        new NextAction("arcane blast", ACTION_DEFAULT + 0.3f),
+        new NextAction("fire blast", ACTION_DEFAULT + 0.1f), // cast during movement
+        new NextAction("shoot", ACTION_DEFAULT), nullptr);
 }
 
 void ArcaneMageStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
     GenericMageStrategy::InitTriggers(triggers);
 
-    triggers.push_back(
-        new TriggerNode("arcane blast stack", NextAction::array(0, new NextAction("arcane missiles", 15.0f), NULL)));
+    triggers.push_back(new TriggerNode("arcane blast stack", NextAction::array(0, new NextAction("arcane missiles", 15.0f), nullptr)));
+    triggers.push_back(new TriggerNode("arcane missiles", NextAction::array(0, new NextAction("arcane missiles", 15.0f), nullptr)));
+    triggers.push_back(new TriggerNode("arcane charge", NextAction::array(0, new NextAction("arcane missiles", 15.0f), nullptr)));
+    triggers.push_back(new TriggerNode("arcane charge", NextAction::array(0, new NextAction("arcane barrage", 15.0f), nullptr)));
+    triggers.push_back(new TriggerNode("slow not on target", NextAction::array(0, new NextAction("slow", ACTION_NORMAL + 1), nullptr)));
+    triggers.push_back(new TriggerNode("medium health", NextAction::array(0, new NextAction("ice barrier", ACTION_NORMAL), nullptr)));
+    triggers.push_back(new TriggerNode("nether tempest", NextAction::array(0, new NextAction("nether tempest", 19.0f), nullptr)));
+    triggers.push_back(new TriggerNode("arcane power", NextAction::array(0, new NextAction("arcane power", 19.0f), nullptr)));
 }
 
 void ArcaneMageAoeStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
-    triggers.push_back(new TriggerNode("medium aoe", NextAction::array(0, new NextAction("blizzard", 40.0f), NULL)));
+    triggers.push_back(new TriggerNode("medium aoe", NextAction::array(0, new NextAction("blizzard", 40.0f), nullptr)));
 }
