@@ -32,6 +32,7 @@
 #include "PlayerbotAI.h"
 #include "Playerbots.h"
 #include "RandomItemManager.h"
+#include "RandomPlayerbotBracketMgr.h"
 #include "SharedDefines.h"
 #include "Unit.h"
 #include "World.h"
@@ -202,6 +203,8 @@ uint32 RandomPlayerbotMgr::AddRandomBots()
 
                 SetEventValue(guid, "add", 1, add_time);
                 SetEventValue(guid, "logout", 0, 0);
+                SetEventValue(guid, "randomize", 1, add_time * 2);
+                SetEventValue(guid, "teleport", 1, add_time * 2);
                 _currentBots.push_back(guid);
 
                 maxAllowedBotCount--;
@@ -283,8 +286,8 @@ bool RandomPlayerbotMgr::ProcessBot(uint32 bot)
         // do not randomize or teleport immediately after server start (prevent lagging)
         if (!GetEventValue(bot, "randomize"))
         {
-            int minValue = 3;
-            int maxValue = std::max(4, static_cast<int>(randomBotUpdateInterval * 0.4));
+            int minValue = std::max(7, static_cast<int>(randomBotUpdateInterval * 0.7));
+            int maxValue = std::max(14, static_cast<int>(randomBotUpdateInterval * 1.4));
             randomTime = minValue + (std::rand() % (maxValue - minValue + 1));
 
             ScheduleRandomize(bot, randomTime);
@@ -293,7 +296,6 @@ bool RandomPlayerbotMgr::ProcessBot(uint32 bot)
         {
             int minValue = std::max(7, static_cast<int>(randomBotUpdateInterval * 0.7));
             int maxValue = std::max(14, static_cast<int>(randomBotUpdateInterval * 1.4));
-
             randomTime = minValue + (std::rand() % (maxValue - minValue + 1));
 
             ScheduleTeleport(bot, randomTime);
@@ -373,15 +375,19 @@ bool RandomPlayerbotMgr::ProcessBot(Player* player)
     if (player->InBattlegroundQueue())
         return false;
 
+    if (player->GetInstanceId())
+        return false;
+
+    if (player->GetGroup())
+        return false;
+
     // if death revive
-    /*if (player->isDead())
+    if (player->isDead())
     {
         if (!GetEventValue(bot, "dead"))
         {
-            uint32 randomTime =
-                urand(sPlayerbotAIConfig->minRandomBotReviveTime, sPlayerbotAIConfig->maxRandomBotReviveTime);
-            LOG_DEBUG("playerbots", "Mark bot {} as dead, will be revived in {}s.", player->GetName().c_str(),
-                randomTime);
+            uint32 randomTime = urand(60/*sPlayerbotAIConfig->minRandomBotReviveTime*/, 300/*sPlayerbotAIConfig->maxRandomBotReviveTime*/);
+            TC_LOG_DEBUG("playerbots", "Mark bot %s as dead, will be revived in %us.", player->GetName().c_str(), randomTime);
             SetEventValue(bot, "dead", 1, sPlayerbotAIConfig->maxRandomBotInWorldTime);
             SetEventValue(bot, "revive", 1, randomTime);
             return false;
@@ -394,15 +400,7 @@ bool RandomPlayerbotMgr::ProcessBot(Player* player)
         }
 
         return false;
-    }*/
-
-    // leave group if leader is rndbot
-    /*Group* group = player->GetGroup();
-    if (group && !group->isLFGGroup() && IsRandomBot(group->GetLeader()))
-    {
-        player->RemoveFromGroup();
-        LOG_INFO("playerbots", "Bot {} remove from group since leader is random bot.", player->GetName().c_str());
-    }*/
+    }
 
     // only randomize and teleport idle bots
     bool idleBot = false;
@@ -429,8 +427,6 @@ bool RandomPlayerbotMgr::ProcessBot(Player* player)
         {
             Randomize(player);
             TC_LOG_DEBUG("playerbots", "Bot #%u %s:%u <%s>: randomized", bot.GetCounter(), player->GetTeamId() == TEAM_ALLIANCE ? "A" : "H", player->GetLevel(), player->GetName().c_str());
-            uint32 randomTime = urand(sPlayerbotAIConfig->minRandomBotRandomizeTime, sPlayerbotAIConfig->maxRandomBotRandomizeTime);
-            ScheduleRandomize(bot, randomTime);
             return true;
         }
 
@@ -447,6 +443,14 @@ bool RandomPlayerbotMgr::ProcessBot(Player* player)
     }
 
     return false;
+}
+
+void RandomPlayerbotMgr::TagForRandomize(Player* bot, uint32 level)
+{
+    ObjectGuid::LowType guid = bot->GetGUID().GetCounter();
+
+    SetValue(bot, "level", level);
+    ScheduleRandomize(guid, 0);
 }
 
 void RandomPlayerbotMgr::Revive(Player* player)
@@ -530,23 +534,19 @@ void RandomPlayerbotMgr::RandomizeFirst(Player* bot)
 
 void RandomPlayerbotMgr::Randomize(Player* bot)
 {
-    if (bot->InBattleground())
-        return;
+    if (GET_PLAYERBOT_AI(bot))
+            GET_PLAYERBOT_AI(bot)->Reset(true);
 
-    if (bot->GetLevel() < 3 || (bot->GetLevel() < 56 && bot->GetClass() == CLASS_DEATH_KNIGHT))
-    {
-        RandomizeFirst(bot);
-    }
-    else if (bot->GetLevel() < sPlayerbotAIConfig->randomBotMaxLevel/* || !sPlayerbotAIConfig->downgradeMaxLevelBot*/)
-    {
-        uint8 level = bot->GetLevel();
-        BotFactory factory(bot, level);
-        factory.Randomize(true);
-    }
-    else
-    {
-        RandomizeFirst(bot);
-    }
+    uint8 level = GetValue(bot, "level");
+    BotFactory factory(bot, level);
+    factory.Randomize(false);
+
+    // rez / clean cd / etc
+    Refresh(bot);
+    RandomTeleportForLevel(bot);
+
+    // -- safe
+    ScheduleRandomize(bot->GetGUID().GetCounter(), 62208000);
 }
 
 void RandomPlayerbotMgr::Refresh(Player* bot)
@@ -574,8 +574,8 @@ void RandomPlayerbotMgr::Refresh(Player* bot)
     bot->DurabilityRepairAll(false, 1.0f, false);
     bot->SetFullHealth();
     //bot->SetPvP(true);
-    //PlayerbotFactory factory(bot, bot->GetLevel());
-    //factory.Refresh();
+    BotFactory factory(bot, bot->GetLevel());
+    factory.Refresh();
 
     if (bot->GetMaxPower(POWER_MANA) > 0)
         bot->SetPower(POWER_MANA, bot->GetMaxPower(POWER_MANA));
@@ -583,8 +583,8 @@ void RandomPlayerbotMgr::Refresh(Player* bot)
     if (bot->GetMaxPower(POWER_ENERGY) > 0)
         bot->SetPower(POWER_ENERGY, bot->GetMaxPower(POWER_ENERGY));
 
-    //uint32 money = bot->GetMoney();
-    //bot->SetMoney(money + 500 * sqrt(urand(1, bot->GetLevel() * 5)));
+    uint32 money = bot->GetMoney();
+    bot->SetMoney(money + 500 * sqrt(urand(1, bot->GetLevel() * 5)));
 
     if (bot->GetGroup())
         bot->RemoveFromGroup();
@@ -671,8 +671,6 @@ uint32 RandomPlayerbotMgr::GetEventValue(uint32 bot, std::string const event)
         e.value = 0;
 
     return e.value;
-
-    return 0;
 }
 
 std::string const RandomPlayerbotMgr::GetEventData(uint32 bot, std::string const event)
@@ -793,6 +791,48 @@ void RandomPlayerbotMgr::OnBotLoginInternal(Player* const bot)
 
             TC_LOG_INFO("playerbots", "%s Assigned to faction: %s", bot->GetName().c_str(), (bot->GetTeamId() ? "Alliance" : "Horde"));
         });        
+    }
+    if (bot->GetRace() == RACE_GOBLIN && bot->GetLevel() == 1)
+    {
+        bot->AddDelayedEvent(5000, [bot]()
+        {
+            // -- force finish quest
+            auto it = bot->getRewardedQuests().find(25265);
+            if (it == bot->getRewardedQuests().end())
+            {
+                bot->CompleteQuest(25265, true, true);
+                bot->CompleteQuest(25266, true, true);
+                bot->CompleteQuest(25267, true, true);
+                bot->CompleteQuest(25268, true, true);
+            }
+        });
+    }
+    if (bot->GetRace() == RACE_WORGEN && bot->GetLevel() == 1)
+    {
+        bot->AddDelayedEvent(5000, [bot]()
+        {
+            // -- force finish quest
+            auto it = bot->getRewardedQuests().find(26706);
+            if (it == bot->getRewardedQuests().end())
+            {
+                bot->CompleteQuest(26706, true, true);
+                bot->CompleteQuest(14434, true, true);
+            }
+        });
+    }
+
+    if (bot->GetClass() == CLASS_DEATH_KNIGHT && bot->GetLevel() == 55)
+    {
+        bot->AddDelayedEvent(5000, [bot]()
+        {
+            // -- force finish quest
+            auto it = bot->getRewardedQuests().find(13188);
+            if (it == bot->getRewardedQuests().end() && bot->GetTeam() == Team::ALLIANCE)
+                bot->CompleteQuest(13188, true, true);
+            it = bot->getRewardedQuests().find(13189);
+            if (it == bot->getRewardedQuests().end() && bot->GetTeam() == Team::HORDE)
+                bot->CompleteQuest(13189, true, true);
+        });
     }
 
     /*if (sPlayerbotAIConfig->randomBotFixedLevel)

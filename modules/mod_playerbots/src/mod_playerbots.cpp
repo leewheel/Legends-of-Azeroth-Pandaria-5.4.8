@@ -20,6 +20,7 @@
 #include "PlayerbotAIConfig.h"
 #include "RandomPlayerbotMgr.h"
 #include "RandomItemManager.h"
+#include "RandomPlayerbotBracketMgr.h"
 
 #include "Authentication/AuthCrypt.h"
 #include "CharacterHandler.h"
@@ -79,6 +80,10 @@ public:
             TC_LOG_INFO("playerbots", "Playerbots min/max to load: %u/%u", sPlayerbotAIConfig->minRandomBots, sPlayerbotAIConfig->maxRandomBots);
             TC_LOG_INFO("playerbots", "Playerbots autologin: %s", sPlayerbotAIConfig->randomBotAutologin ? "Yes" : "No");
         }
+    }
+    void OnUpdate(uint32 diff) override
+    {
+        sBracketMgr->Update(diff);
     }
 };
 

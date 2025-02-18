@@ -17,7 +17,7 @@ public:
 
     void InitEquipment(bool incremental, bool second_chance = false);
     void InitPet();
-    void InitTalentsTree();
+    void InitTalentsTree(bool reset);
 private:
     void Prepare();
     void CancelAuras();

@@ -119,12 +119,20 @@ void BotFactory::Prepare()
         bot->ResurrectPlayer(1.0f, false);
  
     bot->CombatStop(true);
-    uint32 currentLevel = bot->GetLevel();
-    bot->GiveLevel(level);
-    if (level != currentLevel)
-    {
-        bot->SetUInt32Value(PLAYER_FIELD_XP, 0);
-    }
+    
+    int32 oldlevel = bot->GetLevel();
+    int32 newlevel = level;
+    if (newlevel < 1)
+        newlevel = 1;
+    if (newlevel > 90)
+        newlevel = 90;
+
+    bot->GiveLevel(newlevel);
+    bot->InitTalentForLevel();
+    bot->SetUInt32Value(PLAYER_FIELD_XP, 0);
+    bot->RemoveAllSpellCooldown();
+    bot->InitStatsForLevel();
+    CancelAuras();
 }
  
 void BotFactory::Randomize(bool incremental)
@@ -133,28 +141,26 @@ void BotFactory::Randomize(bool incremental)
             bot->GetName().c_str(), level, ClassToString((Classes)bot->GetClass()).c_str());
 
     Prepare();
-    bot->RemoveAllSpellCooldown();
- 
-    bot->GiveLevel(level);
-    bot->InitStatsForLevel();
-    CancelAuras();
- 
     if (!incremental)
     {
+        // -- Unlearn talents and spec
+        bot->ResetTalents(true, true, true);
+
+        // -- release pet
         bot->RemovePet(PetRemoveMode::PET_REMOVE_ABANDON, PetRemoveFlag::PET_REMOVE_FLAG_NONE);
+
+        // Destroy equipped items.
+        for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
+        {
+            if (Item* item = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
+            {
+                std::string itemName = item->GetTemplate()->Name1;
+                bot->DestroyItem(INVENTORY_SLOT_BAG_0, slot, true);
+            }
+        }
     }
 
     InitPet();
-
-    // -- Select spec
-    if (bot->GetLevel() >= 10)
-    {
-        uint32 tab = std::rand() % 3;
-        WorldPacket p(CMSG_SET_PRIMARY_TALENT_TREE);
-        p << tab;
-        bot->GetSession()->HandeSetTalentSpecialization(p);
-        bot->ActivateSpec(0);
-    }
  
     bot->SetMoney(urand(level * 100000, level * 5 * 100000));
     bot->SetHealth(bot->GetMaxHealth());
@@ -286,7 +292,7 @@ void BotFactory::InitPet()
     }*/
 }
 #include <fstream>
-void BotFactory::InitTalentsTree()
+void BotFactory::InitTalentsTree(bool reset)
 {
     /*std::map<uint32, std::list<const TalentEntry*>> talents_dbc;
     for (auto entry = sTalentStore.begin(); entry != sTalentStore.end(); ++entry)
@@ -322,6 +328,26 @@ void BotFactory::InitTalentsTree()
         os << "\n";
     }
     os.close();*/
+
+    // -- reset spec in case we down level
+    if (reset)
+    {
+        bot->ResetTalents(true, true, true);
+    }
+    
+    // if no spec then pick one random (need to change that to balance)
+    if (bot->GetSpecialization() == Specializations::SPEC_NONE)
+    {
+        // -- Select spec
+        if (bot->GetLevel() >= 10)
+        {
+            uint32 tab = std::rand() % 3;
+            WorldPacket p(CMSG_SET_PRIMARY_TALENT_TREE);
+            p << tab;
+            bot->GetSession()->HandeSetTalentSpecialization(p);
+            bot->ActivateSpec(0);
+        }
+    }
 
     WorldPacket p(CMSG_LEARN_TALENT);
     uint32 alreadyUsedPoints = bot->GetUsedTalentCount();

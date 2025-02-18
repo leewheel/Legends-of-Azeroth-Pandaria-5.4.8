@@ -1,8 +1,3 @@
-/*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU GPL v2 license, you may redistribute it
- * and/or modify it under version 2 of the License, or (at your option), any later version.
- */
-
 #ifndef _PLAYERBOT_RANDOMPLAYERBOTMGR_H
 #define _PLAYERBOT_RANDOMPLAYERBOTMGR_H
 
@@ -32,7 +27,6 @@ public:
 
 class Player;
 class ObjectGuid;
-
 class RandomPlayerbotMgr : public PlayerbotHolder
 {
 public:
@@ -88,18 +82,20 @@ public:
     void Reserve(const uint32 size);
     void UpdateAIInternal(uint32 elapsed, bool minimal = false) override;
 
-    
-
 public:
-    uint32 activeBots = 0;
     bool IsRandomBot(Player* bot);
     bool IsRandomBot(ObjectGuid::LowType bot);
+
+    void TagForRandomize(Player* bot, uint32 level);
     void RandomizeFirst(Player* bot);
     void Randomize(Player* bot);
+    
     void Clear(Player* bot);
+    
     void OnPlayerLogout(Player* player);
     void OnPlayerLogin(Player* player);
     void OnPlayerLoginError(uint32 bot);
+    
     Player* GetRandomPlayer();
     std::vector<Player*> GetPlayers() { return _players; };
     PlayerBotMap GetAllBots() { return playerBots; };
@@ -135,23 +131,28 @@ private:
     void ScheduleRandomize(uint32 bot, uint32 time);
     const farm_spot* GetFarmZoneForPlayer(Player* player);
     const city* GetCityForPlayer(Player* player);
-
-    // pid values are set in constructor
-    float _activityMod = 0.25;
-    bool _isBotInitializing = true;
     uint32 GetEventValue(uint32 bot, std::string const event);
     std::string const GetEventData(uint32 bot, std::string const event);
     uint32 SetEventValue(uint32 bot, std::string const event, uint32 value, uint32 validIn, std::string const data = "");
+
+public:
+    uint32 activeBots = 0;
+private:
+    // pid values are set in constructor
+    float _activityMod = 0.25;
+    bool _isBotInitializing = true;
     time_t _playersCheckTimer;
     typedef void (RandomPlayerbotMgr::* ConsoleCommandHandler)(Player*);
     std::vector<Player*> _players;
     uint32 _processTicks;
+    uint32 _playersLevel;
+
+    // -- lists
     std::map<uint32, std::map<std::string, CachedEvent>> _eventCache;
     std::map<uint8, std::vector<ObjectGuid>> _addclassCache;
     std::vector<city> _city_cache_data;
     std::vector<std::pair<farm_zone, std::vector<farm_spot>>> _farm_cache_data;
     std::vector<uint32> _currentBots;
-    uint32 _playersLevel;
 };
 
 #define sRandomPlayerbotMgr RandomPlayerbotMgr::instance()

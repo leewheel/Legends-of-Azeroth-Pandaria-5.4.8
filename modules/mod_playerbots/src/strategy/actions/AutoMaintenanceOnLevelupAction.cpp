@@ -37,7 +37,7 @@ void AutoMaintenanceOnLevelupAction::AutoPickTalents()
         return;
 
     BotFactory factory(bot, bot->GetLevel());
-    factory.InitTalentsTree();
+    factory.InitTalentsTree(false);
 
     //PlayerbotFactory factory(bot, bot->GetLevel());
     //factory.InitTalentsTree(true, true, true);
