@@ -210,7 +210,6 @@ bool RandomItemManager::ShouldEquipArmorForSpec(uint32 level, Classes playerclas
         return true;
 
     std::unordered_set<uint32> resultArmorSubClass;
-
     switch (playerclass)
     {
         case CLASS_WARRIOR:
@@ -275,7 +274,6 @@ bool RandomItemManager::ShouldEquipArmorForSpec(uint32 level, Classes playerclas
         case CLASS_MAGE:
         case CLASS_WARLOCK:
         {
-            resultArmorSubClass.clear();
             resultArmorSubClass = { ITEM_SUBCLASS_ARMOR_CLOTH };
             break;
         }
@@ -761,7 +759,8 @@ uint32 RandomItemManager::FindBestItemForLevelAndEquip(Player* bot, InventoryTyp
                 (proto->InventoryType == InventoryType::INVTYPE_HEAD || proto->InventoryType == InventoryType::INVTYPE_SHOULDERS ||
                     proto->InventoryType == InventoryType::INVTYPE_CHEST || proto->InventoryType == InventoryType::INVTYPE_WAIST ||
                     proto->InventoryType == InventoryType::INVTYPE_LEGS || proto->InventoryType == InventoryType::INVTYPE_FEET ||
-                    proto->InventoryType == InventoryType::INVTYPE_WRISTS || proto->InventoryType == InventoryType::INVTYPE_HANDS) &&
+                    proto->InventoryType == InventoryType::INVTYPE_WRISTS || proto->InventoryType == InventoryType::INVTYPE_HANDS ||
+                    proto->InventoryType == InventoryType::INVTYPE_ROBE) &&
                 !CanEquipArmor(bot, proto))
                 continue;
 

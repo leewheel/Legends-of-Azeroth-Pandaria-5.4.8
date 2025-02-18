@@ -46,6 +46,12 @@ public:
     bool isUseful() override;
 };
 
+class CastFrostjawAction : public CastSpellAction
+{
+public:
+    CastFrostjawAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "frostjaw") {}
+};
+
 class CastArcaneBarrageAction : public CastSpellAction
 {
 public:

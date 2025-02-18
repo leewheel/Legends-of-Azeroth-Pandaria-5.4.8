@@ -60,6 +60,7 @@ ArcaneMageStrategy::ArcaneMageStrategy(PlayerbotAI* botAI) : GenericMageStrategy
 NextAction** ArcaneMageStrategy::getDefaultActions()
 {
     return NextAction::array(0,
+        new NextAction("frostjaw", ACTION_DEFAULT + 0.10f),
         new NextAction("nether tempest", ACTION_DEFAULT + 0.3f),
         new NextAction("arcane blast", ACTION_DEFAULT + 0.3f),
         new NextAction("fire blast", ACTION_DEFAULT + 0.1f), // cast during movement
@@ -82,5 +83,7 @@ void ArcaneMageStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 
 void ArcaneMageAoeStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
-    triggers.push_back(new TriggerNode("medium aoe", NextAction::array(0, new NextAction("blizzard", 40.0f), nullptr)));
+    triggers.push_back(new TriggerNode("medium aoe", NextAction::array(0,
+        new NextAction("nether tempest on attackers", 24.0f),
+        new NextAction("blizzard", 23.0f), nullptr)));
 }

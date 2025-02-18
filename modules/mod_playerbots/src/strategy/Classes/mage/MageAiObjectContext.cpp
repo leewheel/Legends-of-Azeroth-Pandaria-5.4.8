@@ -161,6 +161,7 @@ public:
         creators["deep freeze"] = &MageAiObjectContextInternal::deepfreeze;
         creators["ice block"] = &MageAiObjectContextInternal::ice_block;
         creators["blink"] = &MageAiObjectContextInternal::blink;
+        creators["frostjaw"] = &MageAiObjectContextInternal::frostjaw;
 
         // --
 
@@ -171,6 +172,8 @@ public:
         creators["pyroblast"] = &MageAiObjectContextInternal::pyroblast;
         creators["scorch"] = &MageAiObjectContextInternal::scorch;
         creators["living bomb"] = &MageAiObjectContextInternal::living_bomb;
+        creators["flamestrike"] = &MageAiObjectContextInternal::flamestrike;
+        
 
         // -- frost specific talent or spec
         creators["frostbolt"] = &MageAiObjectContextInternal::frostbolt;
@@ -219,6 +222,7 @@ private:
     static Action* summon_water_elemental(PlayerbotAI* botAI) { return new CastSummonWaterElementalAction(botAI); }
     static Action* cold_snap(PlayerbotAI* botAI) { return new CastColdSnapAction(botAI); }
     static Action* ice_barrier(PlayerbotAI* botAI) { return new CastIceBarrierAction(botAI); }
+    static Action* frostjaw(PlayerbotAI* botAI) { return new CastFrostjawAction(botAI); }
 
     // -- fire
     static Action* fireball(PlayerbotAI* botAI) { return new CastFireballAction(botAI); }
@@ -227,7 +231,8 @@ private:
     static Action* pyroblast(PlayerbotAI* botAI) { return new CastPyroblastAction(botAI); }
     static Action* scorch(PlayerbotAI* botAI) { return new CastScorchAction(botAI); }
     static Action* living_bomb(PlayerbotAI* botAI) { return new CastLivingBombAction(botAI); }
-    
+    static Action* flamestrike(PlayerbotAI* botAI) { return new CastFlamestrikeAction(botAI); }
+
 
     // -- forst
     static Action* frost_bomb(PlayerbotAI* botAI) { return new CastFrostBombAction(botAI); }

@@ -32,6 +32,7 @@ public:
         creators["rune of power"] = &rune_of_power;
         creators["ice barrier"] = &ice_barrier;
         creators["flameglow"] = &flameglow;
+        creators["frostjaw"] = &frostjaw;
     }
 
 private:
@@ -154,6 +155,13 @@ private:
             /*A*/ nullptr,
             /*C*/ nullptr);
     }
+    static ActionNode* frostjaw([[maybe_unused]] PlayerbotAI* botAI)
+    {
+        return new ActionNode("frostjaw",
+            /*P*/ nullptr,
+            /*A*/ nullptr,
+            /*C*/ nullptr);
+    }
 };
 
 GenericMageStrategy::GenericMageStrategy(PlayerbotAI* botAI) : RangedCombatStrategy(botAI)
@@ -166,9 +174,9 @@ void GenericMageStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
     RangedCombatStrategy::InitTriggers(triggers);
 
     triggers.push_back(new TriggerNode("enemy is close", NextAction::array(0,
-        new NextAction("frost nova", 50.0f),
-        //new NextAction("cone of cold", 50.0f),
-        new NextAction("dragon's breath", 50.0f),
+        new NextAction("frost nova", 25.0f),
+        new NextAction("cone of cold", 5.0f),
+        new NextAction("dragon's breath", 25.0f),
         new NextAction("blink", 50.0f),
         nullptr)));
     triggers.push_back(new TriggerNode("counterspell on enemy healer",NextAction::array(0, new NextAction("counterspell on enemy healer", 40.0f), nullptr)));

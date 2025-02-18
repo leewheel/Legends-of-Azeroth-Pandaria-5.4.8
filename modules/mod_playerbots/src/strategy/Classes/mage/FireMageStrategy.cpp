@@ -78,6 +78,7 @@ FireMageStrategy::FireMageStrategy(PlayerbotAI* botAI)
 NextAction** FireMageStrategy::getDefaultActions()
 {
     return NextAction::array(0,
+        new NextAction("frostjaw", ACTION_DEFAULT + 0.10f),
         new NextAction("combustion", ACTION_DEFAULT + 0.9f),
         new NextAction("living bomb", ACTION_DEFAULT + 0.7f),
         new NextAction("fireball", ACTION_DEFAULT + 0.6f),
@@ -103,7 +104,6 @@ void FireMageAoeStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
         new TriggerNode("medium aoe", NextAction::array(0,
             new NextAction("dragon's breath", 24.0f),
             new NextAction("flamestrike", 23.0f), 
-            new NextAction("blast wave", 22.0f), 
             new NextAction("living bomb on attackers", 21.0f), 
             new NextAction("blizzard", 20.0f), nullptr)));
 }

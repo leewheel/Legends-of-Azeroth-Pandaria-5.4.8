@@ -4,6 +4,7 @@
 #include "ActiveSpellValue.h"
 #include "AttackersValue.h"
 #include "AttackerCountValues.h"
+#include "AttackerWithoutAuraTargetValue.h"
 #include "CurrentTargetValue.h"
 #include "DistanceValue.h"
 #include "DpsTargetValue.h"
@@ -11,6 +12,7 @@
 #include "EstimatedLifetimeValue.h"
 #include "GroupValues.h"
 #include "GrindTargetValue.h"
+#include "HasTotemValue.h"
 #include "InvalidTargetValue.h"
 #include "IsBehindValue.h"
 #include "IsMovingValue.h"
@@ -21,6 +23,7 @@
 #include "ManaSaveLevelValue.h"
 #include "NearestUnitsValue.h"
 #include "NearestFriendlyPlayersValue.h"
+#include "PartyMemberWithoutAuraValue.h"
 #include "PartyMemberToDispelValue.h"
 #include "PartyMemberToHealValue.h"
 #include "PartyMemberToResurectValue.h"
@@ -67,6 +70,7 @@ public:
         creators["last flee timestamp"] = &ValueContext::last_flee_timestamp;
         creators["recently flee info"] = &ValueContext::recently_flee_info;
         creators["random bot update"] = &ValueContext::random_bot_update_value;
+        creators["has totem"] = &ValueContext::has_totem;
 
         creators["distance"] = &ValueContext::distance;
         creators["moving"] = &ValueContext::moving;
@@ -76,6 +80,8 @@ public:
         creators["has aggro"] = &ValueContext::has_aggro;
         creators["balance"] = &ValueContext::balance;
         creators["attackers"] = &ValueContext::attackers;
+        creators["attacker count"] = &ValueContext::attacker_count;
+        creators["my attacker count"] = &ValueContext::my_attacker_count;
         creators["possible adds"] = &ValueContext::possible_adds;
 
         creators["rti target"] = &ValueContext::rti_target;
@@ -139,6 +145,9 @@ public:
         creators["estimated lifetime"] = &ValueContext::expected_lifetime;
         creators["estimated group dps"] = &ValueContext::expected_group_dps;
 
+        creators["attacker without aura"] = &ValueContext::attacker_without_aura;
+        creators["melee attacker without aura"] = &ValueContext::melee_attacker_without_aura;
+        creators["party member without aura"] = &ValueContext::party_member_without_aura;
         creators["party member to heal"] = &ValueContext::party_member_to_heal;
         creators["party member to resurrect"] = &ValueContext::party_member_to_resurrect;
         creators["party member to dispel"] = &ValueContext::party_member_to_dispel;
@@ -169,6 +178,7 @@ private:
     static UntypedValue* last_flee_timestamp(PlayerbotAI* ai) { return new LastFleeTimestampValue(ai); }
     static UntypedValue* recently_flee_info(PlayerbotAI* ai) { return new RecentlyFleeInfo(ai); }
     static UntypedValue* random_bot_update_value(PlayerbotAI* botAI) { return new RandomBotUpdateValue(botAI); }
+    static UntypedValue* has_totem(PlayerbotAI* botAI) { return new HasTotemValue(botAI); }
 
     static UntypedValue* position(PlayerbotAI* botAI) { return new PositionValue(botAI); }
     static UntypedValue* current_position(PlayerbotAI* botAI) { return new CurrentPositionValue(botAI); }
@@ -185,6 +195,9 @@ private:
     static UntypedValue* balance(PlayerbotAI* botAI) { return new BalancePercentValue(botAI); }
     static UntypedValue* has_aggro(PlayerbotAI* botAI) { return new HasAggroValue(botAI); }
     static UntypedValue* attackers(PlayerbotAI* botAI) { return new AttackersValue(botAI); }
+    static UntypedValue* attacker_count(PlayerbotAI* botAI) { return new AttackerCountValue(botAI); }
+    static UntypedValue* my_attacker_count(PlayerbotAI* botAI) { return new MyAttackerCountValue(botAI); }
+
     static UntypedValue* possible_adds(PlayerbotAI* botAI) { return new PossibleAddsValue(botAI); }
     static UntypedValue* prioritized_targets(PlayerbotAI* botAI) { return new PrioritizedTargetsValue(botAI); }
 
@@ -238,6 +251,9 @@ private:
     static UntypedValue* expected_lifetime(PlayerbotAI* ai) { return new EstimatedLifetimeValue(ai); }
     static UntypedValue* expected_group_dps(PlayerbotAI* ai) { return new EstimatedGroupDpsValue(ai); }
 
+    static UntypedValue* attacker_without_aura(PlayerbotAI* botAI) { return new AttackerWithoutAuraTargetValue(botAI); }
+    static UntypedValue* melee_attacker_without_aura(PlayerbotAI* botAI) { return new MeleeAttackerWithoutAuraTargetValue(botAI); }
+    static UntypedValue* party_member_without_aura(PlayerbotAI* botAI) { return new PartyMemberWithoutAuraValue(botAI); }
     static UntypedValue* party_member_to_heal(PlayerbotAI* botAI) { return new PartyMemberToHeal(botAI); }
     static UntypedValue* party_member_to_resurrect(PlayerbotAI* botAI) { return new PartyMemberToResurrect(botAI); }
     static UntypedValue* party_member_to_dispel(PlayerbotAI* botAI) { return new PartyMemberToDispel(botAI); }
