@@ -51,15 +51,12 @@ void RandomItemManager::Init()
     _viable_slots[EQUIPMENT_SLOT_MAINHAND].insert(INVTYPE_WEAPON);
     _viable_slots[EQUIPMENT_SLOT_MAINHAND].insert(INVTYPE_2HWEAPON);
     _viable_slots[EQUIPMENT_SLOT_MAINHAND].insert(INVTYPE_WEAPONMAINHAND);
+    _viable_slots[EQUIPMENT_SLOT_MAINHAND].insert(INVTYPE_RANGED);
     _viable_slots[EQUIPMENT_SLOT_OFFHAND].insert(INVTYPE_WEAPON);
     _viable_slots[EQUIPMENT_SLOT_OFFHAND].insert(INVTYPE_2HWEAPON);
     _viable_slots[EQUIPMENT_SLOT_OFFHAND].insert(INVTYPE_SHIELD);
     _viable_slots[EQUIPMENT_SLOT_OFFHAND].insert(INVTYPE_WEAPONMAINHAND);
     _viable_slots[EQUIPMENT_SLOT_OFFHAND].insert(INVTYPE_HOLDABLE);
-    _viable_slots[EQUIPMENT_SLOT_RANGED].insert(INVTYPE_RANGED);
-    _viable_slots[EQUIPMENT_SLOT_RANGED].insert(INVTYPE_THROWN);
-    _viable_slots[EQUIPMENT_SLOT_RANGED].insert(INVTYPE_RANGEDRIGHT);
-    _viable_slots[EQUIPMENT_SLOT_RANGED].insert(INVTYPE_RELIC);
     _viable_slots[EQUIPMENT_SLOT_TABARD].insert(INVTYPE_TABARD);
     _viable_slots[EQUIPMENT_SLOT_BACK].insert(INVTYPE_CLOAK);
 
@@ -316,6 +313,7 @@ bool RandomItemManager::ShouldEquipWeaponForSpec(Classes playerclass, Specializa
         }
     }
 
+
     if (slot_mh == EQUIPMENT_SLOT_START && slot_oh == EQUIPMENT_SLOT_START)
         return false;
 
@@ -432,15 +430,11 @@ bool RandomItemManager::ShouldEquipWeaponForSpec(Classes playerclass, Specializa
         }
     }
 
-    if (slot_mh == EQUIPMENT_SLOT_MAINHAND)
-    {
-        return mh_weapons.find(proto->SubClass) != mh_weapons.end();
-    }
+    if (slot_mh == EQUIPMENT_SLOT_MAINHAND && mh_weapons.find(proto->SubClass) != mh_weapons.end())
+        return true;
 
-    if (slot_oh == EQUIPMENT_SLOT_OFFHAND)
-    {
-        return oh_weapons.find(proto->SubClass) != oh_weapons.end();
-    }
+    if (slot_oh == EQUIPMENT_SLOT_OFFHAND && oh_weapons.find(proto->SubClass) != oh_weapons.end())
+        return true;
 
     return false;
 }

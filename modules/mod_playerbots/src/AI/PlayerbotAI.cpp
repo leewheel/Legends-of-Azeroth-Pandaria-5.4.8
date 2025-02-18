@@ -2865,6 +2865,7 @@ uint8 PlayerbotAI::FindEquipSlot(ItemTemplate const* proto, uint32 slot, bool sw
     case INVTYPE_CLOAK:
         slots[0] = EQUIPMENT_SLOT_BACK;
         break;
+    case INVTYPE_RANGED:
     case INVTYPE_WEAPON:
     {
         slots[0] = EQUIPMENT_SLOT_MAINHAND;
@@ -2879,11 +2880,6 @@ uint8 PlayerbotAI::FindEquipSlot(ItemTemplate const* proto, uint32 slot, bool sw
     case INVTYPE_WEAPONOFFHAND:
     case INVTYPE_HOLDABLE:
         slots[0] = EQUIPMENT_SLOT_OFFHAND;
-        break;
-    case INVTYPE_RANGED:
-    case INVTYPE_RANGEDRIGHT:
-    case INVTYPE_THROWN:
-        slots[0] = EQUIPMENT_SLOT_RANGED;
         break;
     case INVTYPE_2HWEAPON:
         slots[0] = EQUIPMENT_SLOT_MAINHAND;

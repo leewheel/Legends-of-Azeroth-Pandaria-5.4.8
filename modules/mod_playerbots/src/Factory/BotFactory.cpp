@@ -447,6 +447,7 @@ std::vector<InventoryType> BotFactory::GetPossibleInventoryTypeListBySlot(Equipm
         ret.push_back(INVTYPE_WEAPON);
         ret.push_back(INVTYPE_2HWEAPON);
         ret.push_back(INVTYPE_WEAPONMAINHAND);
+        ret.push_back(INVTYPE_RANGED);
         break;
     case EQUIPMENT_SLOT_OFFHAND:
         ret.push_back(INVTYPE_WEAPON);
@@ -457,8 +458,6 @@ std::vector<InventoryType> BotFactory::GetPossibleInventoryTypeListBySlot(Equipm
         break;
     case EQUIPMENT_SLOT_RANGED:
         ret.push_back(INVTYPE_RANGED);
-        ret.push_back(INVTYPE_RANGEDRIGHT);
-        ret.push_back(INVTYPE_RELIC);
         break;
     default:
         break;
@@ -514,7 +513,7 @@ void BotFactory::InitEquipment(bool incremental, bool second_chance)
 
     for (int32 slot = (int32)EQUIPMENT_SLOT_TABARD; slot >= (int32)EQUIPMENT_SLOT_START; slot--)
     {
-        if (slot == EQUIPMENT_SLOT_TABARD || slot == EQUIPMENT_SLOT_BODY)
+        if (slot == EQUIPMENT_SLOT_TABARD || slot == EQUIPMENT_SLOT_BODY || slot == EQUIPMENT_SLOT_RANGED)
             continue;
 
         if (level < 50 && (slot == EQUIPMENT_SLOT_TRINKET1 || slot == EQUIPMENT_SLOT_TRINKET2))
@@ -532,11 +531,7 @@ void BotFactory::InitEquipment(bool incremental, bool second_chance)
         Item* oldItem = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
         if (oldItem && second_chance)
         {
-            ItemTemplate const* old_proto = sObjectMgr->GetItemTemplate(oldItem->GetEntry());
-            if (old_proto && (second_chance || old_proto->RequiredLevel > bot->GetLevel() || old_proto->RequiredLevel < (bot->GetLevel() - 10)))
-            {
-                bot->DestroyItem(INVENTORY_SLOT_BAG_0, slot, true);
-            }
+            bot->DestroyItem(INVENTORY_SLOT_BAG_0, slot, true);
         }
 
         oldItem = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
