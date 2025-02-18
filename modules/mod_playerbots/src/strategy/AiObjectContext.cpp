@@ -21,6 +21,7 @@
 AiObjectContext::AiObjectContext(PlayerbotAI* botAI) : PlayerbotAIAware(botAI)
 {
     strategyContexts.Add(new StrategyContext());
+    strategyContexts.Add(new MovementStrategyContext());
     strategyContexts.Add(new AssistStrategyContext());
 
     actionContexts.Add(new ActionContext());

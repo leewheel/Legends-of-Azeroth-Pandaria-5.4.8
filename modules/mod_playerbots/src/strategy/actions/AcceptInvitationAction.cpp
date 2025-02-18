@@ -53,15 +53,13 @@ bool AcceptInvitationAction::Execute(Event event)
     if (sRandomPlayerbotMgr->IsRandomBot(bot))
         botAI->SetMaster(inviter);
 
-    //botAI->ResetStrategies();
-    //botAI->ChangeStrategy("+follow,-lfg,-bg", BOT_STATE_NON_COMBAT);
-    //botAI->Reset();
+    botAI->ResetStrategies();
+    botAI->ChangeStrategy("+follow,-lfg,-bg", BOT_STATE_NON_COMBAT);
+    botAI->Reset();
 
-    bot->Say("Hello", Language::LANG_UNIVERSAL);
-
-    /*if (sPlayerbotAIConfig->summonWhenGroup && bot->GetDistance(inviter) > sPlayerbotAIConfig->sightDistance)
+    if (bot->GetDistance(inviter) > sPlayerbotAIConfig->sightDistance)
     {
-        Teleport(inviter, bot);
-    }*/
+        //Teleport(inviter, bot);
+    }
     return true;
 }

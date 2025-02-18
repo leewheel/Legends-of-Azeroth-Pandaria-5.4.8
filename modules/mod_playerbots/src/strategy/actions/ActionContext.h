@@ -1,8 +1,3 @@
-/*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU GPL v2 license, you may redistribute it
- * and/or modify it under version 2 of the License, or (at your option), any later version.
- */
-
 #ifndef _PLAYERBOT_ACTIONCONTEXT_H
 #define _PLAYERBOT_ACTIONCONTEXT_H
 
@@ -10,11 +5,14 @@
 #include "ActionSayHello.h"
 #include "AutoMaintenanceOnLevelupAction.h"
 #include "ChooseTargetActions.h"
+#include "FollowActions.h"
 #include "GenericActions.h"
+#include "PositionAction.h"
 #include "RtiAction.h"
 #include "MovementActions.h"
 #include "RandomBotUpdateAction.h"
 #include "ReachTargetActions.h"
+#include "StayActions.h"
 
 class PlayerbotAI;
 class ActionContext : public NamedObjectContext<Action>
@@ -24,6 +22,15 @@ public:
     {
         creators["say hello"] = &ActionContext::hello;
         creators["move random"] = &ActionContext::move_random;
+
+        creators["follow"] = &ActionContext::follow;
+        creators["flee"] = &ActionContext::flee;
+        creators["move from group"] = &ActionContext::move_from_group;
+        creators["flee to master"] = &ActionContext::flee_to_master;
+        creators["guard"] = &ActionContext::guard;
+        creators["runaway"] = &ActionContext::runaway;
+        creators["stay"] = &ActionContext::stay;
+        creators["sit"] = &ActionContext::sit;
 
         creators["random bot update"] = &ActionContext::random_bot_update;
         creators["mark rti"] = &ActionContext::mark_rti;
@@ -45,11 +52,23 @@ public:
         creators["reach melee"] = &ActionContext::ReachMelee;
         creators["reach party member to heal"] = &ActionContext::reach_party_member_to_heal;
         creators["reach party member to resurrect"] = &ActionContext::reach_party_member_to_resurrect;
+
+        //creators["invite nearby"] = &ActionContext::invite_nearby;
+        //creators["invite guild"] = &ActionContext::invite_guild;
     }
 
 private:
     static Action* hello(PlayerbotAI* botAI) { return new SayHelloAction(botAI); }
     static Action* move_random(PlayerbotAI* botAI) { return new MoveRandomAction(botAI); }
+
+    static Action* follow(PlayerbotAI* botAI) { return new FollowAction(botAI); }
+    static Action* flee(PlayerbotAI* botAI) { return new FleeAction(botAI); }
+    static Action* move_from_group(PlayerbotAI* botAI) { return new MoveFromGroupAction(botAI); }
+    static Action* flee_to_master(PlayerbotAI* botAI) { return new FleeToMasterAction(botAI); }
+    static Action* guard(PlayerbotAI* botAI) { return new GuardAction(botAI); }
+    static Action* stay(PlayerbotAI* botAI) { return new StayAction(botAI); }
+    static Action* sit(PlayerbotAI* botAI) { return new SitAction(botAI); }
+    static Action* runaway(PlayerbotAI* botAI) { return new RunAwayAction(botAI); }
 
     static Action* random_bot_update(PlayerbotAI* botAI) { return new RandomBotUpdateAction(botAI); }
     static Action* mark_rti(PlayerbotAI* botAI) { return new MarkRtiAction(botAI); }

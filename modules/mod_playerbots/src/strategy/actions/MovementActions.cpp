@@ -25,6 +25,7 @@
 #include "PlayerbotAI.h"
 #include "PlayerbotAIConfig.h"
 #include "Playerbots.h"
+#include "PlayerbotSpec.h"
 #include "Position.h"
 
 #include "Random.h"
@@ -46,18 +47,95 @@ MovementAction::MovementAction(PlayerbotAI* botAI, std::string const name) : Act
     bot = botAI->GetBot();
 }
 
-bool MovementAction::IsWaitingForLastMove(MovementPriority priority)
+void MovementAction::ClearIdleState()
 {
-    LastMovement& lastMove = *context->GetValue<LastMovement&>("last movement");
+    context->GetValue<time_t>("stay time")->Set(0);
+    context->GetValue<PositionMap&>("position")->Get()["random"].Reset();
+}
 
-    if (priority > lastMove.priority)
+void MovementAction::WaitForReach(float distance)
+{
+    float delay = 1000.0f * MoveDelay(distance);
+
+    if (delay > sPlayerbotAIConfig->maxWaitForMove)
+        delay = sPlayerbotAIConfig->maxWaitForMove;
+
+    Unit* target = *botAI->GetAiObjectContext()->GetValue<Unit*>("current target");
+    Unit* player = *botAI->GetAiObjectContext()->GetValue<Unit*>("enemy player target");
+    if ((player || target) && delay > sPlayerbotAIConfig->globalCoolDown)
+        delay = sPlayerbotAIConfig->globalCoolDown;
+
+    if (delay < 0)
+        delay = 0;
+
+    botAI->SetNextCheckDelay((uint32)delay);
+}
+
+void MovementAction::UpdateMovementState()
+{
+    auto botInLiquidState = bot->GetLiquidStatus();
+
+    if ((botInLiquidState & LIQUID_MAP_IN_WATER) || (botInLiquidState & LIQUID_MAP_UNDER_WATER))
+    {
+        bot->SetSwim(true);
+    }
+    else
+    {
+        bot->SetSwim(false);
+    }
+
+    bool onGround = bot->GetPositionZ() < bot->GetMapWaterOrGroundLevel(bot->GetPositionX(), bot->GetPositionY(), bot->GetPositionZ()) + 1.0f;
+
+    // Keep bot->SendMovementFlagUpdate() withing the if statements to not intefere with bot behavior on ground/(shallow) waters
+    if (!bot->HasUnitMovementFlag(MOVEMENTFLAG_FLYING) &&
+        bot->HasAuraType(SPELL_AURA_MOD_INCREASE_MOUNTED_FLIGHT_SPEED) && !onGround)
+    {
+        bot->AddUnitMovementFlag(MOVEMENTFLAG_FLYING);
+        bot->SendMovementFlagUpdate();
+    }
+
+    else if (bot->HasUnitMovementFlag(MOVEMENTFLAG_FLYING) &&
+        (!bot->HasAuraType(SPELL_AURA_MOD_INCREASE_MOUNTED_FLIGHT_SPEED) || onGround))
+    {
+        bot->RemoveUnitMovementFlag(MOVEMENTFLAG_FLYING);
+        bot->SendMovementFlagUpdate();
+    }
+}
+
+bool MovementAction::ChaseTo(WorldObject* obj, float distance, float angle)
+{
+    if (!IsMovingAllowed())
+    {
         return false;
+    }
 
-    // heuristic 5s
-    if (lastMove.lastdelayTime + lastMove.msTime > getMSTime())
+    if (Vehicle* vehicle = bot->GetVehicle())
+    {
+        VehicleSeatEntry const* seat = vehicle->GetSeatForPassenger(bot);
+        if (!seat || !seat->CanControl())
+            return false;
+
+        // vehicle->GetMotionMaster()->Clear();
+        vehicle->GetBase()->GetMotionMaster()->MoveChase((Unit*)obj, 30.0f);
         return true;
+    }
 
-    return false;
+    UpdateMovementState();
+
+    if (!bot->IsStandState())
+        bot->SetStandState(UNIT_STAND_STATE_STAND);
+
+    if (bot->IsNonMeleeSpellCasted(true))
+    {
+        bot->CastStop();
+        botAI->InterruptSpell();
+    }
+
+    bot->GetMotionMaster()->MoveChase((Unit*)obj, distance);
+
+    // TODO shouldnt this use "last movement" value?
+    WaitForReach(bot->GetExactDist2d(obj) - distance);
+    return true;
 }
 
 bool MovementAction::ReachCombatTo(Unit* target, float distance)
@@ -97,6 +175,32 @@ bool MovementAction::ReachCombatTo(Unit* target, float distance)
         MovementPriority::MOVEMENT_COMBAT, true);
 }
 
+bool MovementAction::IsDuplicateMove(uint32 mapId, float x, float y, float z)
+{
+    LastMovement& lastMove = *context->GetValue<LastMovement&>("last movement");
+
+    // heuristic 5s
+    if (lastMove.msTime + sPlayerbotAIConfig->maxWaitForMove < getMSTime() ||
+        lastMove.lastMoveShort.GetExactDist(x, y, z) > 0.01f)
+        return false;
+
+    return true;
+}
+
+bool MovementAction::IsWaitingForLastMove(MovementPriority priority)
+{
+    LastMovement& lastMove = *context->GetValue<LastMovement&>("last movement");
+
+    if (priority > lastMove.priority)
+        return false;
+
+    // heuristic 5s
+    if (lastMove.lastdelayTime + lastMove.msTime > getMSTime())
+        return true;
+
+    return false;
+}
+
 float MovementAction::MoveDelay(float distance, bool backwards)
 {
     float speed;
@@ -116,10 +220,47 @@ float MovementAction::MoveDelay(float distance, bool backwards)
     return delay;
 }
 
+bool MovementAction::MoveTo(WorldObject* target, float distance, MovementPriority priority)
+{
+    if (!IsMovingAllowed(target))
+        return false;
+
+    float bx = bot->GetPositionX();
+    float by = bot->GetPositionY();
+    float bz = bot->GetPositionZ();
+
+    float tx = target->GetPositionX();
+    float ty = target->GetPositionY();
+    float tz = target->GetPositionZ();
+
+    float distanceToTarget = bot->GetDistance(target);
+    float angle = bot->GetAngle(target);
+    float needToGo = distanceToTarget - distance;
+
+    float maxDistance = sPlayerbotAIConfig->spellDistance;
+    if (needToGo > 0 && needToGo > maxDistance)
+        needToGo = maxDistance;
+    else if (needToGo < 0 && needToGo < -maxDistance)
+        needToGo = -maxDistance;
+
+    float dx = cos(angle) * needToGo + bx;
+    float dy = sin(angle) * needToGo + by;
+    float dz;  // = std::max(bz, tz); // calc accurate z position to avoid stuck
+    if (distanceToTarget > CONTACT_DISTANCE)
+    {
+        dz = bz + (tz - bz) * (needToGo / distanceToTarget);
+    }
+    else
+    {
+        dz = tz;
+    }
+    return MoveTo(target->GetMapId(), dx, dy, dz, false, false, false, false, priority);
+}
+
 bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, bool react, bool normal_only,
     bool exact_waypoint, MovementPriority priority, bool lessDelay, bool backwards)
 {
-    /*UpdateMovementState();
+    UpdateMovementState();
     if (!IsMovingAllowed(mapId, x, y, z))
     {
         return false;
@@ -127,7 +268,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
     if (IsDuplicateMove(mapId, x, y, z))
     {
         return false;
-    }*/
+    }
     if (IsWaitingForLastMove(priority))
     {
         return false;
@@ -340,6 +481,11 @@ bool MovementAction::IsMovingAllowed(WorldObject* target)
     return IsMovingAllowed();
 }
 
+bool MovementAction::IsMovingAllowed(uint32 mapId, float x, float y, float z)
+{
+    return IsMovingAllowed();
+}
+
 bool MovementAction::IsMovingAllowed()
 {
     // do not allow if not vehicle driver
@@ -367,6 +513,128 @@ bool MoveRandomAction::isPossible()
         !bot->CanFreeMove() ||
         !botAI->CanMove()) return false;
 
+    return true;
+}
+
+bool MovementAction::Follow(Unit* target, float distance) { return Follow(target, distance, GetFollowAngle()); }
+bool MovementAction::Follow(Unit* target, float distance, float angle)
+{
+    UpdateMovementState();
+
+    if (!target)
+        return false;
+
+    if (!bot->InBattleground() && sServerFacade->IsDistanceLessOrEqualThan(sServerFacade->GetDistance2d(bot, target),
+        sPlayerbotAIConfig->followDistance))
+    {
+        // botAI->TellError("No need to follow");
+        return false;
+    }
+
+    // Move to target corpse if alive.
+    if (!target->IsAlive() && bot->IsAlive() && target->GetGUID().IsPlayer())
+    {
+        Player* pTarget = (Player*)target;
+
+        Corpse* corpse = pTarget->GetCorpse();
+
+        if (corpse)
+        {
+            WorldPosition botPos(bot);
+            WorldPosition cPos(corpse);
+
+            if (botPos.fDist(cPos) > sPlayerbotAIConfig->spellDistance)
+                return MoveTo(cPos.getMapId(), cPos.getX(), cPos.getY(), cPos.getZ());
+        }
+    }
+
+    if (sServerFacade->IsDistanceGreaterOrEqualThan(sServerFacade->GetDistance2d(bot, target),
+        sPlayerbotAIConfig->sightDistance))
+    {
+        if (target->GetGUID().IsPlayer())
+        {
+            Player* pTarget = (Player*)target;
+
+            PlayerbotAI* targetBotAI = GET_PLAYERBOT_AI(pTarget);
+            if (targetBotAI)  // Try to move to where the bot is going if it is closer and in the same direction.
+            {
+                WorldPosition botPos(bot);
+                WorldPosition tarPos(target);
+                WorldPosition longMove =
+                    targetBotAI->GetAiObjectContext()->GetValue<WorldPosition>("last long move")->Get();
+
+                if (longMove)
+                {
+                    float lDist = botPos.fDist(longMove);
+                    float tDist = botPos.fDist(tarPos);
+                    float ang = botPos.getAngleBetween(tarPos, longMove);
+                    if ((lDist * 1.5 < tDist && ang < static_cast<float>(M_PI) / 2) ||
+                        target->HasUnitState(UNIT_STATE_IN_FLIGHT))
+                    {
+                        return MoveTo(longMove.getMapId(), longMove.getX(), longMove.getY(), longMove.getZ());
+                    }
+                }
+            }
+            else
+            {
+                if (pTarget->HasUnitState(UNIT_STATE_IN_FLIGHT))  // Move to where the player is flying to.
+                {
+                    TaxiPathNodeList const& tMap = static_cast<FlightPathMovementGenerator*>(pTarget->GetMotionMaster()->top())->GetPath();
+                    if (!tMap.empty())
+                    {
+                        /*const TaxiPathNodeEntry& tEnd = tMap[tMap.GetTotalLength()];
+                        return MoveTo(tEnd.MapId, tEnd.LocX, tEnd.LocY, tEnd.LocZ);*/
+                    }
+                }
+            }
+        }
+
+        if (!target->HasUnitState(UNIT_STATE_IN_FLIGHT))
+            return MoveTo(target, sPlayerbotAIConfig->followDistance);
+    }
+
+    if (sServerFacade->IsDistanceLessOrEqualThan(sServerFacade->GetDistance2d(bot, target),
+        sPlayerbotAIConfig->followDistance))
+    {
+        // botAI->TellError("No need to follow");
+        return false;
+    }
+
+    if (target->IsFriendlyTo(bot) && bot->IsMounted() && AI_VALUE(GuidVector, "all targets").empty())
+        distance += angle;
+
+    if (!bot->InBattleground() && sServerFacade->IsDistanceLessOrEqualThan(sServerFacade->GetDistance2d(bot, target),
+        sPlayerbotAIConfig->followDistance))
+    {
+        // botAI->TellError("No need to follow");
+        return false;
+    }
+
+    bot->HandleEmoteCommand(0);
+
+    if (bot->IsSitState())
+        bot->SetStandState(UNIT_STAND_STATE_STAND);
+
+    if (bot->IsNonMeleeSpellCasted(true))
+    {
+        bot->CastStop();
+        botAI->InterruptSpell();
+    }
+
+    // AI_VALUE(LastMovement&, "last movement").Set(target);
+    ClearIdleState();
+
+    if (bot->GetMotionMaster()->GetCurrentMovementGeneratorType() == FOLLOW_MOTION_TYPE)
+    {
+        Unit* currentTarget = sServerFacade->GetChaseTarget(bot);
+        if (currentTarget && currentTarget->GetGUID() == target->GetGUID())
+            return false;
+    }
+
+    if (bot->GetMotionMaster()->GetCurrentMovementGeneratorType() != FOLLOW_MOTION_TYPE)
+        bot->GetMotionMaster()->Clear();
+
+    bot->GetMotionMaster()->MoveFollow(target, distance, angle);
     return true;
 }
 
@@ -439,6 +707,293 @@ const Movement::PointsArray MovementAction::SearchForBestPath(float x, float y, 
     return result;
 }
 
+bool MovementAction::MoveAway(Unit* target, float distance, bool backwards)
+{
+    if (!target)
+    {
+        return false;
+    }
+    float init_angle = target->GetAngle(bot);
+    for (float delta = 0; delta <= M_PI / 2; delta += M_PI / 8)
+    {
+        float angle = init_angle + delta;
+        float dx = bot->GetPositionX() + cos(angle) * distance;
+        float dy = bot->GetPositionY() + sin(angle) * distance;
+        float dz = bot->GetPositionZ();
+        bool exact = true;
+        if (!bot->GetMap()->CheckCollisionAndGetValidCoords(bot, bot->GetPositionX(), bot->GetPositionY(),
+            bot->GetPositionZ(), dx, dy, dz))
+        {
+            // disable prediction if position is invalid
+            dx = bot->GetPositionX() + cos(angle) * distance;
+            dy = bot->GetPositionY() + sin(angle) * distance;
+            dz = bot->GetPositionZ();
+            exact = false;
+        }
+        if (MoveTo(target->GetMapId(), dx, dy, dz, false, false, true, exact, MovementPriority::MOVEMENT_COMBAT, false, backwards))
+        {
+            return true;
+        }
+        if (delta == 0)
+        {
+            continue;
+        }
+        exact = true;
+        angle = init_angle - delta;
+        dx = bot->GetPositionX() + cos(angle) * distance;
+        dy = bot->GetPositionY() + sin(angle) * distance;
+        dz = bot->GetPositionZ();
+        if (!bot->GetMap()->CheckCollisionAndGetValidCoords(bot, bot->GetPositionX(), bot->GetPositionY(),
+            bot->GetPositionZ(), dx, dy, dz))
+        {
+            // disable prediction if position is invalid
+            dx = bot->GetPositionX() + cos(angle) * distance;
+            dy = bot->GetPositionY() + sin(angle) * distance;
+            dz = bot->GetPositionZ();
+            exact = false;
+        }
+        if (MoveTo(target->GetMapId(), dx, dy, dz, false, false, true, exact, MovementPriority::MOVEMENT_COMBAT, false, backwards))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool MovementAction::Move(float angle, float distance)
+{
+    float x = bot->GetPositionX() + cos(angle) * distance;
+    float y = bot->GetPositionY() + sin(angle) * distance;
+
+    //TODO do we need GetMapWaterOrGroundLevel() if we're using CheckCollisionAndGetValidCoords() ?
+    float z = bot->GetMapWaterOrGroundLevel(x, y, bot->GetPositionZ());
+    if (z == -100000.0f || z == -200000.0f)
+        z = bot->GetPositionZ();
+    if (!bot->GetMap()->CheckCollisionAndGetValidCoords(bot, bot->GetPositionX(), bot->GetPositionY(),
+        bot->GetPositionZ(), x, y, z, false))
+        return false;
+
+    return MoveTo(bot->GetMapId(), x, y, z);
+}
+
+// just calculates average position of group and runs away from that position
+bool MovementAction::MoveFromGroup(float distance)
+{
+    if (Group* group = bot->GetGroup())
+    {
+        uint32 mapId = bot->GetMapId();
+        float closestDist = FLT_MAX;
+        float x = 0.0f;
+        float y = 0.0f;
+        uint32 count = 0;
+
+        for (GroupReference* gref = group->GetFirstMember(); gref; gref = gref->next())
+        {
+            Player* player = gref->GetSource();
+            if (!player || player == bot || !player->IsAlive() || player->GetMapId() != mapId)
+                continue;
+            float dist = bot->GetDistance2d(player);
+            if (closestDist > dist)
+                closestDist = dist;
+            x += player->GetPositionX();
+            y += player->GetPositionY();
+            count++;
+        }
+
+        if (count && closestDist < distance)
+        {
+            x /= count;
+            y /= count;
+            // x and y are now average position of the group members
+            float angle = bot->GetAngle(x, y) + M_PI;
+            return Move(angle, distance - closestDist);
+        }
+    }
+    return false;
+}
+
+bool MovementAction::Flee(Unit* target)
+{
+    return true;
+    //Player* master = GetMaster();
+    //if (!target)
+    //    target = master;
+
+    //if (!target)
+    //    return false;
+
+    //if (!IsMovingAllowed())
+    //{
+    //    botAI->TellError("I am stuck while fleeing");
+    //    return false;
+    //}
+
+    //bool foundFlee = false;
+    //time_t lastFlee = AI_VALUE(LastMovement&, "last movement").lastFlee;
+    //time_t now = time(0);
+    //uint32 fleeDelay = urand(2, sPlayerbotAIConfig->returnDelay / 1000);
+
+    //if (lastFlee)
+    //{
+    //    if ((now - lastFlee) <= fleeDelay)
+    //    {
+    //        return false;
+    //    }
+    //}
+
+    //HostileReference* ref = target->GetThreatManager().getCurrentVictim();
+    //if (ref && ref->getTarget() == bot)  // bot is target - try to flee to tank or master
+    //{
+    //    if (Group* group = bot->GetGroup())
+    //    {
+    //        Unit* fleeTarget = nullptr;
+    //        float fleeDistance = sPlayerbotAIConfig->sightDistance;
+
+    //        for (GroupReference* gref = group->GetFirstMember(); gref; gref = gref->next())
+    //        {
+    //            Player* player = gref->GetSource();
+    //            if (!player || player == bot || !player->IsAlive())
+    //                continue;
+
+    //            if (PlayerBotSpec::IsTank(player))
+    //            {
+    //                float distanceToTank = sServerFacade->GetDistance2d(bot, player);
+    //                float distanceToTarget = sServerFacade->GetDistance2d(bot, target);
+    //                if (distanceToTank < fleeDistance)
+    //                {
+    //                    fleeTarget = player;
+    //                    fleeDistance = distanceToTank;
+    //                }
+    //            }
+    //        }
+
+    //        if (fleeTarget)
+    //            foundFlee = MoveNear(fleeTarget);
+
+    //        if ((!fleeTarget || !foundFlee) && master)
+    //        {
+    //            foundFlee = MoveNear(master);
+    //        }
+    //    }
+    //}
+    //else  // bot is not targeted, try to flee dps/healers
+    //{
+    //    bool isHealer = PlayerBotSpec::IsHeal(bot);
+    //    bool isDps = !isHealer && !PlayerBotSpec::IsTank(bot);
+    //    bool isTank = PlayerBotSpec::IsTank(bot);
+    //    bool needHealer = !isHealer && AI_VALUE2(uint8, "health", "self target") < 50;
+    //    bool isRanged = PlayerBotSpec::IsRanged(bot);
+
+    //    Group* group = bot->GetGroup();
+    //    if (group)
+    //    {
+    //        Unit* fleeTarget = nullptr;
+    //        float fleeDistance = botAI->GetRange("shoot") * 1.5f;
+    //        Unit* spareTarget = nullptr;
+    //        float spareDistance = botAI->GetRange("shoot") * 2.0f;
+    //        std::vector<Unit*> possibleTargets;
+
+    //        for (GroupReference* gref = group->GetFirstMember(); gref; gref = gref->next())
+    //        {
+    //            Player* player = gref->GetSource();
+    //            if (!player || player == bot || !player->IsAlive())
+    //                continue;
+
+    //            if ((isHealer && PlayerBotSpec::IsHeal(player)) || needHealer)
+    //            {
+    //                float distanceToHealer = sServerFacade->GetDistance2d(bot, player);
+    //                float distanceToTarget = sServerFacade->GetDistance2d(player, target);
+    //                if (distanceToHealer < fleeDistance &&
+    //                    distanceToTarget >(botAI->GetRange("shoot") / 2 + sPlayerbotAIConfig->followDistance) &&
+    //                    (needHealer || player->IsWithinLOSInMap(target)))
+    //                {
+    //                    fleeTarget = player;
+    //                    fleeDistance = distanceToHealer;
+    //                    possibleTargets.push_back(fleeTarget);
+    //                }
+    //            }
+    //            else if (isRanged && PlayerBotSpec::IsRanged(player))
+    //            {
+    //                float distanceToRanged = sServerFacade->GetDistance2d(bot, player);
+    //                float distanceToTarget = sServerFacade->GetDistance2d(player, target);
+    //                if (distanceToRanged < fleeDistance &&
+    //                    distanceToTarget >(botAI->GetRange("shoot") / 2 + sPlayerbotAIConfig->followDistance) &&
+    //                    player->IsWithinLOSInMap(target))
+    //                {
+    //                    fleeTarget = player;
+    //                    fleeDistance = distanceToRanged;
+    //                    possibleTargets.push_back(fleeTarget);
+    //                }
+    //            }
+    //            // remember any group member in case no one else found
+    //            float distanceToFlee = sServerFacade->GetDistance2d(bot, player);
+    //            float distanceToTarget = sServerFacade->GetDistance2d(player, target);
+    //            if (distanceToFlee < spareDistance &&
+    //                distanceToTarget >(botAI->GetRange("shoot") / 2 + sPlayerbotAIConfig->followDistance) &&
+    //                player->IsWithinLOSInMap(target))
+    //            {
+    //                spareTarget = player;
+    //                spareDistance = distanceToFlee;
+    //                possibleTargets.push_back(fleeTarget);
+    //            }
+    //        }
+
+    //        if (!possibleTargets.empty())
+    //            fleeTarget = possibleTargets[urand(0, possibleTargets.size() - 1)];
+
+    //        if (!fleeTarget)
+    //            fleeTarget = spareTarget;
+
+    //        if (fleeTarget)
+    //            foundFlee = MoveNear(fleeTarget);
+
+    //        if ((!fleeTarget || !foundFlee) && master && master->IsAlive() && master->IsWithinLOSInMap(target))
+    //        {
+    //            float distanceToTarget = sServerFacade->GetDistance2d(master, target);
+    //            if (distanceToTarget > (botAI->GetRange("shoot") / 2 + sPlayerbotAIConfig->followDistance))
+    //                foundFlee = MoveNear(master);
+    //        }
+    //    }
+    //}
+
+    //if ((foundFlee || lastFlee) && bot->GetGroup())
+    //{
+    //    if (!lastFlee)
+    //    {
+    //        AI_VALUE(LastMovement&, "last movement").lastFlee = now;
+    //    }
+    //    else
+    //    {
+    //        if ((now - lastFlee) > fleeDelay)
+    //        {
+    //            AI_VALUE(LastMovement&, "last movement").lastFlee = 0;
+    //        }
+    //        else
+    //            return false;
+    //    }
+    //}
+
+    //FleeManager manager(bot, botAI->GetRange("flee"), bot->GetAngle(target) + M_PI);
+    //if (!manager.isUseful())
+    //    return false;
+
+    //float rx, ry, rz;
+    //if (!manager.CalculateDestination(&rx, &ry, &rz))
+    //{
+    //    botAI->TellError("Nowhere to flee");
+    //    return false;
+    //}
+
+    //bool result = MoveTo(target->GetMapId(), rx, ry, rz);
+
+    //if (result)
+    //    AI_VALUE(LastMovement&, "last movement").lastFlee = time(nullptr);
+
+    //return result;
+}
+
+bool RunAwayAction::Execute(Event event) { return Flee(AI_VALUE(Unit*, "master target")); }
+
 bool SetFacingTargetAction::Execute(Event event)
 {
     Unit* target = AI_VALUE(Unit*, "current target");
@@ -466,5 +1021,27 @@ bool SetFacingTargetAction::isPossible()
         bot->HasUnitState(UNIT_STATE_LOST_CONTROL))
         return false;
 
+    return true;
+}
+
+bool MoveFromGroupAction::Execute(Event event)
+{
+    float distance = atoi(event.getParam().c_str());
+    if (!distance)
+        distance = 20.0f; // flee distance from config is too small for this
+    return MoveFromGroup(distance);
+}
+
+bool FleeAction::Execute(Event event)
+{
+    return MoveAway(AI_VALUE(Unit*, "current target"), sPlayerbotAIConfig->fleeDistance, true);
+}
+
+bool FleeAction::isUseful()
+{
+    if (bot->GetCurrentSpell(CURRENT_CHANNELED_SPELL) != nullptr)
+    {
+        return false;
+    }
     return true;
 }

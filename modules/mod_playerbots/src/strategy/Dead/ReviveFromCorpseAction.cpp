@@ -280,8 +280,8 @@ bool SpiritHealerAction::Execute(Event event)
                 bot->ResurrectPlayer(0.5f);
                 bot->SpawnCorpseBones();
                 context->GetValue<Unit*>("current target")->Set(nullptr);
-                //bot->SetTarget();
-                //botAI->TellMaster("Hello");
+                bot->SetTarget(ObjectGuid::Empty);
+                botAI->TellMaster("Hello");
 
                 if (dCount > 20)
                     context->GetValue<uint32>("death count")->Set(0);

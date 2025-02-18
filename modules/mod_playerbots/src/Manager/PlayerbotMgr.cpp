@@ -370,7 +370,7 @@ void PlayerbotHolder::LogoutPlayerBot(ObjectGuid guid)
         }  // if instant logout possible, do it
         else if (bot && (logout || !botWorldSessionPtr->isLogingOut()))
         {
-            //botAI->TellMaster("Goodbye!");
+            botAI->TellMaster("Goodbye!");
             playerBots.erase(guid);                  // deletes bot player ptr inside this WorldSession PlayerBotMap
             botWorldSessionPtr->LogoutPlayer(true);  // this will delete the bot Player object and PlayerbotAI object
             delete botWorldSessionPtr;               // finally delete the bot's WorldSession
@@ -387,7 +387,7 @@ void PlayerbotHolder::DisablePlayerBot(ObjectGuid guid)
         {
             return;
         }
-        //botAI->TellMaster("Goodbye!");
+        botAI->TellMaster("Goodbye!");
         bot->StopMoving();
         bot->GetMotionMaster()->Clear();
 
@@ -510,7 +510,7 @@ void PlayerbotHolder::OnBotLogin(Player* const bot)
     // set delay on login
     botAI->SetNextCheckDelay(urand(2000, 4000));
 
-    //botAI->TellMaster("Hello!", PLAYERBOT_SECURITY_TALK);
+    botAI->TellMaster("Hello!");
 
     if (master && master->GetGroup() && !group)
     {
@@ -1057,6 +1057,8 @@ std::vector<std::string> PlayerbotHolder::HandlePlayerbotCommand(char const* arg
     }
 
     return messages;*/
+
+    return {};
 }
 
 uint32 PlayerbotHolder::GetAccountId(std::string const name) { return AccountMgr::GetId(name); }

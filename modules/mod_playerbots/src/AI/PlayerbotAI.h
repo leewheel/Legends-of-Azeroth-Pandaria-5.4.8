@@ -149,6 +149,10 @@ public:
     bool HasPlayerNearby(float range = sPlayerbotAIConfig->reactDistance);
     bool HasManyPlayersNearby(uint32 trigerrValue = 20, float range = sPlayerbotAIConfig->sightDistance);
 
+    // Check if player is safe to use.
+    bool IsSafe(Player* player);
+    bool IsSafe(WorldObject* obj);
+
     // Get the group leader or the master of the bot.
     // Checks if the bot is summoned as alt of a player
     bool IsAlt();
@@ -190,6 +194,8 @@ public:
     InventoryResult CanEquipItem(uint8 slot, uint16& dest, Item* pItem, bool swap, bool not_loading = true) const;
     uint8 FindEquipSlot(ItemTemplate const* proto, uint32 slot, bool swap) const;
 
+    bool TellMaster(std::ostringstream& stream);
+    bool TellMaster(std::string const text);
     bool TellMasterNoFacing(std::string const text);
     bool TellMasterNoFacing(std::ostringstream& stream);
     bool Whisper(const std::string& msg, const std::string& receiverName);

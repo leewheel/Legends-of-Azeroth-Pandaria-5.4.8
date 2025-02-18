@@ -937,10 +937,10 @@ void PlayerbotAI::DoNextAction(bool min)
             botAI->ResetStrategies();
             botAI->ChangeStrategy("+follow", BOT_STATE_NON_COMBAT);
 
-            //if (botAI->GetMaster() == botAI->GetGroupMaster())
-                //botAI->TellMaster("Hello, I follow you!");
-            //else
-                //botAI->TellMaster(!urand(0, 2) ? "Hello!" : "Hi!");
+            if (botAI->GetMaster() == botAI->GetGroupMaster())
+                botAI->TellMaster("Hello, I follow you!");
+            else
+                botAI->TellMaster(!urand(0, 2) ? "Hello!" : "Hi!");
         }
     }
 
@@ -1404,6 +1404,28 @@ bool PlayerbotAI::Whisper(const std::string& msg, const std::string& receiverNam
     else
     {
         bot->Whisper(msg, LANG_ORCISH, receiver);
+    }
+
+    return true;
+}
+
+bool PlayerbotAI::TellMaster(std::ostringstream& stream)
+{
+    return TellMaster(stream.str());
+}
+
+bool PlayerbotAI::TellMaster(std::string const text)
+{
+    if (!master || !TellMasterNoFacing(text))
+        return false;
+
+    if (!bot->isMoving() && !bot->IsInCombat() && bot->GetMapId() == master->GetMapId() &&
+        !bot->HasUnitState(UNIT_STATE_IN_FLIGHT) && !bot->IsFlying())
+    {
+        if (!bot->HasInArc(EMOTE_ANGLE_IN_FRONT, master, sPlayerbotAIConfig->sightDistance))
+            bot->SetFacingToObject(master);
+
+        bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
     }
 
     return true;
@@ -2186,20 +2208,10 @@ bool PlayerbotAI::CastSpell(uint32 spellId, Unit* target, Item* itemTarget)
         return true;
     }
 
-    // aiObjectContext->GetValue<LastMovement&>("last movement")->Get().Set(nullptr);
-    // aiObjectContext->GetValue<time_t>("stay time")->Set(0);
-
     if (bot->IsFlying() || bot->HasUnitState(UNIT_STATE_IN_FLIGHT))
     {
-        // if (!sPlayerbotAIConfig->logInGroupOnly || (bot->GetGroup() && HasRealPlayerMaster())) {
-        //     LOG_DEBUG("playerbots", "Spell cast is flying - target name: {}, spellid: {}, bot name: {}}",
-        //         target->GetName(), spellId, bot->GetName());
-        // }
         return false;
     }
-
-    // bot->ClearUnitState(UNIT_STATE_CHASE);
-    // bot->ClearUnitState(UNIT_STATE_FOLLOW);
 
     bool failWithDelay = false;
     if (!bot->IsStandState())
@@ -2330,23 +2342,13 @@ bool PlayerbotAI::CastSpell(uint32 spellId, float x, float y, float z, Item* ite
         }
 
         pet->ToggleAutocast(spellInfo, !autocast);
-        /*std::ostringstream out;
-        out << (autocast ? "|cffff0000|Disabling" : "|cFF00ff00|Enabling") << " pet auto-cast for ";
-        out << chatHelper.FormatSpell(spellInfo);
-        TellMaster(out);*/
         return true;
     }
-
-    // aiObjectContext->GetValue<LastMovement&>("last movement")->Get().Set(nullptr);
-    // aiObjectContext->GetValue<time_t>("stay time")->Set(0);
 
     MotionMaster& mm = *bot->GetMotionMaster();
 
     if (bot->IsFlying() || bot->HasUnitState(UNIT_STATE_IN_FLIGHT))
         return false;
-
-    // bot->ClearUnitState(UNIT_STATE_CHASE);
-    // bot->ClearUnitState(UNIT_STATE_FOLLOW);
 
     bool failWithDelay = false;
     if (!bot->IsStandState())
@@ -2562,6 +2564,17 @@ void PlayerbotAI::_fillGearScoreData(Player* player, Item* item, std::vector<uin
     default:
         break;
     }
+}
+
+bool PlayerbotAI::IsSafe(Player* player)
+{
+    return player && player->GetMapId() == bot->GetMapId() && player->GetInstanceId() == bot->GetInstanceId() &&
+        !player->IsBeingTeleported();
+}
+bool PlayerbotAI::IsSafe(WorldObject* obj)
+{
+    return obj && obj->GetMapId() == bot->GetMapId() && obj->GetInstanceId() == bot->GetInstanceId() &&
+        (!obj->IsPlayer() || !((Player*)obj)->IsBeingTeleported());
 }
 
 uint32 PlayerbotAI::GetMixedGearScore(Player* player, bool withBags, bool withBank, uint32 topN)

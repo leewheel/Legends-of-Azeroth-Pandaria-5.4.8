@@ -10,6 +10,7 @@
 #include "DpsTargetValue.h"
 #include "EnemyPlayerValue.h"
 #include "EstimatedLifetimeValue.h"
+#include "Formations.h"
 #include "GroupValues.h"
 #include "GrindTargetValue.h"
 #include "HasTotemValue.h"
@@ -21,6 +22,7 @@
 #include "LastSpellCastTimeValue.h"
 #include "MaintenanceValues.h"
 #include "ManaSaveLevelValue.h"
+#include "MasterTargetValue.h"
 #include "NearestUnitsValue.h"
 #include "NearestFriendlyPlayersValue.h"
 #include "PartyMemberWithoutAuraValue.h"
@@ -98,6 +100,7 @@ public:
         creators["current position"] = &ValueContext::current_position;
         creators["can move around"] = &ValueContext::can_move_around;
 
+        creators["master target"] = &ValueContext::master;
         creators["all targets"] = &ValueContext::all_targets;
         creators["self target"] = &ValueContext::self_target;
         creators["pet target"] = &ValueContext::pet_target;
@@ -123,6 +126,7 @@ public:
         creators["can fight elite"] = &ValueContext::can_fight_elite;
         creators["can fight boss"] = &ValueContext::can_fight_boss;
 
+        creators["formation"] = &ValueContext::formation;
         creators["range"] = &ValueContext::range;
         creators["group"] = &ValueContext::group;
         creators["group members"] = &ValueContext::group_members;
@@ -201,6 +205,7 @@ private:
     static UntypedValue* possible_adds(PlayerbotAI* botAI) { return new PossibleAddsValue(botAI); }
     static UntypedValue* prioritized_targets(PlayerbotAI* botAI) { return new PrioritizedTargetsValue(botAI); }
 
+    static UntypedValue* master(PlayerbotAI* botAI) { return new MasterTargetValue(botAI); }
     static UntypedValue* all_targets(PlayerbotAI* botAI) { return new AllTargetsValue(botAI); }
     static UntypedValue* self_target(PlayerbotAI* botAI) { return new SelfTargetValue(botAI); }
     static UntypedValue* pet_target(PlayerbotAI* botAI) { return new PetTargetValue(botAI); }
@@ -229,6 +234,7 @@ private:
     static UntypedValue* can_fight_elite(PlayerbotAI* botAI) { return new CanFightEliteValue(botAI); }
     static UntypedValue* can_fight_boss(PlayerbotAI* botAI) { return new CanFightBossValue(botAI); }
 
+    static UntypedValue* formation(PlayerbotAI* botAI) { return new FormationValue(botAI); }
     static UntypedValue* range(PlayerbotAI* botAI) { return new RangeValue(botAI); }
     static UntypedValue* group_members(PlayerbotAI* botAI) { return new GroupMembersValue(botAI); }
     static UntypedValue* following_party(PlayerbotAI* botAI) { return new IsFollowingPartyValue(botAI); }

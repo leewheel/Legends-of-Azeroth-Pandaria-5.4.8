@@ -30,7 +30,19 @@ class ObjectGuid;
 class RandomPlayerbotMgr : public PlayerbotHolder
 {
 public:
-    struct farm_zone {
+
+    struct farm_spot
+    {
+        uint32 min_level;
+        uint32 max_level;
+        uint32 map_id;
+        float x;
+        float y;
+        float z;
+    };
+
+    struct farm_zone
+    {
         uint32 zone_id;
         uint32 zone_type;
         uint32 min_level;
@@ -39,18 +51,8 @@ public:
         uint32 map_id;
         uint32 min_player;
         uint32 max_player;
-    };
 
-    struct farm_spot {
-        uint32 zone_id;
-        uint32 map_id;
-        uint32 min_level;
-        uint32 max_level;
-        Team team_disabled;
-        float x;
-        float y;
-        float z;
-        uint32 radius;
+        std::vector<farm_spot> spots;
     };
 
     struct city
@@ -64,8 +66,8 @@ public:
         float x;
         float y;
         float z;
-        uint32 radius;
     };
+
 public:
     RandomPlayerbotMgr();
     virtual ~RandomPlayerbotMgr();
@@ -151,7 +153,8 @@ private:
     std::map<uint32, std::map<std::string, CachedEvent>> _eventCache;
     std::map<uint8, std::vector<ObjectGuid>> _addclassCache;
     std::vector<city> _city_cache_data;
-    std::vector<std::pair<farm_zone, std::vector<farm_spot>>> _farm_cache_data;
+    std::vector<farm_zone> _farm_cache_data;
+
     std::vector<uint32> _currentBots;
 };
 

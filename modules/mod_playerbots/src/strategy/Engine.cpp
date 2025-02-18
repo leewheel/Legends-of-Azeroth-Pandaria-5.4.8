@@ -642,7 +642,7 @@ void Engine::ChangeStrategy(std::string const names)
                 toggleStrategy(name + 1);
                 break;
             case '?':
-                //botAI->TellMaster(ListStrategies());
+                botAI->TellMaster(ListStrategies());
                 break;
         }
     }

@@ -20,13 +20,13 @@ bool RtiAction::Execute(Event event)
         outRti << "rti"
                << ": ";
         AppendRti(outRti, "rti");
-        //botAI->TellMaster(outRti);
+        botAI->TellMaster(outRti);
 
         std::ostringstream outRtiCc;
         outRtiCc << "rti cc"
                  << ": ";
         AppendRti(outRtiCc, "rti cc");
-        //botAI->TellMaster(outRtiCc);
+        botAI->TellMaster(outRtiCc);
         return true;
     }
 
@@ -35,7 +35,7 @@ bool RtiAction::Execute(Event event)
     std::ostringstream out;
     out << type << " set to: ";
     AppendRti(out, type);
-    //botAI->TellMaster(out);
+    botAI->TellMaster(out);
     return true;
 }
 

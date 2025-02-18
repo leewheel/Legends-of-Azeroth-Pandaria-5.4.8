@@ -16,8 +16,11 @@ bool LeaveGroupAction::Leave(Player* player)
 
     bool aiMaster = GET_PLAYERBOT_AI(botAI->GetMaster()) != nullptr;
 
-    bot->Say("Goodbye!", Language::LANG_UNIVERSAL);
-    bot->RemoveFromGroup();
+    if (bot->GetGroup())
+    {
+        //bot->GetGroup()->Disband();
+        bot->RemoveFromGroup();
+    }
 
     bool randomBot = sRandomPlayerbotMgr->IsRandomBot(bot);
     if (randomBot)
@@ -25,10 +28,10 @@ bool LeaveGroupAction::Leave(Player* player)
         GET_PLAYERBOT_AI(bot)->SetMaster(nullptr);
     }
 
-    //if (!aiMaster)
-        //botAI->ResetStrategies(!randomBot);
+    if (!aiMaster)
+        botAI->ResetStrategies();
 
-    //botAI->Reset();
+    botAI->Reset();
 
     return true;
 }
