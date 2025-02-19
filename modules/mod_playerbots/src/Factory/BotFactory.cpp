@@ -183,7 +183,7 @@ void BotFactory::InitPet()
 {
     Pet* pet = bot->GetPet();
 
-    if (bot->GetClass() == CLASS_HUNTER)
+    /*if (bot->GetClass() == CLASS_HUNTER)
     {
         if (pet)
         {
@@ -202,7 +202,7 @@ void BotFactory::InitPet()
             bot->RemovePet(PetRemoveMode::PET_REMOVE_ABANDON);
             pet = nullptr;
         }
-    }
+    }*/
 
     if (!pet)
     {

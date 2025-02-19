@@ -11,7 +11,6 @@
 #include "DatabaseEnv.h"
 #include "CharacterCache.h"
 #include "GuildMgr.h"
-//#include "PlayerbotFactory.h"
 #include "Playerbots.h"
 #include "PlayerbotAIConfig.h"
 #include "ScriptMgr.h"
