@@ -15,6 +15,8 @@
 
 #include "Chat.h"
 #include "PlayerbotMgr.h"
+#include "PerformanceMonitor.h"
+#include "PlayerbotAIConfig.h"
 #include "RandomPlayerbotMgr.h"
 #include "ScriptMgr.h"
 
@@ -27,7 +29,8 @@ public:
     {
         static std::vector<ChatCommand> commandTable =
         {
-            { "npcbot",         SEC_ADMINISTRATOR,          true,           &HandlePlayerbotCommand}
+            { "npcbot",         SEC_ADMINISTRATOR,          true,           &HandlePlayerbotCommand},
+            { "pmon",           SEC_GAMEMASTER,             true,           &HandlePerfMonCommand},
         };
         return commandTable;
     }
@@ -35,6 +38,40 @@ public:
     static bool HandlePlayerbotCommand(ChatHandler* handler, char const* args)
     {
         return PlayerbotMgr::HandlePlayerbotMgrCommand(handler, args);
+    }
+
+    static bool HandlePerfMonCommand(ChatHandler* handler, char const* args)
+    {
+        if (!strcmp(args, "reset"))
+        {
+            sPerformanceMonitor->Reset();
+            return true;
+        }
+
+        if (!strcmp(args, "tick"))
+        {
+            sPerformanceMonitor->PrintStats(true, false);
+            return true;
+        }
+
+        if (!strcmp(args, "stack"))
+        {
+            sPerformanceMonitor->PrintStats(false, true);
+            return true;
+        }
+
+        if (!strcmp(args, "toggle"))
+        {
+            sPlayerbotAIConfig->perfMonEnabled = !sPlayerbotAIConfig->perfMonEnabled;
+            if (sPlayerbotAIConfig->perfMonEnabled)
+                TC_LOG_INFO("playerbots", "Performance monitor enabled");
+            else
+                TC_LOG_INFO("playerbots", "Performance monitor disabled");
+            return true;
+        }
+
+        sPerformanceMonitor->PrintStats();
+        return true;
     }
 };
 

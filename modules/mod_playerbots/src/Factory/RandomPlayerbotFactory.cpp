@@ -18,6 +18,8 @@
 #include "SocialMgr.h"
 
 #include <future>
+#include <algorithm>
+#include <cctype>
 
 std::map<uint8, std::vector<uint8>> RandomPlayerbotFactory::availableRaces;
 
@@ -552,7 +554,8 @@ void RandomPlayerbotFactory::CreateRandomBots()
     {
         std::ostringstream out;
         out << sPlayerbotAIConfig->randomBotAccountPrefix << accountNumber;
-        std::string const accountName = out.str();
+        std::string accountName = out.str();
+        std::transform(accountName.begin(), accountName.end(), accountName.begin(), ::toupper);
 
         LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_GET_ACCOUNT_ID_BY_USERNAME);
         stmt->setString(0, accountName);

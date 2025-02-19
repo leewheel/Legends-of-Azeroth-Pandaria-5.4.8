@@ -18,7 +18,6 @@
 #include "CharacterCache.h"
 #include "CellImpl.h"
 #include "ChannelMgr.h"
-#include "PlayerbotAIConfig.h"
 #include "DBCStores.h"
 #include "DBCStructure.h"
 #include "DatabaseEnv.h"
@@ -30,6 +29,8 @@
 #include "MapManager.h"
 #include "Player.h"
 #include "PlayerbotAI.h"
+#include "PlayerbotAIConfig.h"
+#include "PerformanceMonitor.h"
 #include "Playerbots.h"
 #include "RandomItemManager.h"
 #include "RandomPlayerbotBracketMgr.h"
@@ -72,6 +73,11 @@ void RandomPlayerbotMgr::ScheduleTeleport(uint32 bot, uint32 time)
 
 void RandomPlayerbotMgr::UpdateAIInternal(uint32 elapsed, bool /*minimal*/)
 {
+    if (totalPmo)
+        totalPmo->finish();
+
+    totalPmo = sPerformanceMonitor->start(PERF_MON_TOTAL, "RandomPlayerbotMgr::FullTick");
+
     if (!sPlayerbotAIConfig->randomBotAutologin || !sPlayerbotAIConfig->enabled)
         return;
 
@@ -103,6 +109,10 @@ void RandomPlayerbotMgr::UpdateAIInternal(uint32 elapsed, bool /*minimal*/)
 
     uint32 updateIntervalTurboBoost = _isBotInitializing ? 1 : sPlayerbotAIConfig->randomBotUpdateInterval;
     SetNextCheckDelay(updateIntervalTurboBoost * (onlineBotFocus + 25) * 10);
+
+    PerformanceMonitorOperation* pmo = sPerformanceMonitor->start(
+            PERF_MON_TOTAL,
+            onlineBotCount < maxAllowedBotCount ? "RandomPlayerbotMgr::Login" : "RandomPlayerbotMgr::UpdateAIInternal");
 
     if (availableBotCount < maxAllowedBotCount)
     {
@@ -153,6 +163,9 @@ void RandomPlayerbotMgr::UpdateAIInternal(uint32 elapsed, bool /*minimal*/)
             }
         }
     }
+
+    if (pmo)
+        pmo->finish();
 }
 
 uint32 RandomPlayerbotMgr::AddRandomBots()
@@ -424,19 +437,25 @@ bool RandomPlayerbotMgr::ProcessBot(Player* player)
         uint32 randomize = GetEventValue(bot, "randomize");
         if (!randomize)
         {
+            PerformanceMonitorOperation* pmo = sPerformanceMonitor->start(PERF_MON_RNDBOT, "Randomize");
             Randomize(player);
             TC_LOG_DEBUG("playerbots", "Bot #%u %s:%u <%s>: randomized", bot.GetCounter(), player->GetTeamId() == TEAM_ALLIANCE ? "A" : "H", player->GetLevel(), player->GetName().c_str());
+            if (pmo)
+                pmo->finish();
             return true;
         }
 
         uint32 teleport = GetEventValue(bot, "teleport");
         if (!teleport)
         {
+            PerformanceMonitorOperation* pmo = sPerformanceMonitor->start(PERF_MON_RNDBOT, "RandomTeleportByLocations");
             TC_LOG_DEBUG("playerbots", "Bot #%u <%s>: teleport for level and refresh", bot.GetCounter(), player->GetName().c_str());
             Refresh(player);
             RandomTeleportForLevel(player);
             uint32 time = urand(sPlayerbotAIConfig->minRandomBotTeleportInterval, sPlayerbotAIConfig->maxRandomBotTeleportInterval);
             ScheduleTeleport(bot, time);
+            if (pmo)
+                pmo->finish();
             return true;
         }
     }
@@ -568,6 +587,7 @@ void RandomPlayerbotMgr::Refresh(Player* bot)
         return;
 
     TC_LOG_INFO("playerbots", "Refreshing bot #%u <%s>", bot->GetGUID(), bot->GetName().c_str());
+    PerformanceMonitorOperation* pmo = sPerformanceMonitor->start(PERF_MON_RNDBOT, "Refresh");
 
     botAI->Reset();
     bot->DurabilityRepairAll(false, 1.0f, false);
@@ -587,6 +607,9 @@ void RandomPlayerbotMgr::Refresh(Player* bot)
 
     if (bot->GetGroup())
         bot->RemoveFromGroup();
+
+    if (pmo)
+        pmo->finish();
 }
 
 bool RandomPlayerbotMgr::IsRandomBot(Player* bot)
@@ -940,6 +963,11 @@ Player* RandomPlayerbotMgr::GetRandomPlayer()
 
 void RandomPlayerbotMgr::PrepareAddclassCache()
 {
+    if (sPlayerbotAIConfig->randomBotAccounts.empty())
+    {
+        TC_LOG_WARN("playerbots", "Unable to prepare add class cache as accounts are empty");
+        return;
+    }
     int32 maxAccountId = sPlayerbotAIConfig->randomBotAccounts.back();
     int32 minIdx = 0;
     int32 minAccountId = sPlayerbotAIConfig->randomBotAccounts[minIdx];

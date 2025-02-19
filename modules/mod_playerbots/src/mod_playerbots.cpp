@@ -25,13 +25,16 @@
 #include "Authentication/AuthCrypt.h"
 #include "CharacterHandler.h"
 
+#include <boost/filesystem.hpp>
 #include <vector>
 #include <future>
 #include <unordered_set>
 #include <random>
 #include <thread>
 
-# define _SKYFIRE_PLAYERBOT_CONFIG  "playerbots.conf"
+#ifndef _PLAYERBOT_CONFIG
+# define _PLAYERBOT_CONFIG  "playerbots.conf"
+#endif
 
 class mod_playerbots : public PlayerScript
 {
@@ -56,14 +59,15 @@ public:
         if (!reloaded)
         {
             uint32 oldMSTime = getMSTime();
+            std::string conf_file = boost::filesystem::absolute(_PLAYERBOT_CONFIG).generic_string();
 
             TC_LOG_INFO("playerbots", " ");
-            TC_LOG_INFO("playerbots", "Load Playerbots Config...");
+            TC_LOG_INFO("playerbots", "Loading Playerbots Config at %s ...", conf_file.c_str());
 
             std::string err;
-            if (!sConfigMgr->LoadAdditionalFile(_SKYFIRE_PLAYERBOT_CONFIG, true, err))
+            if (!sConfigMgr->LoadAdditionalFile(conf_file, true, err))
             {
-                TC_LOG_FATAL("playerbots", ">> Loaded playerbots failed, %s", err.c_str());
+                TC_LOG_FATAL("playerbots", ">> Load playerbots failed, %s", err.c_str());
                 std::this_thread::sleep_for(std::chrono::seconds(5));
                 sWorld->StopNow(1);
                 return;

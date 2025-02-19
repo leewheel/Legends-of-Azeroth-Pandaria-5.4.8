@@ -5,6 +5,7 @@
 #include <stack>
 
 #include "Event.h"
+#include "Item.h"
 #include "PlayerbotAIBase.h"
 #include "NewRpgStrategy.h"
 #include "WorldPacket.h"
@@ -52,10 +53,7 @@ class Position;
 class Unit;
 class Item;
 class WorldObject;
-
 struct CreatureData;
-
-enum InventoryResult;
 
 class MinValueCalculator
 {

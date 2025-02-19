@@ -6,6 +6,7 @@
 #include "Value.h"
 
 #include "Playerbots.h"
+#include "PerformanceMonitor.h"
 #include "Timer.h"
 
 UnitCalculatedValue::UnitCalculatedValue(PlayerbotAI* botAI, std::string const name, int32 checkInterval)
@@ -122,7 +123,11 @@ Unit* UnitCalculatedValue::Get()
 {
     if (checkInterval < 2)
     {
+        PerformanceMonitorOperation *pmo = sPerformanceMonitor->start(
+                PERF_MON_VALUE, this->getName(), this->context ? &this->context->performanceStack : nullptr);
         value = Calculate();
+        if (pmo)
+            pmo->finish();
     }
     else
     {

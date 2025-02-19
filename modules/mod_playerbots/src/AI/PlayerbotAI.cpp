@@ -11,12 +11,10 @@
 #include <string>
 
 #include "AiFactory.h"
-#include "Engine.h"
-#include "ExternalEventHelper.h"
-#include "Playerbots.h"
-#include "PlayerbotAIConfig.h"
 #include "ChannelMgr.h"
 #include "CreatureAIImpl.h"
+#include "Engine.h"
+#include "ExternalEventHelper.h"
 #include "GuildMgr.h"
 #include "Helper.h"
 #include "LastMovementValue.h"
@@ -29,6 +27,9 @@
 #include "Player.h"
 #include "PositionValue.h"
 #include "PointMovementGenerator.h"
+#include "Playerbots.h"
+#include "PlayerbotAIConfig.h"
+#include "PerformanceMonitor.h"
 #include "RandomPlayerbotMgr.h"
 #include "ServerFacade.h"
 #include "ScriptMgr.h"
@@ -292,6 +293,10 @@ void PlayerbotAI::UpdateAIInternal([[maybe_unused]] uint32 elapsed, bool minimal
     if (bot->IsBeingTeleported() || !bot->IsInWorld())
         return;
 
+    std::string const mapString = WorldPosition(bot).isOverworld() ? std::to_string(bot->GetMapId()) : "I";
+    PerformanceMonitorOperation* pmo =
+            sPerformanceMonitor->start(PERF_MON_TOTAL, "PlayerbotAI::UpdateAIInternal " + mapString);
+
     ExternalEventHelper helper(_aiObjectContext);
 
     // logout if logout timer is ready or if instant logout is possible
@@ -329,6 +334,9 @@ void PlayerbotAI::UpdateAIInternal([[maybe_unused]] uint32 elapsed, bool minimal
     masterOutgoingPacketHandlers.Handle(helper);
 
     DoNextAction(minimal);
+
+    if (pmo)
+        pmo->finish();
 }
 
 bool PlayerbotAI::DoSpecificAction(std::string const name, Event event, bool silent, std::string const qualifier)
@@ -385,6 +393,7 @@ bool PlayerbotAI::DoSpecificAction(std::string const name, Event event, bool sil
 
 bool PlayerbotAI::AllowActive(ActivityType activityType)
 {
+    return true;
     auto HasRealPlayers = ([](Map* map)
     {
         Map::PlayerList const& players = map->GetPlayers();

@@ -10,6 +10,7 @@
 #include "Helper.h"
 #include "Playerbots.h"
 #include "PlayerbotAIConfig.h"
+#include "PerformanceMonitor.h"
 #include "Queue.h"
 #include "Strategy.h"
 
@@ -204,10 +205,10 @@ bool Engine::DoNextAction(Unit* unit, uint32 depth, bool minimal)
                     }
                 }
 
-                //PerformanceMonitorOperation* pmo = sPerformanceMonitor->start(PERF_MON_ACTION, action->getName(), &aiObjectContext->performanceStack);
+                PerformanceMonitorOperation* pmo = sPerformanceMonitor->start(PERF_MON_ACTION, action->getName(), &aiObjectContext->performanceStack);
                 actionExecuted = ListenAndExecute(action, event);
-                //if (pmo)
-                //    pmo->finish();
+                if (pmo)
+                    pmo->finish();
 
                 if (actionExecuted)
                 {

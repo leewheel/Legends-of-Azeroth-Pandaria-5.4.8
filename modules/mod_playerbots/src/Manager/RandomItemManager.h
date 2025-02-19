@@ -9,6 +9,7 @@
 #include "AiFactory.h"
 #include "Common.h"
 #include "Item.h"
+#include "Player.h"
 
 enum item_sub_class : uint32
 {
@@ -17,10 +18,6 @@ enum item_sub_class : uint32
     LEATHER,
     CLOTH
 };
-
-class Player;
-class ItemTemplate;
-enum EquipmentSlots;
 
 class RandomItemManager
 {

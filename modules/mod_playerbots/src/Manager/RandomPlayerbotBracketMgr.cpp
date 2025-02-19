@@ -8,30 +8,40 @@ RandomBotBacketManager::RandomBotBacketManager()
     : _timer{ 0 }
     , _BotDistDebugMode{ true }
 {
-    _LevelRanges[0]     = { 1, 9,   2 };
-    _LevelRanges[1]     = { 10, 19, 8 };
-    _LevelRanges[2]     = { 20, 29, 8 };
-    _LevelRanges[3]     = { 30, 39, 8 };
-    _LevelRanges[4]     = { 40, 49, 8 };
-    _LevelRanges[5]     = { 50, 59, 9 };
-    _LevelRanges[6]     = { 60, 69, 9 };
-    _LevelRanges[7]     = { 70, 79, 9 };
-    _LevelRanges[8]     = { 80, 84, 9 };
-    _LevelRanges[9]     = { 85, 89, 10 };
-    _LevelRanges[10]    = { 90, 90, 20 };
+    _AllianceLevelRanges[0]     = { 1, 9,   2 };
+    _AllianceLevelRanges[1]     = { 10, 19, 8 };
+    _AllianceLevelRanges[2]     = { 20, 29, 8 };
+    _AllianceLevelRanges[3]     = { 30, 39, 8 };
+    _AllianceLevelRanges[4]     = { 40, 49, 8 };
+    _AllianceLevelRanges[5]     = { 50, 59, 9 };
+    _AllianceLevelRanges[6]     = { 60, 69, 9 };
+    _AllianceLevelRanges[7]     = { 70, 79, 9 };
+    _AllianceLevelRanges[8]     = { 80, 84, 9 };
+    _AllianceLevelRanges[9]     = { 85, 89, 10 };
+    _AllianceLevelRanges[10]    = { 90, 90, 20 };
 
-    uint32 totalPercent = 0;
     for (uint8 i = 0; i < NUM_RANGES; ++i)
-        totalPercent += _LevelRanges[i].desiredPercent;
-    if (totalPercent != 100)
-        TC_LOG_ERROR("server.loading", "[BotLevelBrackets] Sum of percentages is %u (expected 100).", totalPercent);
+        _HordeLevelRanges[i] = _AllianceLevelRanges[i];
+
+    uint32 totalAlliancePercent = 0;
+    uint32 totalHordePercent = 0;
+    for (uint8 i = 0; i < NUM_RANGES; ++i)
+    {
+        totalAlliancePercent += _AllianceLevelRanges[i].desiredPercent;
+        totalHordePercent += _HordeLevelRanges[i].desiredPercent;
+    }
+    if (totalAlliancePercent != 100)
+        TC_LOG_ERROR("server.loading", "[BotLevelBrackets] totalAlliancePercent Sum of percentages is %u (expected 100).", totalAlliancePercent);
+    if (totalHordePercent != 100)
+        TC_LOG_ERROR("server.loading", "[BotLevelBrackets] totalHordePercent Sum of percentages is %u (expected 100).", totalHordePercent);
 }
 
 int RandomBotBacketManager::GetLevelRangeIndex(uint8 level)
 {
     for (int i = 0; i < NUM_RANGES; ++i)
     {
-        if (level >= _LevelRanges[i].lower && level <= _LevelRanges[i].upper)
+        // Use Alliance boundaries as reference.
+        if (level >= _AllianceLevelRanges[i].lower && level <= _AllianceLevelRanges[i].upper)
             return i;
     }
     return -1;
@@ -42,24 +52,24 @@ uint8 RandomBotBacketManager::GetRandomLevelInRange(const LevelRangeConfig& rang
     return urand(range.lower, range.upper);
 }
 
-void RandomBotBacketManager::AdjustBotToRange(Player* bot, int targetRangeIndex)
+void RandomBotBacketManager::AdjustBotToRange(Player* bot, int targetRangeIndex, const LevelRangeConfig* factionRanges)
 {
     if (!bot || targetRangeIndex < 0 || targetRangeIndex >= NUM_RANGES)
         return;
 
     uint8 botOriginalLevel = bot->GetLevel();
-
     uint8 newLevel = 0;
     // If the bot is a Death Knight, ensure level is not set below 55.
     if (bot->GetClass() == CLASS_DEATH_KNIGHT)
     {
-        uint8 lowerBound = _LevelRanges[targetRangeIndex].lower;
-        uint8 upperBound = _LevelRanges[targetRangeIndex].upper;
+        uint8 lowerBound = factionRanges[targetRangeIndex].lower;
+        uint8 upperBound = factionRanges[targetRangeIndex].upper;
         if (upperBound < 55)
         {
             // This target range is invalid for Death Knights.
             if (_BotDistDebugMode)
             {
+                //std::string playerFaction = IsAlliancePlayerBot(bot) ? "Alliance" : "Horde";
                 //TC_LOG_DEBUG("playerbots", "[BotLevelBrackets] AdjustBotToRange: Cannot assign Death Knight '%s' (%u) to range %u-%u (below level 55).", bot->GetName().c_str(), botOriginalLevel, lowerBound, upperBound);
             }
             return;
@@ -71,7 +81,7 @@ void RandomBotBacketManager::AdjustBotToRange(Player* bot, int targetRangeIndex)
     }
     else
     {
-        newLevel = GetRandomLevelInRange(_LevelRanges[targetRangeIndex]);
+        newLevel = GetRandomLevelInRange(factionRanges[targetRangeIndex]);
     }
 
     sRandomPlayerbotMgr->TagForRandomize(bot, newLevel);
@@ -90,10 +100,15 @@ void RandomBotBacketManager::Update(uint32 diff)
         return;
     _timer = 0;
 
-    // Build the current distribution for bots.
-    uint32 totalBots = 0;
-    int actualCounts[NUM_RANGES] = { 0 };
-    std::vector<Player*> botsByRange[NUM_RANGES];
+    // Containers for Alliance bots.
+    uint32 totalAllianceBots = 0;
+    int allianceActualCounts[NUM_RANGES] = {0};
+    std::vector<Player*> allianceBotsByRange[NUM_RANGES];
+
+    // Containers for Horde bots.
+    uint32 totalHordeBots = 0;
+    int hordeActualCounts[NUM_RANGES] = {0};
+    std::vector<Player*> hordeBotsByRange[NUM_RANGES];
 
     auto const& allPlayers = ObjectAccessor::GetPlayers();
     for (auto const& itr : allPlayers)
@@ -105,78 +120,147 @@ void RandomBotBacketManager::Update(uint32 diff)
         if (!sRandomPlayerbotMgr->IsRandomBot(player->GetGUID().GetCounter()))
             continue;
 
-        if (player->InBattleground() || player->InBattlegroundQueue() || player->inRandomLfgDungeon() || player->GetInstanceId())
-            continue;
-
-        totalBots++;
-        int rangeIndex = GetLevelRangeIndex(player->GetLevel());
-        if (rangeIndex >= 0)
+        auto team = player->GetTeam();
+        if (team == Team::ALLIANCE)
         {
-            actualCounts[rangeIndex]++;
-            botsByRange[rangeIndex].push_back(player);
+            totalAllianceBots++;
+            int rangeIndex = GetLevelRangeIndex(player->GetLevel());
+            if (rangeIndex >= 0)
+            {
+                allianceActualCounts[rangeIndex]++;
+                allianceBotsByRange[rangeIndex].push_back(player);
+            }
+            else if (_BotDistDebugMode)
+            {
+                TC_LOG_DEBUG("server.loading", "[BotLevelBrackets] Alliance bot '%s' with level %u does not fall into any defined range.",
+                            player->GetName().c_str(), player->GetLevel());
+            }
         }
-        else if (_BotDistDebugMode)
+        else if (team == Team::HORDE)
         {
-            //TC_LOG_DEBUG("playerbots", "[BotLevelBrackets] Bot '%s' with level %u does not fall into any defined range.", player->GetName().c_str(), player->GetLevel());
+            totalHordeBots++;
+            int rangeIndex = GetLevelRangeIndex(player->GetLevel());
+            if (rangeIndex >= 0)
+            {
+                hordeActualCounts[rangeIndex]++;
+                hordeBotsByRange[rangeIndex].push_back(player);
+            }
+            else if (_BotDistDebugMode)
+            {
+                TC_LOG_DEBUG("server.loading", "[BotLevelBrackets] Horde bot '%s' with level %u does not fall into any defined range.",
+                    player->GetName().c_str(), player->GetLevel());
+            }
         }
     }
 
-    if (totalBots == 0)
-        return;
-
-    // Compute the desired count for each range.
-    int desiredCounts[NUM_RANGES] = { 0 };
-    for (int i = 0; i < NUM_RANGES; ++i)
+    // Process Alliance bots.
+    if (totalAllianceBots > 0)
     {
-        desiredCounts[i] = static_cast<int>(round((_LevelRanges[i].desiredPercent / 100.0) * totalBots));
-        if (_BotDistDebugMode)
+        int allianceDesiredCounts[NUM_RANGES] = {0};
+        for (int i = 0; i < NUM_RANGES; ++i)
         {
-            TC_LOG_INFO("playerbots", "[BotLevelBrackets] Range %u (%u-%u): Desired = %u, Actual = %u.", i + 1, _LevelRanges[i].lower, _LevelRanges[i].upper, desiredCounts[i], actualCounts[i]);
+            allianceDesiredCounts[i] = static_cast<int>(round((_AllianceLevelRanges[i].desiredPercent / 100.0) * totalAllianceBots));
+            if (_BotDistDebugMode)
+            {
+                TC_LOG_INFO("server.loading", "[BotLevelBrackets] Alliance Range %u (%u-%u): Desired = %u, Actual = %u.",
+                         i + 1, _AllianceLevelRanges[i].lower, _AllianceLevelRanges[i].upper,
+                         allianceDesiredCounts[i], allianceActualCounts[i]);
+            }
+        }
+        // Adjust overpopulated ranges.
+        for (int i = 0; i < NUM_RANGES; ++i)
+        {
+            while (allianceActualCounts[i] > allianceDesiredCounts[i] && !allianceBotsByRange[i].empty())
+            {
+                Player* bot = allianceBotsByRange[i].back();
+                allianceBotsByRange[i].pop_back();
+                int targetRange = -1;
+                if (bot->GetClass() == CLASS_DEATH_KNIGHT)
+                {
+                    for (int j = 0; j < NUM_RANGES; ++j)
+                    {
+                        if (allianceActualCounts[j] < allianceDesiredCounts[j] && _AllianceLevelRanges[j].upper >= 55)
+                        {
+                            targetRange = j;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    for (int j = 0; j < NUM_RANGES; ++j)
+                    {
+                        if (allianceActualCounts[j] < allianceDesiredCounts[j])
+                        {
+                            targetRange = j;
+                            break;
+                        }
+                    }
+                }
+                if (targetRange == -1)
+                    break;
+                AdjustBotToRange(bot, targetRange, _AllianceLevelRanges);
+                allianceActualCounts[i]--;
+                allianceActualCounts[targetRange]++;
+            }
         }
     }
 
-    // For each range that has a surplus, reassign bots to ranges that are underpopulated.
-    for (int i = 0; i < NUM_RANGES; ++i)
+    // Process Horde bots.
+    if (totalHordeBots > 0)
     {
-        while (actualCounts[i] > desiredCounts[i] && !botsByRange[i].empty())
+        int hordeDesiredCounts[NUM_RANGES] = {0};
+        for (int i = 0; i < NUM_RANGES; ++i)
         {
-            Player* bot = botsByRange[i].back();
-            botsByRange[i].pop_back();
-
-            int targetRange = -1;
-            // For Death Knights, only consider target ranges where the upper bound is at least 55.
-            if (bot->GetClass() == CLASS_DEATH_KNIGHT)
+            hordeDesiredCounts[i] = static_cast<int>(round((_HordeLevelRanges[i].desiredPercent / 100.0) * totalHordeBots));
+            if (_BotDistDebugMode)
             {
-                for (int j = 0; j < NUM_RANGES; ++j)
+                TC_LOG_INFO("server.loading", "[BotLevelBrackets] Horde Range %u (%u-%u): Desired = %u, Actual = %u.",
+                         i + 1, _HordeLevelRanges[i].lower, _HordeLevelRanges[i].upper,
+                         hordeDesiredCounts[i], hordeActualCounts[i]);
+            }
+        }
+        for (int i = 0; i < NUM_RANGES; ++i)
+        {
+            while (hordeActualCounts[i] > hordeDesiredCounts[i] && !hordeBotsByRange[i].empty())
+            {
+                Player* bot = hordeBotsByRange[i].back();
+                hordeBotsByRange[i].pop_back();
+                int targetRange = -1;
+                if (bot->GetClass() == CLASS_DEATH_KNIGHT)
                 {
-                    if (actualCounts[j] < desiredCounts[j] && _LevelRanges[j].upper >= 55)
+                    for (int j = 0; j < NUM_RANGES; ++j)
                     {
-                        targetRange = j;
-                        break;
+                        if (hordeActualCounts[j] < hordeDesiredCounts[j] && _HordeLevelRanges[j].upper >= 55)
+                        {
+                            targetRange = j;
+                            break;
+                        }
                     }
                 }
-            }
-            else
-            {
-                for (int j = 0; j < NUM_RANGES; ++j)
+                else
                 {
-                    if (actualCounts[j] < desiredCounts[j])
+                    for (int j = 0; j < NUM_RANGES; ++j)
                     {
-                        targetRange = j;
-                        break;
+                        if (hordeActualCounts[j] < hordeDesiredCounts[j])
+                        {
+                            targetRange = j;
+                            break;
+                        }
                     }
                 }
+                if (targetRange == -1)
+                    break;
+                AdjustBotToRange(bot, targetRange, _HordeLevelRanges);
+                hordeActualCounts[i]--;
+                hordeActualCounts[targetRange]++;
             }
-
-            if (targetRange == -1)
-                break; // No appropriate underpopulated range found.
-
-            AdjustBotToRange(bot, targetRange);
-            actualCounts[i]--;
-            actualCounts[targetRange]++;
         }
     }
 
     if (_BotDistDebugMode)
-        TC_LOG_DEBUG("playerbots", "[BotLevelBrackets] Distribution adjustment complete. Total bots: %u.", totalBots);
+    {
+        TC_LOG_INFO("server.loading", "[BotLevelBrackets] Distribution adjustment complete. Alliance bots: %u, Horde bots: %u.",
+                 totalAllianceBots, totalHordeBots);
+    }
 }

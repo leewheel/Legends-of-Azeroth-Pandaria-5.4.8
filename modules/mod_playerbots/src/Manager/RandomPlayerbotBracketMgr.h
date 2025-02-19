@@ -22,7 +22,7 @@ private:
 public:
     RandomBotBacketManager();
 
-    void AdjustBotToRange(Player* bot, int targetRangeIndex);
+    void AdjustBotToRange(Player* bot, int targetRangeIndex, const LevelRangeConfig* factionRanges);
     int GetLevelRangeIndex(uint8 level);
     uint8 GetRandomLevelInRange(const LevelRangeConfig& range);
     void Update(uint32 diff);
@@ -31,7 +31,8 @@ private:
     uint32 _timer;
     const bool   _BotDistDebugMode = false;
     static const uint8 NUM_RANGES = 11;
-    LevelRangeConfig _LevelRanges[NUM_RANGES];
+    LevelRangeConfig _AllianceLevelRanges[NUM_RANGES];
+    LevelRangeConfig _HordeLevelRanges[NUM_RANGES];
     static const uint32 _BotDistCheckFrequency = 300; // in seconds
 };
 

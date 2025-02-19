@@ -38,7 +38,7 @@ public:
     bool IsInPvpProhibitedZone(uint32 id);
     bool IsInPvpProhibitedArea(uint32 id);
 
-    bool enabled;
+    bool enabled, perfMonEnabled;
     uint32 globalCoolDown, reactDelay, maxWaitForMove, disableMoveSplinePath, maxMovementSearchTime, expireActionTime,
         dispelAuraDuration, passiveDelay, repeatDelay, errorDelay, rpgDelay, sitDelay, returnDelay, lootDelay;
     bool dynamicReactDelay;
