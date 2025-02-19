@@ -30,7 +30,13 @@ bool CastSlowAction::isUseful()
     Unit* target = AI_VALUE(Unit*, "current target");
     return sServerFacade->IsDistanceLessOrEqualThan(AI_VALUE2(float, "distance", GetTargetName()), 25.0f);
 }
+bool CastDeepFreezeAction::isUseful()
+{
+    Unit* target = AI_VALUE(Unit*, "current target");
+    if (!target) return false;
 
+    return !botAI->HasAura("deep freeze", target);
+}
 bool CastConeOfColdAction::isUseful()
 {
     bool facingTarget = AI_VALUE2(bool, "facing", "current target");

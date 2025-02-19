@@ -179,6 +179,7 @@ void GenericMageStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
         new NextAction("dragon's breath", 25.0f),
         new NextAction("blink", 50.0f),
         nullptr)));
+    triggers.push_back(new TriggerNode("frost nova on target", NextAction::array(0, new NextAction("deep freeze", ACTION_NORMAL + 1), nullptr)));
     triggers.push_back(new TriggerNode("counterspell on enemy healer",NextAction::array(0, new NextAction("counterspell on enemy healer", 40.0f), nullptr)));
     triggers.push_back(new TriggerNode("critical health", NextAction::array(0, new NextAction("ice block", 80.0f), nullptr)));
     triggers.push_back(new TriggerNode("spellsteal", NextAction::array(0, new NextAction("spellsteal", 40.0f), nullptr)));

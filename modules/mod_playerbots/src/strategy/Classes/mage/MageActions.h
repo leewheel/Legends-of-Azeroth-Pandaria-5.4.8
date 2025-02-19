@@ -119,6 +119,7 @@ class CastDeepFreezeAction : public CastSpellAction
 {
 public:
     CastDeepFreezeAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "deep freeze") {}
+    bool isUseful() override;
 };
 
 class CastBlizzardAction : public CastSpellAction
