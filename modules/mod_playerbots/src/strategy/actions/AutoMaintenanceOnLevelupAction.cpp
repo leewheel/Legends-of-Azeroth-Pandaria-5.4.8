@@ -53,6 +53,7 @@ void AutoMaintenanceOnLevelupAction::AutoUpgradeEquip()
 
     BotFactory factory(bot, bot->GetLevel());
     factory.InitEquipment(true);
+    factory.InitPet();
     /*if (!sPlayerbotAIConfig->autoUpgradeEquip || !sRandomPlayerbotMgr->IsRandomBot(bot))
     {
         return;

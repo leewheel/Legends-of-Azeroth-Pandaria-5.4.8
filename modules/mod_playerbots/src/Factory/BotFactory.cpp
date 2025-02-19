@@ -119,8 +119,7 @@ void BotFactory::Prepare()
         bot->ResurrectPlayer(1.0f, false);
  
     bot->CombatStop(true);
-    
-    int32 oldlevel = bot->GetLevel();
+
     int32 newlevel = level;
     if (newlevel < 1)
         newlevel = 1;
@@ -182,7 +181,29 @@ void BotFactory::Refresh()
  
 void BotFactory::InitPet()
 {
-    /*Pet* pet = bot->GetPet();
+    Pet* pet = bot->GetPet();
+
+    if (bot->GetClass() == CLASS_HUNTER)
+    {
+        if (pet)
+        {
+            bot->RemovePet(PET_REMOVE_ABANDON);
+            pet = nullptr;
+        }
+
+        // -- Delete all pet slots if possible
+        for (uint8 pet_slot_active = 0; pet_slot_active < PetSlot::PET_SLOT_ACTIVE_LAST; ++pet_slot_active)
+        {
+            uint32 pet_id = bot->GetPetIdBySlot(pet_slot_active);
+            if (!pet_id) continue;
+
+            bot->SummonPet(pet_id, bot->GetWorldLocation().GetPositionX(), bot->GetWorldLocation().GetPositionY(),
+                           bot->GetWorldLocation().GetPositionZ(), 0.0f, 0);
+            bot->RemovePet(PetRemoveMode::PET_REMOVE_ABANDON);
+            pet = nullptr;
+        }
+    }
+
     if (!pet)
     {
         if (bot->GetClass() != CLASS_HUNTER)
@@ -191,9 +212,8 @@ void BotFactory::InitPet()
         Map* map = bot->GetMap();
         if (!map)
             return;
- 
+
         std::vector<uint32> ids;
- 
         CreatureTemplateContainer const* creatures = sObjectMgr->GetCreatureTemplates();
         for (CreatureTemplateContainer::const_iterator itr = creatures->begin(); itr != creatures->end(); ++itr)
         {
@@ -211,7 +231,7 @@ void BotFactory::InitPet()
             TC_LOG_ERROR("playerbots", "No pets available for bot %s (%u level)", bot->GetName().c_str(), bot->GetLevel());
             return;
         }
- 
+
         for (uint32 i = 0; i < 10; i++)
         {
             uint32 index = urand(0, ids.size() - 1);
@@ -220,27 +240,16 @@ void BotFactory::InitPet()
                 continue;
             if (co->Name.size() > 21)
                 continue;
-            uint32 guid = map->GenerateLowGuid<HighGuid::Pet>();
-            uint32 pet_number = sObjectMgr->GeneratePetNumber();
-            if (bot->GetPetStable() && bot->GetPetStable()->CurrentPet)
-            {
-                bot->GetPetStable()->CurrentPet.value();
-                bot->RemovePet(nullptr, PET_SAVE_AS_CURRENT);
-                bot->RemovePet(nullptr, PET_SAVE_NOT_IN_SLOT);
-            }
-            if (bot->GetPetStable() && bot->GetPetStable()->GetUnslottedHunterPet())
-            {
-                bot->GetPetStable()->UnslottedPets.clear();
-                bot->RemovePet(nullptr, PET_SAVE_AS_CURRENT);
-                bot->RemovePet(nullptr, PET_SAVE_NOT_IN_SLOT);
-            }
 
+            int8 newPetSlot = bot->GetSlotForNewPet();
+            if (newPetSlot == -1)
+                continue;
+
+            // Everything looks OK, create new pet
             pet = bot->CreateTamedPetFrom(co->Entry, 0);
             if (!pet)
-            {
                 continue;
-            }
- 
+
             // prepare visual effect for levelup
             pet->SetUInt32Value(UNIT_FIELD_LEVEL, bot->GetLevel() - 1);
  
@@ -269,7 +278,7 @@ void BotFactory::InitPet()
     }
     else
     {
-        TC_LOG_ERROR("playerbots", "Cannot create pet for bot {}", bot->GetName().c_str());
+        TC_LOG_ERROR("playerbots", "Cannot create pet for bot %s", bot->GetName().c_str());
         return;
     }
  
@@ -289,7 +298,7 @@ void BotFactory::InitPet()
             continue;
         }
         pet->ToggleAutocast(spellInfo, true);
-    }*/
+    }
 }
 #include <fstream>
 void BotFactory::InitTalentsTree(bool reset)
