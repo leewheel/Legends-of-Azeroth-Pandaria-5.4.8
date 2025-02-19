@@ -648,6 +648,8 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
 
         /* BOT HELPER FUNCTION*/
         [[nodiscard]] bool HasEnoughWater(WorldObject const* searcher, float x, float y, float z) const;
+        [[nodiscard]] bool HasEnoughWater(WorldObject const* searcher, const LiquidData* liquidData) const;
+
         bool CanReachPositionAndGetValidCoords(WorldObject const* source, PathGenerator* path, float& destX, float& destY, float& destZ, bool failOnCollision = true, bool failOnSlopes = true) const;
         bool CanReachPositionAndGetValidCoords(WorldObject const* source, float& destX, float& destY, float& destZ, bool failOnCollision = true, bool failOnSlopes = true) const;
         bool CanReachPositionAndGetValidCoords(WorldObject const* source, float startX, float startY, float startZ, float& destX, float& destY, float& destZ, bool failOnCollision = true, bool failOnSlopes = true) const;
