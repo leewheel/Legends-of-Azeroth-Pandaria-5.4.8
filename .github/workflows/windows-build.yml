@@ -1,4 +1,4 @@
-name: windows-build-release
+name: windows-build
 
 on:
   push:
@@ -69,25 +69,3 @@ jobs:
         mkdir -p build && cd build
         cmake .. -DTOOLS=ON -DELUNA=1 -A x64
         cmake --build . --config RelWithDebInfo --parallel 4
-      #git bash shell
-      shell: bash
-    - name: Check binaries
-      run: |
-        cd ${{github.workspace}}/build/bin/RelWithDebInfo
-        
-        dir
-          copy "C:/Program Files/MySQL/MySQL Server 8.0/lib/libmysql.dll" ${{github.workspace}}/build/bin/RelWithDebInfo/libmysql.dll
-          copy "C:/Program Files/OpenSSL-Win64/bin/libcrypto-3-x64.dll" ${{github.workspace}}/build/bin/RelWithDebInfo/libcrypto-3-x64.dll
-          copy "C:/Program Files/OpenSSL-Win64/bin/libssl-3-x64.dll" ${{github.workspace}}/build/bin/RelWithDebInfo/libssl-3-x64.dll
-          move ${{github.workspace}}/contrib/lua_scripts ${{github.workspace}}/build/bin/RelWithDebInfo/lua_scripts
-        
-        ./authserver --version
-        ./worldserver --version
-
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        path: ${{ env.BUILD_DIR }}/build/bin/RelWithDebInfo/
-        name: PandariaMasterWin64VS2022
-        # Set a custom retention for artifacts
-        #retention-days: 7
