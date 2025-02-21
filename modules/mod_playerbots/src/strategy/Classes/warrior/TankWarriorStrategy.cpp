@@ -12,11 +12,11 @@ class TankWarriorStrategyActionNodeFactory : public NamedObjectFactory<ActionNod
 public:
     TankWarriorStrategyActionNodeFactory()
     {
-        creators["charge"] = &charge;
+        creators["commanding shout"] = &commanding_shout;
     }
 
 private:
-    ACTION_NODE_A(charge, "charge", "reach melee");
+    ACTION_NODE_A(commanding_shout, "commanding shout", "battle shout");
 };
 
 TankWarriorStrategy::TankWarriorStrategy(PlayerbotAI* botAI) : GenericWarriorStrategy(botAI)
@@ -33,5 +33,6 @@ void TankWarriorStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
     GenericWarriorStrategy::InitTriggers(triggers);
 
-    triggers.push_back(new TriggerNode("enemy out of melee", NextAction::array(0, new NextAction("charge", ACTION_MOVE + 10), nullptr)));
+    triggers.push_back(new TriggerNode(
+            "commanding shout", NextAction::array(0, new NextAction("commanding shout", ACTION_HIGH + 8), nullptr)));
 }

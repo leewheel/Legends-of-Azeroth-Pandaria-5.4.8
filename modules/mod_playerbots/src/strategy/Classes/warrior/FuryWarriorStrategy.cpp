@@ -12,11 +12,9 @@ class FuryWarriorStrategyActionNodeFactory : public NamedObjectFactory<ActionNod
 public:
     FuryWarriorStrategyActionNodeFactory()
     {
-        creators["charge"] = &charge;
     }
 
 private:
-    ACTION_NODE_A(charge, "charge", "intercept");
 };
 
 FuryWarriorStrategy::FuryWarriorStrategy(PlayerbotAI* botAI) : GenericWarriorStrategy(botAI)
@@ -35,5 +33,6 @@ void FuryWarriorStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
     GenericWarriorStrategy::InitTriggers(triggers);
 
-    triggers.push_back(new TriggerNode("enemy out of melee", NextAction::array(0, new NextAction("charge", ACTION_MOVE + 9), nullptr)));
+    triggers.push_back(new TriggerNode("battle shout",
+                                       NextAction::array(0, new NextAction("battle shout", ACTION_HIGH + 9), nullptr)));
 }

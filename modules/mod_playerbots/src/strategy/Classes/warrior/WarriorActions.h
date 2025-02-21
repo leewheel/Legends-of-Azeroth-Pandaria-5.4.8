@@ -12,6 +12,36 @@
 #include "PlayerbotAI.h"
 #include "ReachTargetActions.h"
 
+// -- Generic
 REACH_ACTION(CastChargeAction, "charge", 8.0f);
+MELEE_ACTION(CastHeroicStrikeAction, "heroic strike");
+MELEE_ACTION(CastWhirlWindAction, "whirlwind");
+
+BUFF_ACTION(CastCommandingShoutAction, "commanding shout");
+BUFF_ACTION(CastBattleShoutAction, "battle shout");
+
+class CastHeroicLeapAction : public CastSpellAction
+{
+public:
+    CastHeroicLeapAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "heroic leap") {}
+    ActionThreatType getThreatType() override { return ActionThreatType::Aoe; }
+};
+
+// -- arms
+MELEE_ACTION(CastMortalStrikeAction, "mortal strike");
+MELEE_ACTION(CastSlamAction, "slam");
+MELEE_ACTION(CastOverPowerAction, "overpower");
+MELEE_ACTION(CastColossusSmashAction, "colossus smash");
+
+class CastDieByTheSwordAction : public CastBuffSpellAction
+{
+public:
+    CastDieByTheSwordAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "die by the sword") {}
+};
+class CastSweepingStrikesAction : public CastBuffSpellAction
+{
+public:
+    CastSweepingStrikesAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "sweeping strikes") {}
+};
 
 #endif

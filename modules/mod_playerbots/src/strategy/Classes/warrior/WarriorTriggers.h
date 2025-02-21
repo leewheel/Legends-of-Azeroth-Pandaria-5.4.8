@@ -9,4 +9,9 @@
 #include "GenericTriggers.h"
 #include "PlayerbotAI.h"
 
+BUFF_TRIGGER(BattleShoutTrigger, "battle shout");
+BUFF_TRIGGER(CommandingShoutTrigger, "commanding shout");
+
+CAN_CAST_TRIGGER(OverpowerAvailableTrigger, "overpower");
+
 #endif
