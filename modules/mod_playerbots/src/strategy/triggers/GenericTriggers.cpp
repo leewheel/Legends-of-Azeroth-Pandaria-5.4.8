@@ -251,7 +251,7 @@ bool DebuffTrigger::IsActive()
     {
         return false;
     }
-    return BuffTrigger::IsActive() && (target->GetHealth() / AI_VALUE(float, "estimated group dps")) >= needLifeTime;
+    return BuffTrigger::IsActive()/* && (target->GetHealth() / AI_VALUE(float, "estimated group dps")) >= needLifeTime*/;
 }
 
 bool DebuffOnBossTrigger::IsActive()

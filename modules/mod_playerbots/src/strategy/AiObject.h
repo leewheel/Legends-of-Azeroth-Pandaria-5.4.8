@@ -486,6 +486,13 @@ protected:
 // Action node
 //
 
+#define ACTION_NODE(name, spell)                                                                              \
+    static ActionNode* name(PlayerbotAI* botAI)                                                               \
+    {                                                                                                         \
+        return new ActionNode(spell, /*P*/ nullptr, /*A*/ nullptr,                                            \
+                              /*C*/ nullptr);                                                                 \
+    }
+
 // node_name , action, prerequisite
 #define ACTION_NODE_P(name, spell, pre)                                                                       \
     static ActionNode* name(PlayerbotAI* botAI)                                                               \

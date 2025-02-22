@@ -35,8 +35,6 @@ public:
     MissileBarrageTrigger(PlayerbotAI* botAI) : HasAuraTrigger(botAI, "missile barrage") {}
 };
 
-
-
 class FingersOfFrostSingleTrigger : public HasAuraStackTrigger
 {
 public:

@@ -1151,6 +1151,7 @@ public:
         m_canDualWield = value;
     }
     float GetCombatReach() const override { return m_floatValues [UNIT_FIELD_COMBAT_REACH]; }
+    float GetMeleeRange(Unit const* target) const;
     float GetMeleeReach() const;
     bool IsWithinCombatRange(const Unit* obj, float dist2compare) const;
     bool IsWithinMeleeRange(const Unit* obj, float dist = NOMINAL_MELEE_RANGE) const;

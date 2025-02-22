@@ -32,6 +32,12 @@ public:
         creators["medium health"] = &TriggerContext::MediumHealth;
         creators["almost full health"] = &TriggerContext::AlmostFullHealth;
 
+        creators["tank assist"] = &TriggerContext::TankAssist;
+        creators["lose aggro"] = &TriggerContext::LoseAggro;
+        creators["has aggro"] = &TriggerContext::HasAggro;
+        creators["medium threat"] = &TriggerContext::MediumThreat;
+        creators["low tank threat"] = &TriggerContext::low_tank_threat;
+
         creators["low mana"] = &TriggerContext::LowMana;
         creators["medium mana"] = &TriggerContext::MediumMana;
         creators["high mana"] = &TriggerContext::HighMana;
@@ -125,6 +131,12 @@ private:
     static Trigger* HighMana(PlayerbotAI* botAI) { return new HighManaTrigger(botAI); }
     static Trigger* AlmostFullMana(PlayerbotAI* botAI) { return new AlmostFullManaTrigger(botAI); }
     static Trigger* EnoughMana(PlayerbotAI* botAI) { return new EnoughManaTrigger(botAI); }
+
+    static Trigger* TankAssist(PlayerbotAI* botAI) { return new TankAssistTrigger(botAI); }
+    static Trigger* LoseAggro(PlayerbotAI* botAI) { return new LoseAggroTrigger(botAI); }
+    static Trigger* HasAggro(PlayerbotAI* botAI) { return new HasAggroTrigger(botAI); }
+    static Trigger* MediumThreat(PlayerbotAI* botAI) { return new MediumThreatTrigger(botAI); }
+    static Trigger* low_tank_threat(PlayerbotAI* botAI) { return new LowTankThreatTrigger(botAI); }
 
     static Trigger* Dead(PlayerbotAI* botAI) { return new DeadTrigger(botAI); }
     static Trigger* corpse_near(PlayerbotAI* botAI) { return new CorpseNearTrigger(botAI); }

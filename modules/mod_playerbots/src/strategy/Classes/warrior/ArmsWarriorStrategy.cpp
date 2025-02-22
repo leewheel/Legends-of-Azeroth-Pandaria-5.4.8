@@ -16,55 +16,16 @@ public:
         creators["slam"] = &slam;
 
         creators["overpower"] = &overpower;
-        creators["die by the sword"] = &die_by_the_sword;
         creators["sweeping strikes"] = &sweeping_strikes;
-        creators["colossus smash"] = &colossus_smash;
+        creators["demoralizing banner"] = &demoralizing_banner;
     }
 
 private:
-    static ActionNode* mortal_strike([[maybe_unused]] PlayerbotAI* botAI)
-    {
-        return new ActionNode("mortal strike",
-                /*P*/ nullptr,
-                /*A*/ nullptr,
-                /*C*/ nullptr);
-    }
-    static ActionNode* slam([[maybe_unused]] PlayerbotAI* botAI)
-    {
-        return new ActionNode("slam",
-                /*P*/ nullptr,
-                /*A*/ nullptr,
-                /*C*/ nullptr);
-    }
-
-    static ActionNode* overpower([[maybe_unused]] PlayerbotAI* botAI)
-    {
-        return new ActionNode("overpower",
-                /*P*/ nullptr,
-                /*A*/ nullptr,
-                /*C*/ nullptr);
-    }
-    static ActionNode* die_by_the_sword([[maybe_unused]] PlayerbotAI* botAI)
-    {
-        return new ActionNode("die by the sword",
-                /*P*/ nullptr,
-                /*A*/ nullptr,
-                /*C*/ nullptr);
-    }
-    static ActionNode* sweeping_strikes([[maybe_unused]] PlayerbotAI* botAI)
-    {
-        return new ActionNode("sweeping strikes",
-                /*P*/ nullptr,
-                /*A*/ nullptr,
-                /*C*/ nullptr);
-    }
-    static ActionNode* colossus_smash([[maybe_unused]] PlayerbotAI* botAI)
-    {
-        return new ActionNode("colossus smash",
-                /*P*/ nullptr,
-                /*A*/ nullptr,
-                /*C*/ nullptr);
-    }
+    ACTION_NODE(mortal_strike, "mortal strike");
+    ACTION_NODE(slam, "slam");
+    ACTION_NODE(overpower, "overpower");
+    ACTION_NODE(sweeping_strikes, "sweeping strikes");
+    ACTION_NODE(demoralizing_banner, "demoralizing banner");
 };
 
 ArmsWarriorStrategy::ArmsWarriorStrategy(PlayerbotAI* botAI) : GenericWarriorStrategy(botAI)
@@ -75,17 +36,20 @@ ArmsWarriorStrategy::ArmsWarriorStrategy(PlayerbotAI* botAI) : GenericWarriorStr
 NextAction** ArmsWarriorStrategy::getDefaultActions()
 {
     return NextAction::array(0,
-                             new NextAction("mortal strike", ACTION_NORMAL + 10.0f),
-                             new NextAction("colossus smash", ACTION_NORMAL + 10.0f),
-                             new NextAction("slam", ACTION_NORMAL + 1.0f),
-                             new NextAction("heroic strike", ACTION_DEFAULT),
-                             nullptr);
+        new NextAction("demoralizing banner", ACTION_DEFAULT + 0.8f),
+        new NextAction("recklessness", ACTION_DEFAULT + 0.7f),
+        new NextAction("bloodbath", ACTION_DEFAULT + 0.6f),
+        new NextAction("execute", ACTION_DEFAULT + 0.2f),
+        new NextAction("melee", ACTION_DEFAULT + 0.1f),
+        nullptr);
 }
 
 void ArmsWarriorStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
     GenericWarriorStrategy::InitTriggers(triggers);
 
-    triggers.push_back(new TriggerNode("battle shout",
-                                       NextAction::array(0, new NextAction("battle shout", ACTION_HIGH + 9), nullptr)));
+    triggers.push_back(new TriggerNode("battle shout", NextAction::array(0, new NextAction("battle shout", ACTION_HIGH + 9), nullptr)));
+    triggers.push_back(new TriggerNode("high rage available",NextAction::array(0, new NextAction("mortal strike", ACTION_HIGH + 3), nullptr)));
+    triggers.push_back(new TriggerNode("overpower", NextAction::array(0, new NextAction("overpower", ACTION_HIGH + 4), nullptr)));
+    triggers.push_back(new TriggerNode("taste for blood", NextAction::array(0, new NextAction("overpower", ACTION_HIGH + 4), nullptr)));
 }

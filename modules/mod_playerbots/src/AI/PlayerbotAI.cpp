@@ -29,6 +29,7 @@
 #include "PointMovementGenerator.h"
 #include "Playerbots.h"
 #include "PlayerbotAIConfig.h"
+#include "PlayerbotSpec.h"
 #include "PerformanceMonitor.h"
 #include "RandomPlayerbotMgr.h"
 #include "ServerFacade.h"
@@ -2969,4 +2970,18 @@ uint8 PlayerbotAI::FindEquipSlot(ItemTemplate const* proto, uint32 slot, bool sw
 
     // no free position
     return NULL_SLOT;
+}
+bool PlayerbotAI::HasAggro(Unit* unit)
+{
+    if (!unit)
+    {
+        return false;
+    }
+    bool isMT = PlayerBotSpec::IsMainTank(bot);
+    Unit* victim = unit->GetVictim();
+    if (victim && (victim->GetGUID() == bot->GetGUID() || (!isMT && victim->ToPlayer() && PlayerBotSpec::IsTank(victim->ToPlayer()))))
+    {
+        return true;
+    }
+    return false;
 }

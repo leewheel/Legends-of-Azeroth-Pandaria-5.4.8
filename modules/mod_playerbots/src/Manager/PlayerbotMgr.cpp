@@ -10,6 +10,7 @@
 #include <istream>
 #include <string>
 
+#include "BotFactory.h"
 #include "Helper.h"
 #include "PlayerbotAIConfig.h"
 #include "CharacterCache.h"
@@ -860,9 +861,14 @@ std::vector<std::string> PlayerbotHolder::HandlePlayerbotCommand(char const* arg
         auto bot = ObjectAccessor::FindConnectedPlayer(master->GetTarget());
         if (bot)
         {
-            bot->ActivateSpec(0);
+            bot->ResetTalents(true, true, true);
             bot->GetSession()->HandeSetTalentSpecialization(p);
             bot->ActivateSpec(0);
+            BotFactory factory(bot, bot->GetLevel());
+            factory.InitTalentsTree(true);
+            factory.InitEquipment(true);
+            GET_PLAYERBOT_AI(bot)->ResetStrategies();
+            GET_PLAYERBOT_AI(bot)->Reset(true);
         }
         return StringVector();
     }
@@ -931,7 +937,10 @@ std::vector<std::string> PlayerbotHolder::HandlePlayerbotCommand(char const* arg
             return messages;
         }
         TeamId teamId = master->GetTeamId();
-        GuidVector& guidCache = sRandomPlayerbotMgr->AddclassCache()[RandomPlayerbotMgr::GetTeamClassIdx(teamId == TEAM_ALLIANCE, claz)];
+        GuidVector guidCache = sRandomPlayerbotMgr->AddclassCache()[RandomPlayerbotMgr::GetTeamClassIdx(teamId == TEAM_ALLIANCE, claz)];
+        
+        std::mt19937 gen(std::chrono::system_clock::now().time_since_epoch().count());
+        std::shuffle(guidCache.begin(), guidCache.end(), gen);
         for (size_t i = 0; i < guidCache.size(); i++)
         {
             ObjectGuid guid = guidCache[i];
@@ -941,6 +950,26 @@ std::vector<std::string> PlayerbotHolder::HandlePlayerbotCommand(char const* arg
                 continue;
 
             AddPlayerBot(guid, master->GetSession()->GetAccountId());
+            // ugly
+            std::thread([this, master, guid]
+            {
+                Player* bot = nullptr;
+                int max_try = 100;
+                do
+                {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(120));
+                    bot = ObjectAccessor::FindConnectedPlayer(guid);
+                    if (bot) break;
+                    --max_try;
+                } while (bot == nullptr && max_try > 0);
+                if (!bot) return;
+                sRandomPlayerbotMgr->SetValue(bot, "level", master->GetLevel());
+                sRandomPlayerbotMgr->Randomize(bot);
+                BotFactory factory(bot, bot->GetLevel());
+                factory.InitTalentsTree(true);
+                factory.InitEquipment(true);
+            }).detach();
+            
             messages.push_back("Add class " + std::string(charname));
             return messages;
         }

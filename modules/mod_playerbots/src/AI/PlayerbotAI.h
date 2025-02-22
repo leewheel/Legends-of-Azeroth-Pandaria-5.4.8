@@ -150,6 +150,7 @@ public:
     // Check if player is safe to use.
     bool IsSafe(Player* player);
     bool IsSafe(WorldObject* obj);
+    bool HasAggro(Unit* unit);
 
     // Get the group leader or the master of the bot.
     // Checks if the bot is summoned as alt of a player

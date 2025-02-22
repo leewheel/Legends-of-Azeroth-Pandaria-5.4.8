@@ -568,6 +568,12 @@ void Unit::resetAttackTimer(WeaponAttackType type)
         m_attackTimer[type] -= m_attackTimerReminder[type];
 }
 
+float Unit::GetMeleeRange(Unit const* target) const
+{
+    float range = GetCombatReach() + target->GetCombatReach() + 4.0f / 3.0f;
+    return std::max(range, NOMINAL_MELEE_RANGE);
+}
+
 float Unit::GetMeleeReach() const
 {
     float reach = m_floatValues [UNIT_FIELD_COMBAT_REACH];
@@ -3681,10 +3687,18 @@ bool Unit::isInBackInMap(Unit const* target, float distance, float arc) const
 
 bool Unit::isInAccessiblePlaceFor(Creature const* c) const
 {
-    if (IsInWater())
-        return c->CanSwim();
+    ZLiquidStatus liquidStatus = GetLiquidStatus();
+    bool isInWater = (liquidStatus & MAP_LIQUID_STATUS_IN_CONTACT) != 0;
+
+    // In water or jumping in water
+    if (isInWater || (liquidStatus == LIQUID_MAP_ABOVE_WATER && (IsFalling() || (ToPlayer() && ToPlayer()->IsFalling()))))
+    {
+        return c->CanEnterWater();
+    }
     else
+    {
         return c->CanWalk() || c->CanFly();
+    }
 }
 
 bool Unit::IsInWater() const
@@ -11742,6 +11756,8 @@ void Unit::SetInCombatState(bool PvP, Unit* enemy)
                 creature->GetFormation()->MemberEngagingTarget(creature, enemy);
         }
 
+        creature->RefreshSwimmingFlag();
+
         if (!(creature->GetCreatureTemplate()->type_flags & CREATURE_TYPEFLAGS_MOUNTED_COMBAT))
             Dismount();
     }
@@ -16675,6 +16691,10 @@ bool Unit::SetCharmedBy(Unit* charmer, CharmType type, AuraApplication const* au
                 break;
         }
     }
+    
+    if (Creature* creature = ToCreature())
+        creature->RefreshSwimmingFlag();
+
     if (GetTypeId() == TYPEID_UNIT)
         TC_LOG_DEBUG("crash", "Unit::SetCharmedBy2, GUID: " UI64FMTD ", entry: %u, charmer: " UI64FMTD ", type: %u, aura: %u", GetGUID().GetRawValue(), GetEntry(), GetCharmerGUID().GetRawValue(), type, aurApp ? aurApp->GetBase()->GetId() : 0);
     return true;
@@ -18465,7 +18485,7 @@ void Unit::WriteMovementInfo(WorldPacket& data, Movement::ExtraMovementStatusEle
     bool hasTimestamp = mi.time;
     bool hasOrientation = !G3D::fuzzyEq(GetOrientation(), 0.0f);
     bool hasTransportData = GetTransGUID() != 0;
-    bool hasSpline = IsSplineEnabled();
+    bool hasSpline = movespline ? IsSplineEnabled() : false;
 
     bool hasTransportTime2 = hasTransportData && m_movementInfo.transport.time2 != 0;
     bool hasTransportTime3 = false;
@@ -18491,230 +18511,226 @@ void Unit::WriteMovementInfo(WorldPacket& data, Movement::ExtraMovementStatusEle
 
         switch (element)
         {
-            case MSEHasGuidByte0:
-            case MSEHasGuidByte1:
-            case MSEHasGuidByte2:
-            case MSEHasGuidByte3:
-            case MSEHasGuidByte4:
-            case MSEHasGuidByte5:
-            case MSEHasGuidByte6:
-            case MSEHasGuidByte7:
-                data.WriteBit(guid [element - MSEHasGuidByte0]);
+        case MSEHasGuidByte0:
+        case MSEHasGuidByte1:
+        case MSEHasGuidByte2:
+        case MSEHasGuidByte3:
+        case MSEHasGuidByte4:
+        case MSEHasGuidByte5:
+        case MSEHasGuidByte6:
+        case MSEHasGuidByte7:
+            data.WriteBit(guid[element - MSEHasGuidByte0]);
+            break;
+        case MSEHasTransportGuidByte0:
+        case MSEHasTransportGuidByte1:
+        case MSEHasTransportGuidByte2:
+        case MSEHasTransportGuidByte3:
+        case MSEHasTransportGuidByte4:
+        case MSEHasTransportGuidByte5:
+        case MSEHasTransportGuidByte6:
+        case MSEHasTransportGuidByte7:
+            if (hasTransportData)
+                data.WriteBit(tguid[element - MSEHasTransportGuidByte0]);
+            break;
+        case MSEGuidByte0:
+        case MSEGuidByte1:
+        case MSEGuidByte2:
+        case MSEGuidByte3:
+        case MSEGuidByte4:
+        case MSEGuidByte5:
+        case MSEGuidByte6:
+        case MSEGuidByte7:
+            data.WriteByteSeq(guid[element - MSEGuidByte0]);
+            break;
+        case MSETransportGuidByte0:
+        case MSETransportGuidByte1:
+        case MSETransportGuidByte2:
+        case MSETransportGuidByte3:
+        case MSETransportGuidByte4:
+        case MSETransportGuidByte5:
+        case MSETransportGuidByte6:
+        case MSETransportGuidByte7:
+            if (hasTransportData)
+                data.WriteByteSeq(tguid[element - MSETransportGuidByte0]);
+            break;
+        case MSEHasCounter:
+            data.WriteBit(!m_movementCounter);
+            break;
+        case MSEHasMovementFlags:
+            data.WriteBit(!hasMovementFlags);
+            break;
+        case MSEHasMovementFlags2:
+            data.WriteBit(!hasMovementFlags2);
+            break;
+        case MSEHasMountDisplayId:
+            data.WriteBit(!hasMountDisplayId);
+            break;
+        case MSEHasTimestamp:
+            data.WriteBit(!hasTimestamp);
+            break;
+        case MSEHasOrientation:
+            data.WriteBit(!hasOrientation);
+            break;
+        case MSEHasTransportData:
+            data.WriteBit(hasTransportData);
+            break;
+        case MSEHasTransportTime2:
+            if (hasTransportData)
+                data.WriteBit(hasTransportTime2);
+            break;
+        case MSEHasTransportTime3:
+            if (hasTransportData)
+                data.WriteBit(hasTransportTime3);
+            break;
+        case MSEHasPitch:
+            data.WriteBit(!hasPitch);
+            break;
+        case MSEHasFallData:
+            data.WriteBit(hasFallData);
+            break;
+        case MSEHasFallDirection:
+            if (hasFallData)
+                data.WriteBit(hasFallDirection);
+            break;
+        case MSEHasSplineElevation:
+            data.WriteBit(!hasSplineElevation);
+            break;
+        case MSEHasSpline:
+            data.WriteBit(hasSpline);
+            break;
+        case MSEMountDisplayIdWithCheck: // Fallback here
+            if (!hasMountDisplayId)
                 break;
-            case MSEHasTransportGuidByte0:
-            case MSEHasTransportGuidByte1:
-            case MSEHasTransportGuidByte2:
-            case MSEHasTransportGuidByte3:
-            case MSEHasTransportGuidByte4:
-            case MSEHasTransportGuidByte5:
-            case MSEHasTransportGuidByte6:
-            case MSEHasTransportGuidByte7:
-                if (hasTransportData)
-                    data.WriteBit(tguid [element - MSEHasTransportGuidByte0]);
-                break;
-            case MSEGuidByte0:
-            case MSEGuidByte1:
-            case MSEGuidByte2:
-            case MSEGuidByte3:
-            case MSEGuidByte4:
-            case MSEGuidByte5:
-            case MSEGuidByte6:
-            case MSEGuidByte7:
-                data.WriteByteSeq(guid [element - MSEGuidByte0]);
-                break;
-            case MSETransportGuidByte0:
-            case MSETransportGuidByte1:
-            case MSETransportGuidByte2:
-            case MSETransportGuidByte3:
-            case MSETransportGuidByte4:
-            case MSETransportGuidByte5:
-            case MSETransportGuidByte6:
-            case MSETransportGuidByte7:
-                if (hasTransportData)
-                    data.WriteByteSeq(tguid [element - MSETransportGuidByte0]);
-                break;
-            case MSEHasCounter:
-                data.WriteBit(!m_movementCounter);
-                break;
-            case MSEHasMovementFlags:
-                data.WriteBit(!hasMovementFlags);
-                break;
-            case MSEHasMovementFlags2:
-                data.WriteBit(!hasMovementFlags2);
-                break;
-            case MSEHasMountDisplayId:
-                data.WriteBit(!hasMountDisplayId);
-                break;
-            case MSEHasTimestamp:
-                data.WriteBit(!hasTimestamp);
-                break;
-            case MSEHasOrientation:
-                data.WriteBit(!hasOrientation);
-                break;
-            case MSEHasTransportData:
-                data.WriteBit(hasTransportData);
-                break;
-            case MSEHasTransportTime2:
-                if (hasTransportData)
-                    data.WriteBit(hasTransportTime2);
-                break;
-            case MSEHasTransportTime3:
-                if (hasTransportData)
-                    data.WriteBit(hasTransportTime3); // this should be renamed
-                break;
-            case MSEHasPitch:
-                data.WriteBit(!hasPitch);
-                break;
-            case MSEHasFallData:
-                data.WriteBit(hasFallData);
-                break;
-            case MSEHasFallDirection:
-                if (hasFallData)
-                    data.WriteBit(hasFallDirection);
-                break;
-            case MSEHasSplineElevation:
-                data.WriteBit(!hasSplineElevation);
-                break;
-            case MSEHasSpline:
-                data.WriteBit(hasSpline);
-                break;
-            case MSEMountDisplayIdWithCheck: // Fallback here
-                if (!hasMountDisplayId)
-                    break;
-            case MSEMountDisplayIdWithoutCheck:
-                data << GetUInt32Value(UNIT_FIELD_MOUNT_DISPLAY_ID);
-                break;
-            case MSEMovementFlags:
-                if (hasMovementFlags)
-                    data.WriteBits(GetUnitMovementFlags(), 30);
-                break;
-            case MSEMovementFlags2:
-                if (hasMovementFlags2)
-                    data.WriteBits(GetExtraUnitMovementFlags(), 13);
-                break;
-            case MSETimestamp:
-                if (hasTimestamp)
-                    data << mi.time;
-                break;
-            case MSEPositionX:
-                if (data.GetOpcode() == SMSG_MOVE_TELEPORT && hasTransportData)
-                    data << GetTransOffsetX();
-                else
-                    data << GetPositionX();
-                break;
-            case MSEPositionY:
-                if (data.GetOpcode() == SMSG_MOVE_TELEPORT && hasTransportData)
-                    data << GetTransOffsetY();
-                else
-                    data << GetPositionY();
-                break;
-            case MSEPositionZ:
-                if (data.GetOpcode() == SMSG_MOVE_TELEPORT && hasTransportData)
-                    data << GetTransOffsetZ();
-                else
-                    data << GetPositionZ();
-                break;
-            case MSEOrientation:
-                if (!hasOrientation)
-                    break;
-            case MSEOrientationWithoutCheck:
-                if (data.GetOpcode() == SMSG_MOVE_TELEPORT && hasTransportData)
-                    data << GetTransOffsetO();
-                else
-                    data << GetOrientation();
-                break;
-            case MSETransportPositionX:
-                if (hasTransportData)
-                    data << GetTransOffsetX();
-                break;
-            case MSETransportPositionY:
-                if (hasTransportData)
-                    data << GetTransOffsetY();
-                break;
-            case MSETransportPositionZ:
-                if (hasTransportData)
-                    data << GetTransOffsetZ();
-                break;
-            case MSETransportOrientation:
-                if (hasTransportData)
-                    data << GetTransOffsetO();
-                break;
-            case MSETransportSeat:
-                if (hasTransportData)
-                    data << GetTransSeat();
-                break;
-            case MSETransportTime:
-                if (hasTransportData)
-                    data << GetTransTime();
-                break;
-            case MSETransportTime2:
-                if (hasTransportData && hasTransportTime2)
-                    data << mi.transport.time2;
-                break;
-            case MSETransportTime3:
-                if (hasTransportData && hasTransportTime3)
-                    data << mi.transport.time3; // this should be renamed
-                break;
-            case MSEPitch:
-                if (hasPitch)
-                    data << mi.pitch;
-                break;
-            case MSEFallTime:
-                if (hasFallData)
-                    data << mi.jump.fallTime;
-                break;
-            case MSEFallVerticalSpeed:
-                if (hasFallData)
-                    data << mi.jump.zspeed;
-                break;
-            case MSEFallCosAngle:
-                if (hasFallData && hasFallDirection)
-                    data << mi.jump.cosAngle;
-                break;
-            case MSEFallSinAngle:
-                if (hasFallData && hasFallDirection)
-                    data << mi.jump.sinAngle;
-                break;
-            case MSEFallHorizontalSpeed:
-                if (hasFallData && hasFallDirection)
-                    data << mi.jump.xyspeed;
-                break;
-            case MSESplineElevation:
-                if (hasSplineElevation)
-                    data << mi.splineElevation;
-                break;
-            case MSEForcesCount:
-                data.WriteBits(0, 22);
-                break;
-            case MSECounter:
-                if (m_movementCounter)
-                    data << m_movementCounter;
-                m_movementCounter++;
-                break;
-            case MSECount:
-                data << m_movementCounter++;
-                break;
-            case MSEZeroBit:
-                data.WriteBit(0);
-                break;
-            case MSEOneBit:
-                data.WriteBit(1);
-                break;
-            case MSEExtraElement:
-                extras->WriteNextElement(data);
-                break;
-            case MSEUintCount:
-                data << uint32(0);
-                break;
-            case MSEForces:
-                /*
-                for (uint8 i = 0; i < forcesCount; ++i)
-                data << uint32(0);
-                */
-                break;
-            default:
-                ASSERT(Movement::PrintInvalidSequenceElement(element, __FUNCTION__));
-                break;
+        case MSEMountDisplayIdWithoutCheck:
+            data << GetUInt32Value(UNIT_FIELD_MOUNT_DISPLAY_ID);
+            break;
+        case MSEMovementFlags:
+            if (hasMovementFlags)
+                data.WriteBits(GetUnitMovementFlags(), 30);
+            break;
+        case MSEMovementFlags2:
+            if (hasMovementFlags2)
+                data.WriteBits(GetExtraUnitMovementFlags(), 13);
+            break;
+        case MSETimestamp:
+            if (hasTimestamp)
+                data << mi.time;
+            break;
+        case MSEPositionX:
+            data << GetPositionX();
+            break;
+        case MSEPositionY:
+            data << GetPositionY();
+            break;
+        case MSEPositionZ:
+            data << GetPositionZ();
+            break;
+        case MSEOrientation:
+            if (hasOrientation)
+                data << GetOrientation();
+            break;
+        case MSETransportPositionX:
+            if (hasTransportData)
+                data << GetTransOffsetX();
+            break;
+        case MSETransportPositionY:
+            if (hasTransportData)
+                data << GetTransOffsetY();
+            break;
+        case MSETransportPositionZ:
+            if (hasTransportData)
+                data << GetTransOffsetZ();
+            break;
+        case MSETransportOrientation:
+            if (hasTransportData)
+                data << GetTransOffsetO();
+            break;
+        case MSETransportSeat:
+            if (hasTransportData)
+                data << GetTransSeat();
+            break;
+        case MSETransportTime:
+            if (hasTransportData)
+                data << GetTransTime();
+            break;
+        case MSETransportTime2:
+            if (hasTransportData && hasTransportTime2)
+                data << mi.transport.time2;
+            break;
+        case MSETransportTime3:
+            if (hasTransportData && hasTransportTime3)
+                data << mi.transport.time3;
+            break;
+        case MSEPitch:
+            if (hasPitch)
+                data << mi.pitch;
+            break;
+        case MSEFallTime:
+            if (hasFallData)
+                data << mi.jump.fallTime;
+            break;
+        case MSEFallVerticalSpeed:
+            if (hasFallData)
+                data << mi.jump.zspeed;
+            break;
+        case MSEFallCosAngle:
+            if (hasFallData && hasFallDirection)
+                data << mi.jump.cosAngle;
+            break;
+        case MSEFallSinAngle:
+            if (hasFallData && hasFallDirection)
+                data << mi.jump.sinAngle;
+            break;
+        case MSEFallHorizontalSpeed:
+            if (hasFallData && hasFallDirection)
+                data << mi.jump.xyspeed;
+            break;
+        case MSESplineElevation:
+            if (hasSplineElevation)
+                data << mi.splineElevation;
+            break;
+        case MSEForcesCount:
+            data.WriteBits(0, 22);
+            break;
+        case MSECounter:
+            if (m_movementCounter)
+                data << m_movementCounter;
+            m_movementCounter++;
+            break;
+        case MSECount:
+            data << m_movementCounter++;
+            break;
+        case MSEZeroBit:
+            data.WriteBit(0);
+            break;
+        case MSEOneBit:
+            data.WriteBit(1);
+            break;
+        case MSEExtraElement:
+            extras->WriteNextElement(data);
+            break;
+        case MSEUintCount:
+            data << uint32(0);
+            break;
+        case MSEHasTransportVehicleId:
+            data.WriteBit(hasTransportVehicleId);
+            break;
+        case MSETransportVehicleId:
+            if (hasTransportVehicleId)
+                data << mi.transport.time3; // this should be renamed
+            break;
+        case MSEForces:
+            /*
+            for (uint8 i = 0; i < forcesCount; ++i)
+            data << uint32(0);
+            */
+            break;
+        case MSEFlushBits:
+            data.FlushBits();
+            break;
+        default:
+            ASSERT(Movement::PrintInvalidSequenceElement(element, __FUNCTION__));
+            break;
         }
     }
 }
@@ -19426,14 +19442,19 @@ bool Unit::SetSwim(bool enable)
         return false;
 
     if (enable)
+    {
         AddUnitMovementFlag(MOVEMENTFLAG_SWIMMING);
+        SetUnitFlag(UNIT_FLAG_CAN_SWIM);
+        Movement::PacketSender(this, SMSG_SPLINE_MOVE_START_SWIM, SMSG_SPLINE_MOVE_START_SWIM).Send();
+        Movement::PacketSender(this, SMSG_MOVE_GRAVITY_DISABLE, SMSG_MOVE_GRAVITY_DISABLE).Send();
+    }
     else
+    {
         RemoveUnitMovementFlag(MOVEMENTFLAG_SWIMMING);
-
-    if (enable)
-        Movement::PacketSender(this, SMSG_SPLINE_MOVE_START_SWIM, NULL_OPCODE).Send();
-    else
-        Movement::PacketSender(this, SMSG_SPLINE_MOVE_STOP_SWIM, NULL_OPCODE).Send();
+        RemoveUnitFlag(UNIT_FLAG_CAN_SWIM);
+        Movement::PacketSender(this, SMSG_SPLINE_MOVE_STOP_SWIM, SMSG_SPLINE_MOVE_STOP_SWIM).Send();
+        Movement::PacketSender(this, SMSG_MOVE_GRAVITY_ENABLE, SMSG_MOVE_GRAVITY_DISABLE).Send();
+    }
 
     return true;
 }

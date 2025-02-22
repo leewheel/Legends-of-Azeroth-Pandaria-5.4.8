@@ -35,6 +35,8 @@
 #include "SelfTargetValue.h"
 #include "SpellCastUsefulValue.h"
 #include "SpellIdValue.h"
+#include "TankTargetValue.h"
+#include "ThreatValues.h"
 #include "PossibleTargetsValue.h"
 #include "RandomBotUpdateValue.h"
 #include "RangeValues.h"
@@ -68,9 +70,6 @@ public:
         creators["death count"] = &ValueContext::death_count;
         creators["experience"] = &ValueContext::experience;
         creators["disperse distance"] = &ValueContext::disperse_distance;
-        creators["last flee angle"] = &ValueContext::last_flee_angle;
-        creators["last flee timestamp"] = &ValueContext::last_flee_timestamp;
-        creators["recently flee info"] = &ValueContext::recently_flee_info;
         creators["random bot update"] = &ValueContext::random_bot_update_value;
         creators["has totem"] = &ValueContext::has_totem;
 
@@ -79,7 +78,6 @@ public:
         creators["swimming"] = &ValueContext::swimming;
         creators["behind"] = &ValueContext::behind;
         creators["facing"] = &ValueContext::facing;
-        creators["has aggro"] = &ValueContext::has_aggro;
         creators["balance"] = &ValueContext::balance;
         creators["attackers"] = &ValueContext::attackers;
         creators["attacker count"] = &ValueContext::attacker_count;
@@ -156,6 +154,15 @@ public:
         creators["party member to resurrect"] = &ValueContext::party_member_to_resurrect;
         creators["party member to dispel"] = &ValueContext::party_member_to_dispel;
         creators["party member to protect"] = &ValueContext::party_member_to_protect;
+
+        creators["main tank"] = &ValueContext::main_tank;
+        creators["threat"] = &ValueContext::threat;
+        creators["has aggro"] = &ValueContext::has_aggro;
+        creators["tank target"] = &ValueContext::tank_target;
+
+        creators["last flee angle"] = &ValueContext::last_flee_angle;
+        creators["last flee timestamp"] = &ValueContext::last_flee_timestamp;
+        creators["recently flee info"] = &ValueContext::recently_flee_info;
     }
 
 private:
@@ -178,9 +185,6 @@ private:
     static UntypedValue* death_count(PlayerbotAI* botAI) { return new DeathCountValue(botAI); }
     static UntypedValue* experience(PlayerbotAI* botAI) { return new ExperienceValue(botAI); }
     static UntypedValue* disperse_distance(PlayerbotAI* ai) { return new DisperseDistanceValue(ai); }
-    static UntypedValue* last_flee_angle(PlayerbotAI* ai) { return new LastFleeAngleValue(ai); }
-    static UntypedValue* last_flee_timestamp(PlayerbotAI* ai) { return new LastFleeTimestampValue(ai); }
-    static UntypedValue* recently_flee_info(PlayerbotAI* ai) { return new RecentlyFleeInfo(ai); }
     static UntypedValue* random_bot_update_value(PlayerbotAI* botAI) { return new RandomBotUpdateValue(botAI); }
     static UntypedValue* has_totem(PlayerbotAI* botAI) { return new HasTotemValue(botAI); }
 
@@ -197,7 +201,6 @@ private:
     static UntypedValue* rti_cc(PlayerbotAI* botAI) { return new RtiCcValue(botAI); }
 
     static UntypedValue* balance(PlayerbotAI* botAI) { return new BalancePercentValue(botAI); }
-    static UntypedValue* has_aggro(PlayerbotAI* botAI) { return new HasAggroValue(botAI); }
     static UntypedValue* attackers(PlayerbotAI* botAI) { return new AttackersValue(botAI); }
     static UntypedValue* attacker_count(PlayerbotAI* botAI) { return new AttackerCountValue(botAI); }
     static UntypedValue* my_attacker_count(PlayerbotAI* botAI) { return new MyAttackerCountValue(botAI); }
@@ -264,6 +267,15 @@ private:
     static UntypedValue* party_member_to_resurrect(PlayerbotAI* botAI) { return new PartyMemberToResurrect(botAI); }
     static UntypedValue* party_member_to_dispel(PlayerbotAI* botAI) { return new PartyMemberToDispel(botAI); }
     static UntypedValue* party_member_to_protect(PlayerbotAI* botAI) { return new PartyMemberToProtect(botAI); }
+
+    static UntypedValue* main_tank(PlayerbotAI* ai) { return new PartyMemberMainTankValue(ai); }
+    static UntypedValue* tank_target(PlayerbotAI* botAI) { return new TankTargetValue(botAI); }
+    static UntypedValue* threat(PlayerbotAI* botAI) { return new ThreatValue(botAI); }
+    static UntypedValue* has_aggro(PlayerbotAI* botAI) { return new HasAggroValue(botAI); }
+
+    static UntypedValue* last_flee_angle(PlayerbotAI* ai) { return new LastFleeAngleValue(ai); }
+    static UntypedValue* last_flee_timestamp(PlayerbotAI* ai) { return new LastFleeTimestampValue(ai); }
+    static UntypedValue* recently_flee_info(PlayerbotAI* ai) { return new RecentlyFleeInfo(ai); }
 };
 
 #endif

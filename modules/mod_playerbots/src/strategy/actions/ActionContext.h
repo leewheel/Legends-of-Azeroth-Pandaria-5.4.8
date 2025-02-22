@@ -37,6 +37,8 @@ public:
         creators["attack rti target"] = &ActionContext::attack_rti_target;
         creators["auto maintenance on levelup"] = &ActionContext::auto_maintenance_on_levelup;
 
+        creators["tank face"] = &ActionContext::tank_face;
+        creators["tank assist"] = &ActionContext::tank_assist;
         creators["set facing"] = &ActionContext::set_facing;
         creators["drop target"] = &ActionContext::drop_target;
         creators["dps assist"] = &ActionContext::dps_assist;
@@ -75,6 +77,8 @@ private:
     static Action* attack_rti_target(PlayerbotAI* botAI) { return new AttackRtiTargetAction(botAI); }
     static Action* auto_maintenance_on_levelup(PlayerbotAI* botAI) { return new AutoMaintenanceOnLevelupAction(botAI); }
 
+    static Action* tank_face(PlayerbotAI* botAI) { return new TankFaceAction(botAI); }
+    static Action* tank_assist(PlayerbotAI* botAI) { return new TankAssistAction(botAI); }
     static Action* set_facing(PlayerbotAI* botAI) { return new SetFacingTargetAction(botAI); }
     static Action* drop_target(PlayerbotAI* botAI) { return new DropTargetAction(botAI); }
     static Action* dps_assist(PlayerbotAI* botAI) { return new DpsAssistAction(botAI); }

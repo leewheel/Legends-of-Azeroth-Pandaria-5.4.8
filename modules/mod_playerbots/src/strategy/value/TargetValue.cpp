@@ -9,6 +9,7 @@
 #include "ObjectGuid.h"
 #include "Playerbots.h"
 #include "PlayerbotSpec.h"
+#include "RtiTargetValue.h"
 #include "ScriptedCreature.h"
 #include "ThreatManager.h"
 
@@ -84,5 +85,40 @@ bool FindTargetStrategy::IsHighPriority(Unit* attacker)
             return true;
         }
     }
+    return false;
+}
+
+bool FindNonCcTargetStrategy::IsCcTarget(Unit* attacker)
+{
+    if (Group* group = botAI->GetBot()->GetGroup())
+    {
+        Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
+        for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
+        {
+            Player* member = ObjectAccessor::FindPlayer(itr->guid);
+            if (!member || !member->IsAlive())
+                continue;
+
+            if (PlayerbotAI* botAI = GET_PLAYERBOT_AI(member))
+            {
+                if (botAI->GetAiObjectContext()->GetValue<Unit*>("rti cc target")->Get() == attacker)
+                    return true;
+
+                std::string const rti = botAI->GetAiObjectContext()->GetValue<std::string>("rti cc")->Get();
+                int32 index = RtiTargetValue::GetRtiIndex(rti);
+                if (index != -1)
+                {
+                    if (ObjectGuid guid = group->GetTargetIcon(index))
+                        if (attacker->GetGUID() == guid)
+                            return true;
+                }
+            }
+        }
+
+        if (ObjectGuid guid = group->GetTargetIcon(4))
+            if (attacker->GetGUID() == guid)
+                return true;
+    }
+
     return false;
 }

@@ -48,6 +48,10 @@ protected:
     bool MoveFromGroup(float distance);
     bool Move(float angle, float distance);
     bool Flee(Unit* target);
+    bool FleePosition(Position pos, float radius, uint32 minInterval = 1000);
+    bool CheckLastFlee(float curAngle, std::list<FleeInfo>& infoList);
+    Position BestPositionForMeleeToFlee(Position pos, float radius);
+    Position BestPositionForRangedToFlee(Position pos, float radius);
 
     bool IsWaitingForLastMove(MovementPriority priority);
     bool IsMovingAllowed(uint32 mapId, float x, float y, float z);
@@ -58,6 +62,12 @@ protected:
     bool Follow(Unit* target, float distance, float angle);
     float GetFollowAngle();
 
+protected:
+    struct CheckAngle
+    {
+        float angle;
+        bool strict;
+    };
 
 private:
     const Movement::PointsArray SearchForBestPath(float x, float y, float z, float& modified_z, int maxSearchCount = 5, bool normal_only = false, float step = 8.0f);
@@ -71,6 +81,34 @@ public:
     bool Execute(Event event) override;
     bool isUseful() override;
     bool isPossible() override;
+};
+
+class CombatFormationMoveAction : public MovementAction
+{
+public:
+    CombatFormationMoveAction(PlayerbotAI* botAI, std::string name = "combat formation move", int moveInterval = 1000)
+        : MovementAction(botAI, name), moveInterval(moveInterval)
+    {
+    }
+
+    bool isUseful() override;
+    bool Execute(Event event) override;
+
+protected:
+    Position AverageGroupPos(float dis = sPlayerbotAIConfig->sightDistance, bool ranged = false, bool self = false);
+    Player* NearestGroupMember(float dis = sPlayerbotAIConfig->sightDistance);
+    float AverageGroupAngle(Unit* from, bool ranged = false, bool self = false);
+    Position GetNearestPosition(const std::vector<Position>& positions);
+    int lastMoveTimer = 0;
+    int moveInterval;
+};
+
+class TankFaceAction : public CombatFormationMoveAction
+{
+public:
+    TankFaceAction(PlayerbotAI* botAI) : CombatFormationMoveAction(botAI, "tank face") {}
+
+    bool Execute(Event event) override;
 };
 
 class SetFacingTargetAction : public Action

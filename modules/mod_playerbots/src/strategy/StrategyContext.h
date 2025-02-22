@@ -16,6 +16,7 @@
 #include "MeleeCombatStrategy.h"
 #include "MoveFromGroupStrategy.h"
 #include "TankAssistStrategy.h"
+#include "ThreatStrategy.h"
 #include "HelloStrategy.h"
 #include "RunawayStrategy.h"
 #include "RangedCombatStrategy.h"
@@ -38,6 +39,9 @@ public:
 
         creators["formation"] = &StrategyContext::combat_formation;
         creators["move from group"] = &StrategyContext::move_from_group;
+
+        creators["tank face"] = &StrategyContext::tank_face;
+        creators["threat"] = &StrategyContext::threat;
         // -- temp
         creators["say hello"] = &StrategyContext::say_hello;
     }
@@ -58,6 +62,9 @@ private:
     static Strategy* group(PlayerbotAI* botAI) { return new GroupStrategy(botAI); }
     static Strategy* combat_formation(PlayerbotAI* ai) { return new CombatFormationStrategy(ai); }
     static Strategy* move_from_group(PlayerbotAI* botAI) { return new MoveFromGroupStrategy(botAI); }
+
+    static Strategy* tank_face(PlayerbotAI* botAI) { return new TankFaceStrategy(botAI); }
+    static Strategy* threat(PlayerbotAI* botAI) { return new ThreatStrategy(botAI); }
 };
 
 class MovementStrategyContext : public NamedObjectContext<Strategy>

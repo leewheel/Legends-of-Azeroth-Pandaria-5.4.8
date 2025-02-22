@@ -605,8 +605,8 @@ void RandomPlayerbotMgr::Refresh(Player* bot)
     uint32 money = bot->GetMoney();
     bot->SetMoney(money + 500 * sqrt(urand(1, bot->GetLevel() * 5)));
 
-    if (bot->GetGroup())
-        bot->RemoveFromGroup();
+    //if (bot->GetGroup())
+        //bot->RemoveFromGroup();
 
     if (pmo)
         pmo->finish();

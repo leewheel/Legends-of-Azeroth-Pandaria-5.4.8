@@ -31,6 +31,15 @@ protected:
     bool foundHighPriority = false;
 };
 
+class FindNonCcTargetStrategy : public FindTargetStrategy
+{
+public:
+    FindNonCcTargetStrategy(PlayerbotAI* botAI) : FindTargetStrategy(botAI) {}
+
+protected:
+    virtual bool IsCcTarget(Unit* attacker);
+};
+
 class TargetValue : public UnitCalculatedValue
 {
 public:

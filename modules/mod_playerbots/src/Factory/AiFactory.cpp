@@ -68,38 +68,6 @@ Specializations AiFactory::GetPlayerSpecTab(Player* bot)
     return bot->GetSpecialization();
 }
 
-std::map<uint8, uint32> AiFactory::GetPlayerSpecTabs(Player* bot)
-{
-    std::map<uint8, uint32> tabs = {{0, 0}, {0, 0}, {0, 0}};
-    /*const PlayerTalentMap& talentMap = bot->GetTalentMap();
-    for (PlayerTalentMap::const_iterator i = talentMap.begin(); i != talentMap.end(); ++i)
-    {
-        uint32 spellId = i->first;
-        if ((bot->GetActiveSpecMask() & i->second->specMask) == 0)
-        {
-            continue;
-        }
-        TalentSpellPos const* talentPos = GetTalentSpellPos(spellId);
-        if (!talentPos)
-            continue;
-        TalentEntry const* talentInfo = sTalentStore.LookupEntry(talentPos->talent_id);
-        if (!talentInfo)
-            continue;
-
-        uint32 const* talentTabIds = GetTalentTabPages(bot->getClass());
-
-        const SpellInfo* spellInfo = sSpellMgr->GetSpellInfo(spellId);
-        int rank = spellInfo ? spellInfo->GetRank() : 1;
-        if (talentInfo->TalentTab == talentTabIds[0])
-            tabs[0] += rank;
-        if (talentInfo->TalentTab == talentTabIds[1])
-            tabs[1] += rank;
-        if (talentInfo->TalentTab == talentTabIds[2])
-            tabs[2] += rank;
-    }*/
-    return tabs;
-}
-
 BotRoles AiFactory::GetPlayerRoles(Player* player)
 {
     BotRoles role = BOT_ROLE_NONE;
@@ -478,7 +446,7 @@ void AiFactory::AddDefaultCombatStrategies(Player* player, PlayerbotAI* const fa
     // temporary
     //engine->addStrategy("ranged");
     //engine->addStrategy("melee");
-    engine->addStrategy("say hello");
+    //engine->addStrategy("say hello");
 }
 
 Engine* AiFactory::createCombatEngine(Player* player, PlayerbotAI* const facade, AiObjectContext* aiObjectContext)
@@ -592,7 +560,7 @@ void AiFactory::AddDefaultNonCombatStrategies(Player* player, PlayerbotAI* const
         nonCombatEngine->addStrategiesNoInit("nc", "food", "chat", "follow", "default", "quest", "loot", "gather", "duel",
             "buff", "mount", "emote", nullptr);
     }
-    nonCombatEngine->addStrategy("say hello");
+    //nonCombatEngine->addStrategy("say hello");
 }
 
 Engine* AiFactory::createNonCombatEngine(Player* player, PlayerbotAI* const facade, AiObjectContext* aiObjectContext)

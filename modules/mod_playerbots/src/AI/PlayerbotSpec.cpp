@@ -169,6 +169,25 @@ bool PlayerBotSpec::IsDps(Player* player, bool bySpec)
     return (!IsTank(player) && !IsHeal(player));
 }
 
+uint32 PlayerBotSpec::GetGroupTankNum(Player* player)
+{
+    Group* group = player->GetGroup();
+    if (!group)
+    {
+        return 0;
+    }
+    uint32 result = 0;
+    for (GroupReference* ref = group->GetFirstMember(); ref; ref = ref->next())
+    {
+        Player* member = ref->GetSource();
+        if (IsTank(member) && member->IsAlive())
+        {
+            result++;
+        }
+    }
+    return result;
+}
+
 bool PlayerBotSpec::IsMainTank(Player* player)
 {
     Group* group = player->GetGroup();
@@ -196,6 +215,44 @@ bool PlayerBotSpec::IsMainTank(Player* player)
         if (IsTank(member) && member->IsAlive())
         {
             return player->GetGUID() == member->GetGUID();
+        }
+    }
+    return false;
+}
+bool PlayerBotSpec::IsAssistTank(Player* player) { return IsTank(player) && !IsMainTank(player); }
+
+bool PlayerBotSpec::IsAssistTankOfIndex(Player* bot, Player* player, int index)
+{
+    Group* group = bot->GetGroup();
+    if (!group)
+    {
+        return false;
+    }
+    Group::MemberSlotList const& slots = group->GetMemberSlots();
+    int counter = 0;
+    for (GroupReference* ref = group->GetFirstMember(); ref; ref = ref->next())
+    {
+        Player* member = ref->GetSource();
+        if (group->IsAssistant(member->GetGUID()) && IsAssistTank(member))
+        {
+            if (index == counter)
+            {
+                return player == member;
+            }
+            counter++;
+        }
+    }
+    // not enough
+    for (GroupReference* ref = group->GetFirstMember(); ref; ref = ref->next())
+    {
+        Player* member = ref->GetSource();
+        if (!group->IsAssistant(member->GetGUID()) && IsAssistTank(member))
+        {
+            if (index == counter)
+            {
+                return player == member;
+            }
+            counter++;
         }
     }
     return false;

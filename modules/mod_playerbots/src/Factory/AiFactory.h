@@ -31,7 +31,6 @@ public:
     static void AddDefaultCombatStrategies(Player* player, PlayerbotAI* const facade, Engine* engine);
 
     static Specializations GetPlayerSpecTab(Player* player);
-    static std::map<uint8, uint32> GetPlayerSpecTabs(Player* player);
     static BotRoles GetPlayerRoles(Player* player);
     static std::string GetPlayerSpecName(Player* player);
 };
