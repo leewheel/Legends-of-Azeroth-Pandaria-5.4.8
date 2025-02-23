@@ -63,6 +63,13 @@ protected:
         clazz(PlayerbotAI* botAI) : BuffTrigger(botAI, spell) {} \
     }
 
+#define BUFF_TRIGGER_TIMED(clazz, spell, duration)                          \
+    class clazz : public BuffTrigger                                        \
+    {                                                                       \
+    public:                                                                 \
+        clazz(PlayerbotAI* botAI) : BuffTrigger(botAI, spell, duration) {}  \
+    }
+
 #define BUFF_TRIGGER_A(clazz, spell)                             \
     class clazz : public BuffTrigger                             \
     {                                                            \

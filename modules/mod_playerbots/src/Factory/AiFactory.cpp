@@ -351,7 +351,14 @@ void AiFactory::AddDefaultCombatStrategies(Player* player, PlayerbotAI* const fa
         }
         case CLASS_WARLOCK:
         {
-            engine->addStrategiesNoInit("dps assist", "dps", "dps debuff", "aoe", nullptr);
+            if (spec == Specializations::SPEC_WARLOCK_DEMONOLOGY)
+                engine->addStrategy("demono", false);
+            else if (spec == Specializations::SPEC_WARLOCK_DESTRUCTION)
+                engine->addStrategy("destru", false);
+            else
+                engine->addStrategy("affli", false);
+            
+            engine->addStrategiesNoInit("dps assist", "dps", "aoe", nullptr);
             break;
         }
         case CLASS_DEATH_KNIGHT:

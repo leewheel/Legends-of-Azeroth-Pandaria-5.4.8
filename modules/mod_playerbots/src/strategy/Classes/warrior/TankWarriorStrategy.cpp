@@ -24,6 +24,7 @@ public:
         creators["enraged regeneration"] = &enraged_regeneration;
         creators["vigilance"] = &vigilance;
         creators["storm bolt"] = &storm_bolt;
+        creators["mocking banner"] = &mocking_banner;
     }
 
 private:
@@ -39,6 +40,7 @@ private:
     ACTION_NODE(enraged_regeneration, "enraged regeneration");
     ACTION_NODE(vigilance, "vigilance");
     ACTION_NODE(storm_bolt, "storm bolt");
+    ACTION_NODE(mocking_banner, "mocking banner");
 };
 
 TankWarriorStrategy::TankWarriorStrategy(PlayerbotAI* botAI) : GenericWarriorStrategy(botAI)
@@ -64,8 +66,6 @@ void TankWarriorStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
     triggers.push_back(new TriggerNode("demoralizing shout", NextAction::array(0, new NextAction("demoralizing shout", ACTION_HIGH + 8), nullptr)));
 
     triggers.push_back(new TriggerNode("vigilance", NextAction::array(0, new NextAction("vigilance", ACTION_HIGH + 7), nullptr)));
-    triggers.push_back(new TriggerNode("low health", NextAction::array(0, new NextAction("enraged regeneration", ACTION_INTERRUPT), nullptr)));
-    triggers.push_back(new TriggerNode("medium health", NextAction::array(0, new NextAction("last stand", ACTION_HIGH), nullptr)));
     triggers.push_back(new TriggerNode("shield block", NextAction::array(0, new NextAction("shield block", ACTION_HIGH + 1), nullptr)));
     triggers.push_back(new TriggerNode("revenge", NextAction::array(0, new NextAction("revenge", ACTION_HIGH + 2), nullptr)));
     triggers.push_back(new TriggerNode("lose aggro", NextAction::array(0, new NextAction("taunt", ACTION_INTERRUPT + 1), nullptr)));

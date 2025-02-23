@@ -7,27 +7,18 @@
 #define _PLAYERBOT_WARLOCKACTIONS_H
 
 #include "GenericSpellActions.h"
+#include "Playerbots.h"
 
 class PlayerbotAI;
 class Unit;
 
-class CastDemonSkinAction : public CastBuffSpellAction
-{
-public:
-    CastDemonSkinAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "demon skin") {}
-};
 
-class CastDemonArmorAction : public CastBuffSpellAction
-{
-public:
-    CastDemonArmorAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "demon armor") {}
-};
-
-class CastFelArmorAction : public CastBuffSpellAction
-{
-public:
-    CastFelArmorAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "fel armor") {}
-};
+SPELL_ACTION(CastSoulShatterAction, "soulshatter");
+SPELL_ACTION(CastUnendingResolveAction, "unending resolve");
+SPELL_ACTION(CastFelFlameAction, "fel flame");
+BUFF_ACTION(CastDarkIntentAction, "dark intent");
+SPELL_ACTION(CastDarkSoulAction, "dark soul");
+SPELL_ACTION(CastTwilightWardAction, "twilight ward");
 
 BEGIN_RANGED_SPELL_ACTION(CastShadowBoltAction, "shadow bolt")
 END_SPELL_ACTION()
@@ -40,24 +31,11 @@ public:
     bool isUseful() override;
 };
 
-class CastDrainManaAction : public CastSpellAction
-{
-public:
-    CastDrainManaAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "drain mana") {}
-};
-
 class CastDrainLifeAction : public CastSpellAction
 {
 public:
     CastDrainLifeAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "drain life") {}
 };
-
-class CastCurseOfAgonyAction : public CastDebuffSpellAction
-{
-public:
-    CastCurseOfAgonyAction(PlayerbotAI* botAI) : CastDebuffSpellAction(botAI, "curse of agony", true) {}
-};
-
 class CastCurseOfWeaknessAction : public CastDebuffSpellAction
 {
 public:
@@ -73,7 +51,6 @@ public:
         return CastDebuffSpellAction::isUseful() && !botAI->HasAura("seed of corruption", GetTarget(), false, true);
     }
 };
-
 class CastCorruptionOnAttackerAction : public CastDebuffSpellOnAttackerAction
 {
 public:
@@ -84,16 +61,6 @@ public:
                !botAI->HasAura("seed of corruption", GetTarget(), false, true);
     }
 };
-
-class CastCurseOfAgonyOnAttackerAction : public CastDebuffSpellOnAttackerAction
-{
-public:
-    CastCurseOfAgonyOnAttackerAction(PlayerbotAI* botAI)
-        : CastDebuffSpellOnAttackerAction(botAI, "curse of agony", true)
-    {
-    }
-};
-
 class CastSummonVoidwalkerAction : public CastBuffSpellAction
 {
 public:
@@ -130,18 +97,6 @@ public:
     CastCreateHealthstoneAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "create healthstone") {}
 };
 
-class CastCreateFirestoneAction : public CastBuffSpellAction
-{
-public:
-    CastCreateFirestoneAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "create firestone") {}
-};
-
-class CastCreateSpellstoneAction : public CastBuffSpellAction
-{
-public:
-    CastCreateSpellstoneAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "create spellstone") {}
-};
-
 class CastBanishAction : public CastBuffSpellAction
 {
 public:
@@ -150,32 +105,6 @@ public:
     Value<Unit*>* GetTargetValue() override;
     bool Execute(Event event) override;
 };
-
-class CastSeedOfCorruptionAction : public CastDebuffSpellAction
-{
-public:
-    CastSeedOfCorruptionAction(PlayerbotAI* botAI) : CastDebuffSpellAction(botAI, "seed of corruption", true, 0) {}
-    bool isUseful() override
-    {
-        return CastDebuffSpellAction::isUseful() && !botAI->HasAura("corruption", GetTarget(), false, true);
-    }
-    ActionThreatType getThreatType() override { return ActionThreatType::Aoe; }
-};
-
-class CastSeedOfCorruptionOnAttackerAction : public CastDebuffSpellOnAttackerAction
-{
-public:
-    CastSeedOfCorruptionOnAttackerAction(PlayerbotAI* botAI)
-        : CastDebuffSpellOnAttackerAction(botAI, "seed of corruption", true, 0)
-    {
-    }
-    bool isUseful() override
-    {
-        return CastDebuffSpellOnAttackerAction::isUseful() && !botAI->HasAura("corruption", GetTarget(), false, true);
-    }
-    ActionThreatType getThreatType() override { return ActionThreatType::Aoe; }
-};
-
 class CastRainOfFireAction : public CastSpellAction
 {
 public:
@@ -256,19 +185,6 @@ class CastSiphonLifeOnAttackerAction : public CastDebuffSpellOnAttackerAction
 public:
     CastSiphonLifeOnAttackerAction(PlayerbotAI* botAI) : CastDebuffSpellOnAttackerAction(botAI, "siphon life") {}
 };
-
-class CastUnstableAfflictionAction : public CastDebuffSpellAction
-{
-public:
-    CastUnstableAfflictionAction(PlayerbotAI* ai) : CastDebuffSpellAction(ai, "unstable affliction", true) {}
-};
-
-class CastHauntAction : public CastSpellAction
-{
-public:
-    CastHauntAction(PlayerbotAI* ai) : CastSpellAction(ai, "haunt") {}
-};
-
 class CastDemonicEmpowermentAction : public CastBuffSpellAction
 {
 public:
@@ -281,16 +197,6 @@ class CastMetamorphosisAction : public CastBuffSpellAction
 public:
     CastMetamorphosisAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "metamorphosis") {}
 };
-
-class CastUnstableAfflictionOnAttackerAction : public CastDebuffSpellOnAttackerAction
-{
-public:
-    CastUnstableAfflictionOnAttackerAction(PlayerbotAI* ai)
-        : CastDebuffSpellOnAttackerAction(ai, "unstable affliction", true)
-    {
-    }
-};
-
 class CastSoulFireAction : public CastSpellAction
 {
 public:
@@ -303,4 +209,62 @@ public:
     CastIncinerateAction(PlayerbotAI* ai) : CastSpellAction(ai, "incinerate") {}
 };
 
+
+// -- Affliction
+SPELL_ACTION(CastMaleficGraspAction, "malefic grasp");
+class CastCurseOfAgonyAction : public CastDebuffSpellAction
+{
+public:
+    CastCurseOfAgonyAction(PlayerbotAI* botAI) : CastDebuffSpellAction(botAI, "agony", true) {}
+};
+class CastUnstableAfflictionAction : public CastDebuffSpellAction
+{
+public:
+    CastUnstableAfflictionAction(PlayerbotAI* ai) : CastDebuffSpellAction(ai, "unstable affliction", true) {}
+};
+class CastUnstableAfflictionOnAttackerAction : public CastDebuffSpellOnAttackerAction
+{
+public:
+    CastUnstableAfflictionOnAttackerAction(PlayerbotAI* ai)
+        : CastDebuffSpellOnAttackerAction(ai, "unstable affliction", true)
+    {
+    }
+};
+class CastHauntAction : public CastSpellAction
+{
+public:
+    CastHauntAction(PlayerbotAI* ai) : CastSpellAction(ai, "haunt") {}
+};
+class CastSeedOfCorruptionAction : public CastDebuffSpellAction
+{
+public:
+    CastSeedOfCorruptionAction(PlayerbotAI* botAI) : CastDebuffSpellAction(botAI, "seed of corruption", true, 0) {}
+    bool isUseful() override
+    {
+        return CastDebuffSpellAction::isUseful() && !botAI->HasAura("corruption", GetTarget(), false, true);
+    }
+    ActionThreatType getThreatType() override { return ActionThreatType::Aoe; }
+};
+
+class CastSeedOfCorruptionOnAttackerAction : public CastDebuffSpellOnAttackerAction
+{
+public:
+    CastSeedOfCorruptionOnAttackerAction(PlayerbotAI* botAI)
+        : CastDebuffSpellOnAttackerAction(botAI, "seed of corruption", true, 0)
+    {
+    }
+    bool isUseful() override
+    {
+        return CastDebuffSpellOnAttackerAction::isUseful() && !botAI->HasAura("corruption", GetTarget(), false, true);
+    }
+    ActionThreatType getThreatType() override { return ActionThreatType::Aoe; }
+};
+class CastCurseOfAgonyOnAttackerAction : public CastDebuffSpellOnAttackerAction
+{
+public:
+    CastCurseOfAgonyOnAttackerAction(PlayerbotAI* botAI)
+        : CastDebuffSpellOnAttackerAction(botAI, "agony", true)
+    {
+    }
+};
 #endif

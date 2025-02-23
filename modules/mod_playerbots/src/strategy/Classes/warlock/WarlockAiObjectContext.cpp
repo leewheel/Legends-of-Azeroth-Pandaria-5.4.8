@@ -1,17 +1,13 @@
-/*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU GPL v2 license, you may redistribute it
- * and/or modify it under version 2 of the License, or (at your option), any later version.
- */
-
 #include "WarlockAiObjectContext.h"
 
-#include "DpsWarlockStrategy.h"
+#include "AffliWarlockStrategy.h"
+#include "DemonoWarlockStrategy.h"
+#include "DestruWarlockStrategy.h"
 #include "GenericTriggers.h"
 #include "GenericWarlockNonCombatStrategy.h"
 #include "NamedObjectContext.h"
 #include "Playerbots.h"
 #include "Strategy.h"
-#include "TankWarlockStrategy.h"
 #include "WarlockActions.h"
 #include "WarlockTriggers.h"
 
@@ -23,7 +19,6 @@ public:
         creators["nc"] = &WarlockStrategyFactoryInternal::nc;
         //creators["pull"] = &WarlockStrategyFactoryInternal::pull;
         creators["aoe"] = &WarlockStrategyFactoryInternal::aoe;
-        creators["dps debuff"] = &WarlockStrategyFactoryInternal::dps_debuff;
         creators["boost"] = &WarlockStrategyFactoryInternal::boost;
         creators["cc"] = &WarlockStrategyFactoryInternal::cc;
         creators["pet"] = &WarlockStrategyFactoryInternal::pet;
@@ -32,8 +27,7 @@ public:
 private:
     static Strategy* pet(PlayerbotAI* botAI) { return new WarlockPetStrategy(botAI); }
     static Strategy* nc(PlayerbotAI* botAI) { return new GenericWarlockNonCombatStrategy(botAI); }
-    static Strategy* aoe(PlayerbotAI* botAI) { return new DpsAoeWarlockStrategy(botAI); }
-    static Strategy* dps_debuff(PlayerbotAI* botAI) { return new DpsWarlockDebuffStrategy(botAI); }
+    static Strategy* aoe(PlayerbotAI* botAI) { return new AoeWarlockStrategy(botAI); }
     //static Strategy* pull(PlayerbotAI* botAI) { return new PullStrategy(botAI, "shoot"); }
     static Strategy* boost(PlayerbotAI* botAI) { return new WarlockBoostStrategy(botAI); }
     static Strategy* cc(PlayerbotAI* botAI) { return new WarlockCcStrategy(botAI); }
@@ -44,13 +38,15 @@ class WarlockCombatStrategyFactoryInternal : public NamedObjectContext<Strategy>
 public:
     WarlockCombatStrategyFactoryInternal() : NamedObjectContext<Strategy>(false, true)
     {
-        creators["dps"] = &WarlockCombatStrategyFactoryInternal::dps;
-        creators["tank"] = &WarlockCombatStrategyFactoryInternal::tank;
+        creators["affli"] = &WarlockCombatStrategyFactoryInternal::affli;
+        creators["demono"] = &WarlockCombatStrategyFactoryInternal::demono;
+        creators["destru"] = &WarlockCombatStrategyFactoryInternal::destru;
     }
 
 private:
-    static Strategy* tank(PlayerbotAI* botAI) { return new TankWarlockStrategy(botAI); }
-    static Strategy* dps(PlayerbotAI* botAI) { return new DpsWarlockStrategy(botAI); }
+    static Strategy* affli(PlayerbotAI* botAI) { return new AffliWarlockStrategy(botAI); }
+    static Strategy* demono(PlayerbotAI* botAI) { return new DemonoWarlockStrategy(botAI); }
+    static Strategy* destru(PlayerbotAI* botAI) { return new DestruWarlockStrategy(botAI); }
 };
 
 class NonCombatBuffStrategyFactoryInternal : public NamedObjectContext<Strategy>
@@ -74,9 +70,19 @@ class WarlockTriggerFactoryInternal : public NamedObjectContext<Trigger>
 public:
     WarlockTriggerFactoryInternal()
     {
+        creators["corruption"] = &WarlockTriggerFactoryInternal::corruption;
+
+        // -- Affliction
+        creators["agony"] = &WarlockTriggerFactoryInternal::agony;
+        creators["unstable affliction"] = &WarlockTriggerFactoryInternal::unstable_affliction;
     }
 
 private:
+    static Trigger* corruption(PlayerbotAI* botAI) { return new CorruptionTrigger(botAI); }
+
+    // -- Affliction
+    static Trigger* agony(PlayerbotAI* botAI) { return new CurseOfAgonyTrigger(botAI); }
+    static Trigger* unstable_affliction(PlayerbotAI* botAI) { return new UnstableAfflictionTrigger(botAI); }
 };
 
 class WarlockAiObjectContextInternal : public NamedObjectContext<Action>
@@ -84,27 +90,33 @@ class WarlockAiObjectContextInternal : public NamedObjectContext<Action>
 public:
     WarlockAiObjectContextInternal()
     {
-        creators["fel armor"] = &WarlockAiObjectContextInternal::fel_armor;
-        creators["demon armor"] = &WarlockAiObjectContextInternal::demon_armor;
-        creators["demon skin"] = &WarlockAiObjectContextInternal::demon_skin;
+        // -- new
+        creators["fel flame"] = &WarlockAiObjectContextInternal::fel_flame;
+        creators["dark intent"] = &WarlockAiObjectContextInternal::dark_intent;
+            // low threat
+        creators["soulshatter"] = &WarlockAiObjectContextInternal::soulshatter;
+            // low life cd
+        creators["unending resolve"] = &WarlockAiObjectContextInternal::unending_resolve;
+        creators["dark soul"] = &WarlockAiObjectContextInternal::dark_soul;
+        creators["twilight ward"] = &WarlockAiObjectContextInternal::twilight_ward;
+
+        // --
+
         creators["create healthstone"] = &WarlockAiObjectContextInternal::create_healthstone;
-        creators["create firestone"] = &WarlockAiObjectContextInternal::create_firestone;
-        creators["create spellstone"] = &WarlockAiObjectContextInternal::create_spellstone;
+        
         creators["summon voidwalker"] = &WarlockAiObjectContextInternal::summon_voidwalker;
         creators["summon felguard"] = &WarlockAiObjectContextInternal::summon_felguard;
         creators["summon felhunter"] = &WarlockAiObjectContextInternal::summon_felhunter;
         creators["summon succubus"] = &WarlockAiObjectContextInternal::summon_succubus;
         creators["summon imp"] = &WarlockAiObjectContextInternal::summon_imp;
+
         creators["immolate"] = &WarlockAiObjectContextInternal::immolate;
         creators["corruption"] = &WarlockAiObjectContextInternal::corruption;
         creators["corruption on attacker"] = &WarlockAiObjectContextInternal::corruption_on_attacker;
         creators["siphon life"] = &WarlockAiObjectContextInternal::siphon_life;
         creators["siphon life on attacker"] = &WarlockAiObjectContextInternal::siphon_life_on_attacker;
-        creators["curse of agony"] = &WarlockAiObjectContextInternal::curse_of_agony;
-        creators["curse of agony on attacker"] = &WarlockAiObjectContextInternal::curse_of_agony_on_attacker;
         creators["shadow bolt"] = &WarlockAiObjectContextInternal::shadow_bolt;
         creators["drain soul"] = &WarlockAiObjectContextInternal::drain_soul;
-        creators["drain mana"] = &WarlockAiObjectContextInternal::drain_mana;
         creators["drain life"] = &WarlockAiObjectContextInternal::drain_life;
         creators["banish"] = &WarlockAiObjectContextInternal::banish;
         creators["banish on cc"] = &WarlockAiObjectContextInternal::banish_on_cc;
@@ -120,62 +132,72 @@ public:
         creators["amplify curse"] = &WarlockAiObjectContextInternal::amplify_curse;
 
         creators["immolate on attacker"] = &WarlockAiObjectContextInternal::immolate_on_attacker;
-        creators["unstable affliction"] = &WarlockAiObjectContextInternal::unstable_affliction;
-        creators["unstable affliction on attacker"] = &WarlockAiObjectContextInternal::unstable_affliction_on_attacker;
-        creators["haunt"] = &WarlockAiObjectContextInternal::haunt;
+        
         creators["demonic empowerment"] = &WarlockAiObjectContextInternal::demonic_empowerment;
         creators["metamorphosis"] = &WarlockAiObjectContextInternal::metamorphosis;
         creators["soul fire"] = &WarlockAiObjectContextInternal::soul_fire;
         creators["incinerate"] = &WarlockAiObjectContextInternal::incinerate;
+
+        // -- Affliction
+        creators["malefic grasp"] = &WarlockAiObjectContextInternal::malefic_grasp;
+        creators["agony"] = &WarlockAiObjectContextInternal::curse_of_agony;
+        creators["agony on attacker"] = &WarlockAiObjectContextInternal::curse_of_agony_on_attacker;
+        creators["unstable affliction"] = &WarlockAiObjectContextInternal::unstable_affliction;
+        creators["unstable affliction on attacker"] = &WarlockAiObjectContextInternal::unstable_affliction_on_attacker;
+        creators["haunt"] = &WarlockAiObjectContextInternal::haunt;
     }
 
 private:
-    static Action* amplify_curse(PlayerbotAI* botAI) { return new CastAmplifyCurseAction(botAI); }
-    static Action* conflagrate(PlayerbotAI* botAI) { return new CastConflagrateAction(botAI); }
-    static Action* incinirate(PlayerbotAI* botAI) { return new CastIncinirateAction(botAI); }
-    static Action* fear_on_cc(PlayerbotAI* botAI) { return new CastFearOnCcAction(botAI); }
-    static Action* fear(PlayerbotAI* botAI) { return new CastFearAction(botAI); }
-    static Action* immolate(PlayerbotAI* botAI) { return new CastImmolateAction(botAI); }
+    // -- generic
     static Action* summon_imp(PlayerbotAI* botAI) { return new CastSummonImpAction(botAI); }
     static Action* summon_succubus(PlayerbotAI* botAI) { return new CastSummonSuccubusAction(botAI); }
-    static Action* fel_armor(PlayerbotAI* botAI) { return new CastFelArmorAction(botAI); }
-    static Action* demon_armor(PlayerbotAI* botAI) { return new CastDemonArmorAction(botAI); }
-    static Action* demon_skin(PlayerbotAI* botAI) { return new CastDemonSkinAction(botAI); }
-    static Action* create_healthstone(PlayerbotAI* botAI) { return new CastCreateHealthstoneAction(botAI); }
-    static Action* create_firestone(PlayerbotAI* botAI) { return new CastCreateFirestoneAction(botAI); }
-    static Action* create_spellstone(PlayerbotAI* botAI) { return new CastCreateSpellstoneAction(botAI); }
     static Action* summon_voidwalker(PlayerbotAI* botAI) { return new CastSummonVoidwalkerAction(botAI); }
     static Action* summon_felguard(PlayerbotAI* botAI) { return new CastSummonFelguardAction(botAI); }
     static Action* summon_felhunter(PlayerbotAI* botAI) { return new CastSummonFelhunterAction(botAI); }
+
+    static Action* soulshatter(PlayerbotAI* botAI) { return new CastSoulShatterAction(botAI); }
+    static Action* unending_resolve(PlayerbotAI* botAI) { return new CastUnendingResolveAction(botAI); }
+    static Action* fel_flame(PlayerbotAI* botAI) { return new CastFelFlameAction(botAI); }
+    static Action* dark_intent(PlayerbotAI* botAI) { return new CastDarkIntentAction(botAI); }
+    static Action* dark_soul(PlayerbotAI* botAI) { return new CastDarkSoulAction(botAI); }
+    static Action* twilight_ward(PlayerbotAI* botAI) { return new CastTwilightWardAction(botAI); }
+
+
     static Action* corruption(PlayerbotAI* botAI) { return new CastCorruptionAction(botAI); }
     static Action* corruption_on_attacker(PlayerbotAI* botAI) { return new CastCorruptionOnAttackerAction(botAI); }
     static Action* siphon_life(PlayerbotAI* botAI) { return new CastSiphonLifeAction(botAI); }
     static Action* siphon_life_on_attacker(PlayerbotAI* botAI) { return new CastSiphonLifeOnAttackerAction(botAI); }
-    static Action* curse_of_agony(PlayerbotAI* botAI) { return new CastCurseOfAgonyAction(botAI); }
-    static Action* curse_of_agony_on_attacker(PlayerbotAI* botAI)
-    {
-        return new CastCurseOfAgonyOnAttackerAction(botAI);
-    }
-    static Action* shadow_bolt(PlayerbotAI* botAI) { return new CastShadowBoltAction(botAI); }
-    static Action* drain_soul(PlayerbotAI* botAI) { return new CastDrainSoulAction(botAI); }
-    static Action* drain_mana(PlayerbotAI* botAI) { return new CastDrainManaAction(botAI); }
-    static Action* drain_life(PlayerbotAI* botAI) { return new CastDrainLifeAction(botAI); }
+    static Action* fear_on_cc(PlayerbotAI* botAI) { return new CastFearOnCcAction(botAI); }
+    static Action* fear(PlayerbotAI* botAI) { return new CastFearAction(botAI); }
     static Action* banish(PlayerbotAI* botAI) { return new CastBanishAction(botAI); }
     static Action* banish_on_cc(PlayerbotAI* botAI) { return new CastBanishAction(botAI); }
+    static Action* shadow_bolt(PlayerbotAI* botAI) { return new CastShadowBoltAction(botAI); }
+    static Action* drain_life(PlayerbotAI* botAI) { return new CastDrainLifeAction(botAI); }
+
+    static Action* create_healthstone(PlayerbotAI* botAI) { return new CastCreateHealthstoneAction(botAI); }
+
+    // -- affli
+    static Action* malefic_grasp(PlayerbotAI* botAI) { return new CastMaleficGraspAction(botAI); }
+    static Action* curse_of_agony(PlayerbotAI* botAI) { return new CastCurseOfAgonyAction(botAI); }
+    static Action* curse_of_agony_on_attacker(PlayerbotAI* botAI) { return new CastCurseOfAgonyOnAttackerAction(botAI); }
+    static Action* drain_soul(PlayerbotAI* botAI) { return new CastDrainSoulAction(botAI); }
     static Action* seed_of_corruption(PlayerbotAI* botAI) { return new CastSeedOfCorruptionAction(botAI); }
-    static Action* seed_of_corruption_on_attacker(PlayerbotAI* botAI)
-    {
-        return new CastSeedOfCorruptionOnAttackerAction(botAI);
-    }
+    static Action* seed_of_corruption_on_attacker(PlayerbotAI* botAI) { return new CastSeedOfCorruptionOnAttackerAction(botAI); }
+
+    // -- demono
+
+    // -- destruc
+    static Action* conflagrate(PlayerbotAI* botAI) { return new CastConflagrateAction(botAI); }
+    static Action* incinirate(PlayerbotAI* botAI) { return new CastIncinirateAction(botAI); }
+    static Action* immolate(PlayerbotAI* botAI) { return new CastImmolateAction(botAI); }
+
+    static Action* amplify_curse(PlayerbotAI* botAI) { return new CastAmplifyCurseAction(botAI); }
     static Action* rain_of_fire(PlayerbotAI* botAI) { return new CastRainOfFireAction(botAI); }
     static Action* shadowfury(PlayerbotAI* botAI) { return new CastShadowfuryAction(botAI); }
     static Action* life_tap(PlayerbotAI* botAI) { return new CastLifeTapAction(botAI); }
     static Action* immolate_on_attacker(PlayerbotAI* ai) { return new CastImmolateOnAttackerAction(ai); }
     static Action* unstable_affliction(PlayerbotAI* ai) { return new CastUnstableAfflictionAction(ai); }
-    static Action* unstable_affliction_on_attacker(PlayerbotAI* ai)
-    {
-        return new CastUnstableAfflictionOnAttackerAction(ai);
-    }
+    static Action* unstable_affliction_on_attacker(PlayerbotAI* ai) { return new CastUnstableAfflictionOnAttackerAction(ai); }
     static Action* haunt(PlayerbotAI* ai) { return new CastHauntAction(ai); }
     static Action* demonic_empowerment(PlayerbotAI* ai) { return new CastDemonicEmpowermentAction(ai); }
     static Action* metamorphosis(PlayerbotAI* ai) { return new CastMetamorphosisAction(ai); }

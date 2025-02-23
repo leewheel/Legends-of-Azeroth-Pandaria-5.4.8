@@ -12,8 +12,7 @@ class GenericWarlockNonCombatStrategyActionNodeFactory : public NamedObjectFacto
 public:
     GenericWarlockNonCombatStrategyActionNodeFactory()
     {
-        creators["fel armor"] = &fel_armor;
-        creators["demon armor"] = &demon_armor;
+        creators["dark intent"] = &dark_intent;
         creators["summon voidwalker"] = &summon_voidwalker;
         creators["summon felguard"] = &summon_felguard;
         creators["summon succubus"] = &summon_succubus;
@@ -21,21 +20,7 @@ public:
     }
 
 private:
-    static ActionNode* fel_armor([[maybe_unused]] PlayerbotAI* botAI)
-    {
-        return new ActionNode("fel armor",
-                              /*P*/ nullptr,
-                              /*A*/ NextAction::array(0, new NextAction("demon armor"), nullptr),
-                              /*C*/ nullptr);
-    }
-
-    static ActionNode* demon_armor([[maybe_unused]] PlayerbotAI* botAI)
-    {
-        return new ActionNode("demon armor",
-                              /*P*/ nullptr,
-                              /*A*/ NextAction::array(0, new NextAction("demon skin"), nullptr),
-                              /*C*/ nullptr);
-    }
+    ACTION_NODE(dark_intent, "dark intent");
 
     static ActionNode* summon_voidwalker([[maybe_unused]] PlayerbotAI* botAI)
     {
@@ -76,23 +61,13 @@ void GenericWarlockNonCombatStrategy::InitTriggers(std::vector<TriggerNode*>& tr
 {
     NonCombatStrategy::InitTriggers(triggers);
 
-    triggers.push_back(
-        new TriggerNode("demon armor", NextAction::array(0, new NextAction("fel armor", 21.0f), nullptr)));
-    // triggers.push_back(new TriggerNode("often", NextAction::array(0, new NextAction("apply oil", 1.0f), nullptr)));
-    triggers.push_back(
-        new TriggerNode("has pet", NextAction::array(0, new NextAction("toggle pet spell", 60.0f), nullptr)));
-    triggers.push_back(
-        new TriggerNode("no healthstone", NextAction::array(0, new NextAction("create healthstone", 15.0f), nullptr)));
-    triggers.push_back(
-        new TriggerNode("no spellstone", NextAction::array(0, new NextAction("create spellstone", 13.0f), nullptr)));
-    triggers.push_back(
-        new TriggerNode("spellstone", NextAction::array(0, new NextAction("spellstone", 13.0f), nullptr)));
+    triggers.push_back(new TriggerNode("dark intent", NextAction::array(0, new NextAction("dark intent", 21.0f), nullptr)));
+    triggers.push_back(new TriggerNode("has pet", NextAction::array(0, new NextAction("toggle pet spell", 60.0f), nullptr)));
+    triggers.push_back(new TriggerNode("no healthstone", NextAction::array(0, new NextAction("create healthstone", 15.0f), nullptr)));
 }
 
 void WarlockPetStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
-    // triggers.push_back(new TriggerNode("no pet", NextAction::array(0, new NextAction("summon felguard", 60.0f),
-    // nullptr)));
     // TODO Warlock pets
 }
 
@@ -114,6 +89,5 @@ SummonFelhunterStrategy::SummonFelhunterStrategy(PlayerbotAI* ai) : NonCombatStr
 
 void SummonFelhunterStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
-    triggers.push_back(
-        new TriggerNode("no pet", NextAction::array(0, new NextAction("summon felhunter", 11.0f), NULL)));
+    triggers.push_back(new TriggerNode("no pet", NextAction::array(0, new NextAction("summon felhunter", 11.0f), NULL)));
 }

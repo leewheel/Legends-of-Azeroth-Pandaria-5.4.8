@@ -174,6 +174,7 @@ public:
         creators["enraged regeneration"] = &WarriorAiObjectContextInternal::enraged_regeneration;
         creators["vigilance"] = &WarriorAiObjectContextInternal::vigilance;
         creators["storm bolt"] = &WarriorAiObjectContextInternal::storm_bolt;
+        creators["mocking banner"] = &WarriorAiObjectContextInternal::mocking_banner;
     }
 private:
     // -- buffs
@@ -232,6 +233,7 @@ private:
     static Action* enraged_regeneration(PlayerbotAI* botAI) { return new CastEnragedRegenerationAction(botAI); }
     static Action* vigilance(PlayerbotAI* botAI) { return new CastVigilanceAction(botAI); }
     static Action* storm_bolt(PlayerbotAI* botAI) { return new CastStormBoltAction(botAI); }
+    static Action* mocking_banner(PlayerbotAI* botAI) { return new CastMockingBannerAction(botAI); }
 };
 
 WarriorAiObjectContext::WarriorAiObjectContext(PlayerbotAI* botAI) : AiObjectContext(botAI)

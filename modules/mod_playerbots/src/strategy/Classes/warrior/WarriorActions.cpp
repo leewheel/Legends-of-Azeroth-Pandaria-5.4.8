@@ -116,3 +116,8 @@ bool CastVigilanceAction::Execute(Event event)
 
     return botAI->CastSpell("vigilance", target);
 }
+
+bool CastMockingBannerAction::isUseful()
+{
+    return !botAI->HasAura(spell, bot);
+}

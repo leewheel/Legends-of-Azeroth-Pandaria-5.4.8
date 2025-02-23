@@ -127,4 +127,12 @@ public:
 };
 DEBUFF_ACTION_R(CastStormBoltAction, "storm bolt", 8.0f);
 
+class CastMockingBannerAction : public CastSpellAction
+{
+public:
+    CastMockingBannerAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "mocking banner") {}
+    ActionThreatType getThreatType() override { return ActionThreatType::Aoe; }
+    bool isUseful() override;
+};
+
 #endif

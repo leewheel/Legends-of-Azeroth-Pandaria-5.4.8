@@ -39,4 +39,13 @@ public:
     void InitTriggers(std::vector<TriggerNode*>& triggers) override;
 };
 
+class AoeWarlockStrategy : public CombatStrategy
+{
+public:
+    AoeWarlockStrategy(PlayerbotAI* botAI) : CombatStrategy(botAI) {}
+
+    void InitTriggers(std::vector<TriggerNode*>& triggers) override;
+    std::string const getName() override { return "aoe"; }
+};
+
 #endif

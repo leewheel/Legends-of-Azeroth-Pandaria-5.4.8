@@ -29,8 +29,8 @@ public:
 
 private:
     ACTION_NODE(heroic_strike, "heroic strike");
-    ACTION_NODE_A(heroic_leap, "heroic leap", "reach melee");
-    ACTION_NODE_A(charge, "charge", "reach melee");
+    ACTION_NODE_A(heroic_leap, "heroic leap", "melee");
+    ACTION_NODE_A(charge, "charge", "heroic leap");
 
     ACTION_NODE(whirlwind, "whirlwind");
     ACTION_NODE(victory_rush, "victory rush");
@@ -41,10 +41,10 @@ private:
     
     ACTION_NODE(berserker_rage, "berserker rage");
     ACTION_NODE_A(rallying_cry, "rallying cry", "die by the sword");
-    ACTION_NODE(shield_wall, "shield wall");
+    ACTION_NODE_A(shield_wall, "shield wall", "last stand");
     ACTION_NODE(recklessness, "recklessness");
     ACTION_NODE(colossus_smash, "colossus smash");
-    ACTION_NODE(die_by_the_sword, "die by the sword");
+    ACTION_NODE_A(die_by_the_sword, "die by the sword", "enraged regeneration");
     ACTION_NODE(pummel, "pummel");
 };
 
@@ -104,10 +104,11 @@ WarriorAoeStrategy::WarriorAoeStrategy(PlayerbotAI* botAI) : CombatStrategy(botA
 void WarriorAoeStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode("medium aoe", NextAction::array(0,
+        new NextAction("mocking banner", ACTION_DEFAULT + 5.0f),
         new NextAction("bloodbath", 25.0f),
-        new NextAction("bladestorm", 24.0f),
-        new NextAction("dragon_roar", 23.0f),
-        new NextAction("shockwave", 22.0f),
+        new NextAction("bladestorm", 25.0f),
+        new NextAction("dragon_roar", 25.0f),
+        new NextAction("shockwave", 25.0f),
         new NextAction("demoralizing shout", 21.0f),
         new NextAction("sweeping strikes", ACTION_HIGH + 7),
         new NextAction("thunder clap", ACTION_HIGH + 5),
@@ -115,10 +116,11 @@ void WarriorAoeStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
         nullptr)));
 
     triggers.push_back(new TriggerNode("light aoe", NextAction::array(0,
+        new NextAction("mocking banner", ACTION_DEFAULT + 2.0f),
         new NextAction("bloodbath", 25.0f),
-        new NextAction("bladestorm", 24.0f),
-        new NextAction("dragon_roar", 23.0f),
-        new NextAction("shockwave", 22.0f),
+        new NextAction("bladestorm", 25.0f),
+        new NextAction("dragon_roar", 25.0f),
+        new NextAction("shockwave", 25.0f),
         new NextAction("sweeping strikes", ACTION_HIGH + 7),
         new NextAction("thunder clap", ACTION_HIGH + 5),
         new NextAction("cleave", ACTION_HIGH),
