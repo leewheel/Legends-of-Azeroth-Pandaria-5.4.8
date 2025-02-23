@@ -3687,7 +3687,7 @@ bool Unit::isInBackInMap(Unit const* target, float distance, float arc) const
 
 bool Unit::isInAccessiblePlaceFor(Creature const* c) const
 {
-    ZLiquidStatus liquidStatus = GetLiquidStatus();
+    const ZLiquidStatus& liquidStatus = GetLiquidStatus();
     bool isInWater = (liquidStatus & MAP_LIQUID_STATUS_IN_CONTACT) != 0;
 
     // In water or jumping in water
@@ -16691,7 +16691,7 @@ bool Unit::SetCharmedBy(Unit* charmer, CharmType type, AuraApplication const* au
                 break;
         }
     }
-    
+
     if (Creature* creature = ToCreature())
         creature->RefreshSwimmingFlag();
 
@@ -18485,7 +18485,7 @@ void Unit::WriteMovementInfo(WorldPacket& data, Movement::ExtraMovementStatusEle
     bool hasTimestamp = mi.time;
     bool hasOrientation = !G3D::fuzzyEq(GetOrientation(), 0.0f);
     bool hasTransportData = GetTransGUID() != 0;
-    bool hasSpline = movespline ? IsSplineEnabled() : false;
+    bool hasSpline = IsSplineEnabled();
 
     bool hasTransportTime2 = hasTransportData && m_movementInfo.transport.time2 != 0;
     bool hasTransportTime3 = false;
@@ -18519,7 +18519,7 @@ void Unit::WriteMovementInfo(WorldPacket& data, Movement::ExtraMovementStatusEle
         case MSEHasGuidByte5:
         case MSEHasGuidByte6:
         case MSEHasGuidByte7:
-            data.WriteBit(guid[element - MSEHasGuidByte0]);
+                data.WriteBit(guid [element - MSEHasGuidByte0]);
             break;
         case MSEHasTransportGuidByte0:
         case MSEHasTransportGuidByte1:
@@ -18530,7 +18530,7 @@ void Unit::WriteMovementInfo(WorldPacket& data, Movement::ExtraMovementStatusEle
         case MSEHasTransportGuidByte6:
         case MSEHasTransportGuidByte7:
             if (hasTransportData)
-                data.WriteBit(tguid[element - MSEHasTransportGuidByte0]);
+                    data.WriteBit(tguid [element - MSEHasTransportGuidByte0]);
             break;
         case MSEGuidByte0:
         case MSEGuidByte1:
@@ -18540,7 +18540,7 @@ void Unit::WriteMovementInfo(WorldPacket& data, Movement::ExtraMovementStatusEle
         case MSEGuidByte5:
         case MSEGuidByte6:
         case MSEGuidByte7:
-            data.WriteByteSeq(guid[element - MSEGuidByte0]);
+                data.WriteByteSeq(guid [element - MSEGuidByte0]);
             break;
         case MSETransportGuidByte0:
         case MSETransportGuidByte1:
@@ -18551,7 +18551,7 @@ void Unit::WriteMovementInfo(WorldPacket& data, Movement::ExtraMovementStatusEle
         case MSETransportGuidByte6:
         case MSETransportGuidByte7:
             if (hasTransportData)
-                data.WriteByteSeq(tguid[element - MSETransportGuidByte0]);
+                    data.WriteByteSeq(tguid [element - MSETransportGuidByte0]);
             break;
         case MSEHasCounter:
             data.WriteBit(!m_movementCounter);
@@ -18580,7 +18580,7 @@ void Unit::WriteMovementInfo(WorldPacket& data, Movement::ExtraMovementStatusEle
             break;
         case MSEHasTransportTime3:
             if (hasTransportData)
-                data.WriteBit(hasTransportTime3);
+                    data.WriteBit(hasTransportTime3); // this should be renamed
             break;
         case MSEHasPitch:
             data.WriteBit(!hasPitch);
@@ -18626,7 +18626,12 @@ void Unit::WriteMovementInfo(WorldPacket& data, Movement::ExtraMovementStatusEle
             data << GetPositionZ();
             break;
         case MSEOrientation:
-            if (hasOrientation)
+                if (!hasOrientation)
+                    break;
+            case MSEOrientationWithoutCheck:
+                if (data.GetOpcode() == SMSG_MOVE_TELEPORT && hasTransportData)
+                    data << GetTransOffsetO();
+                else
                 data << GetOrientation();
             break;
         case MSETransportPositionX:
@@ -18659,7 +18664,7 @@ void Unit::WriteMovementInfo(WorldPacket& data, Movement::ExtraMovementStatusEle
             break;
         case MSETransportTime3:
             if (hasTransportData && hasTransportTime3)
-                data << mi.transport.time3;
+                    data << mi.transport.time3; // this should be renamed
             break;
         case MSEPitch:
             if (hasPitch)
@@ -19445,15 +19450,13 @@ bool Unit::SetSwim(bool enable)
     {
         AddUnitMovementFlag(MOVEMENTFLAG_SWIMMING);
         SetUnitFlag(UNIT_FLAG_CAN_SWIM);
-        Movement::PacketSender(this, SMSG_SPLINE_MOVE_START_SWIM, SMSG_SPLINE_MOVE_START_SWIM).Send();
-        Movement::PacketSender(this, SMSG_MOVE_GRAVITY_DISABLE, SMSG_MOVE_GRAVITY_DISABLE).Send();
+        Movement::PacketSender(this, SMSG_SPLINE_MOVE_START_SWIM, NULL_OPCODE).Send();
     }
     else
     {
         RemoveUnitMovementFlag(MOVEMENTFLAG_SWIMMING);
         RemoveUnitFlag(UNIT_FLAG_CAN_SWIM);
-        Movement::PacketSender(this, SMSG_SPLINE_MOVE_STOP_SWIM, SMSG_SPLINE_MOVE_STOP_SWIM).Send();
-        Movement::PacketSender(this, SMSG_MOVE_GRAVITY_ENABLE, SMSG_MOVE_GRAVITY_DISABLE).Send();
+        Movement::PacketSender(this, SMSG_SPLINE_MOVE_STOP_SWIM, NULL_OPCODE).Send();
     }
 
     return true;
