@@ -20,12 +20,20 @@ bool RuneOfPowerTrigger::IsActive()
 
 bool MageArmorTrigger::IsActive()
 {
-    Unit* target = GetTarget();
-    if (!target || !target->IsAlive() || !target->IsInWorld())
-    {
-        return false;
-    }
-    return !botAI->HasAura("frost armor", target) && !botAI->HasAura("molten armor", target) && !botAI->HasAura("mage armor", target);
+    return 
+        (botAI->GetBot()->GetSpecialization() != Specializations::SPEC_MAGE_FIRE && bot->GetGroup() ||
+        botAI->GetBot()->GetSpecialization() == Specializations::SPEC_MAGE_ARCANE) &&
+        !botAI->HasAura("mage armor", bot);
+}
+
+bool FrostArmorTrigger::IsActive()
+{
+    return (botAI->GetBot()->GetSpecialization() == Specializations::SPEC_MAGE_FROST && !botAI->HasAura("frost armor", bot) && !bot->GetGroup());
+}
+
+bool MoltenArmorTrigger::IsActive()
+{
+    return (botAI->GetBot()->GetSpecialization() == Specializations::SPEC_MAGE_FIRE && !botAI->HasAura("molten armor", bot));
 }
 
 bool FrostNovaOnTargetTrigger::IsActive()
@@ -64,4 +72,10 @@ bool SlowNotOnTargetTrigger::IsActive()
         return false;
     }
     return !botAI->HasAura(spell, target);
+}
+
+bool HeatingUpTrigger::IsActive()
+{
+    Aura* aura = botAI->GetAura("heating up", bot, false, false, -1);
+    return aura != nullptr;
 }

@@ -4,6 +4,7 @@
 #include <queue>
 #include <stack>
 
+#include "Chat.h"
 #include "Event.h"
 #include "Item.h"
 #include "PlayerbotAIBase.h"
@@ -54,6 +55,19 @@ class Unit;
 class Item;
 class WorldObject;
 struct CreatureData;
+
+class PlayerbotChatHandler : protected ChatHandler
+{
+public:
+    explicit PlayerbotChatHandler(Player* pMasterPlayer);
+    void sysmessage(std::string const str) { SendSysMessage(str.c_str()); }
+    uint32 extractQuestId(std::string const str);
+    uint32 extractSpellId(std::string const str)
+    {
+        char* source = (char*)str.c_str();
+        return extractSpellIdFromLink(source);
+    }
+};
 
 class MinValueCalculator
 {

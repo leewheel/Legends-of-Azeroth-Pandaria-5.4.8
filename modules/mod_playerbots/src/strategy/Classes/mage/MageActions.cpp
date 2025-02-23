@@ -61,16 +61,6 @@ bool CastDragonsBreathAction::isUseful()
     return facingTarget && targetClose;
 }
 
-bool CastInfernoBlastAction::isUseful()
-{
-    Unit* target = AI_VALUE(Unit*, "current target");
-    if (!target)
-        return false;
-    bool facingTarget = AI_VALUE2(bool, "facing", "current target");
-    bool targetClose = bot->IsWithinCombatRange(target, 10.0f);
-    return facingTarget && targetClose;
-}
-
 bool CastBlastWaveAction::isUseful()
 {
     Unit* target = AI_VALUE(Unit*, "current target");

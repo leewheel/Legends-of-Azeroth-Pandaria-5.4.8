@@ -6,6 +6,7 @@
 #ifndef _PLAYERBOT_MAGETRIGGERS_H
 #define _PLAYERBOT_MAGETRIGGERS_H
 
+#include "CureTriggers.h"
 #include "GenericTriggers.h"
 #include "SharedDefines.h"
 
@@ -23,6 +24,31 @@ public:
     bool IsActive() override;
 };
 
+class FrostArmorTrigger : public BuffTrigger
+{
+public:
+    FrostArmorTrigger(PlayerbotAI* botAI) : BuffTrigger(botAI, "frost armor", 5 * 2000) {}
+    bool IsActive() override;
+};
+
+class MoltenArmorTrigger : public BuffTrigger
+{
+public:
+    MoltenArmorTrigger(PlayerbotAI* botAI) : BuffTrigger(botAI, "molten armor", 5 * 2000) {}
+    bool IsActive() override;
+};
+
+class CounterspellInterruptSpellTrigger : public InterruptSpellTrigger
+{
+public:
+    CounterspellInterruptSpellTrigger(PlayerbotAI* botAI) : InterruptSpellTrigger(botAI, "counterspell") {}
+};
+
+class SpellstealTrigger : public TargetAuraDispelTrigger
+{
+public:
+    SpellstealTrigger(PlayerbotAI* botAI) : TargetAuraDispelTrigger(botAI, "spellsteal", DISPEL_MAGIC) {}
+};
 class LivingBombTrigger : public DebuffTrigger
 {
 public:
@@ -124,6 +150,19 @@ class RuneOfPowerTrigger : public BuffTrigger
 public:
     RuneOfPowerTrigger(PlayerbotAI* botAI) : BuffTrigger(botAI, "rune of power", 5 * 2000) {}
     bool IsActive() override;
+};
+
+class HeatingUpTrigger : public HasAuraTrigger
+{
+public:
+    HeatingUpTrigger(PlayerbotAI* botAI) : HasAuraTrigger(botAI, "heating up", 1) {}
+    bool IsActive() override;
+};
+
+class PyroblastTrigger : public HasAuraTrigger
+{
+public:
+    PyroblastTrigger(PlayerbotAI* botAI) : HasAuraTrigger(botAI, "pyroblast!", 1) {}
 };
 
 #endif

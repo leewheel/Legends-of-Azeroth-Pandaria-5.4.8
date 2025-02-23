@@ -24,6 +24,7 @@ public:
         creators["recklessness"] = &GenericWarriorStrategyActionNodeFactory::recklessness;
         creators["colossus smash"] = &GenericWarriorStrategyActionNodeFactory::colossus_smash;
         creators["die by the sword"] = &GenericWarriorStrategyActionNodeFactory::die_by_the_sword;
+        creators["pummel"] = &GenericWarriorStrategyActionNodeFactory::pummel;
     }
 
 private:
@@ -44,6 +45,7 @@ private:
     ACTION_NODE(recklessness, "recklessness");
     ACTION_NODE(colossus_smash, "colossus smash");
     ACTION_NODE(die_by_the_sword, "die by the sword");
+    ACTION_NODE(pummel, "pummel");
 };
 
 GenericWarriorStrategy::GenericWarriorStrategy(PlayerbotAI* botAI) : CombatStrategy(botAI)
@@ -70,6 +72,9 @@ void GenericWarriorStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
     //triggers.push_back(new TriggerNode("medium health", NextAction::array(0, new NextAction("", ACTION_INTERRUPT), nullptr)));
     triggers.push_back(new TriggerNode("low health", NextAction::array(0, new NextAction("shield wall", ACTION_INTERRUPT), nullptr)));
     triggers.push_back(new TriggerNode("critical health", NextAction::array(0, new NextAction("rallying cry", ACTION_INTERRUPT), nullptr)));
+
+    triggers.push_back(new TriggerNode("pummel on enemy healer", NextAction::array(0, new NextAction("pummel on enemy healer", ACTION_INTERRUPT), nullptr)));
+    triggers.push_back(new TriggerNode("pummel", NextAction::array(0, new NextAction("pummel", ACTION_INTERRUPT), nullptr)));
 }
 
 class WarriorAoeStrategyActionNodeFactory : public NamedObjectFactory<ActionNode>

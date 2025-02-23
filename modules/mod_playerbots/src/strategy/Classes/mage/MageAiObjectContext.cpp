@@ -85,13 +85,18 @@ public:
         creators["arcane brilliance"] = &MageTriggerFactoryInternal::arcane_brilliance;
         creators["rune of power"] = &MageTriggerFactoryInternal::rune_of_power;
         creators["mage armor"] = &MageTriggerFactoryInternal::mage_armor;
+        creators["frost armor"] = &MageTriggerFactoryInternal::frost_armor;
+        creators["molten armor"] = &MageTriggerFactoryInternal::molten_armor;
         creators["living bomb"] = &MageTriggerFactoryInternal::living_bomb;
         creators["missile barrage"] = &MageTriggerFactoryInternal::missile_barrage;
         creators["presence of mind"] = &MageTriggerFactoryInternal::presence_of_mind;
         creators["frost nova on target"] = &MageTriggerFactoryInternal::frost_nova_on_target;
+        creators["counterspell"] = &MageTriggerFactoryInternal::counterspell;
+        creators["spellsteal"] = &MageTriggerFactoryInternal::spellsteal;
 
         // -- fire
-        
+        creators["heating up"] = &MageTriggerFactoryInternal::heating_up;
+        creators["pyroblast!"] = &MageTriggerFactoryInternal::pyroblast;
 
         // -- forst
         creators["icy veins"] = &MageTriggerFactoryInternal::icy_veins;
@@ -114,8 +119,16 @@ private:
     static Trigger* arcane_brilliance(PlayerbotAI* botAI) { return new ArcaneBrillianceTrigger(botAI); }
     static Trigger* rune_of_power(PlayerbotAI* botAI) { return new RuneOfPowerTrigger(botAI); }
     static Trigger* mage_armor(PlayerbotAI* botAI) { return new MageArmorTrigger(botAI); }
+    static Trigger* frost_armor(PlayerbotAI* botAI) { return new FrostArmorTrigger(botAI); }
+    static Trigger* molten_armor(PlayerbotAI* botAI) { return new MoltenArmorTrigger(botAI); }
     static Trigger* living_bomb(PlayerbotAI* botAI) { return new LivingBombTrigger(botAI); }
     static Trigger* frost_nova_on_target(PlayerbotAI* botAI) { return new FrostNovaOnTargetTrigger(botAI); }
+    static Trigger* counterspell(PlayerbotAI* botAI) { return new CounterspellInterruptSpellTrigger(botAI); }
+    static Trigger* spellsteal(PlayerbotAI* botAI) { return new SpellstealTrigger(botAI); }
+
+    // -- fire
+    static Trigger* heating_up(PlayerbotAI* botAI) { return new HeatingUpTrigger(botAI); }
+    static Trigger* pyroblast(PlayerbotAI* botAI) { return new PyroblastTrigger(botAI); }
 
     // -- frost
     static Trigger* icy_veins(PlayerbotAI* botAI) { return new IcyVeinsTrigger(botAI); }
@@ -150,6 +163,8 @@ public:
         creators["frost nova"] = &MageAiObjectContextInternal::frostnova;
         creators["fire blast"] = &MageAiObjectContextInternal::fireblast;
         creators["counterspell"] = &MageAiObjectContextInternal::counterspell;
+        creators["counterspell on enemy healer"] = &MageAiObjectContextInternal::counterspell_on_enemy_healer;
+        creators["spellsteal"] = &MageAiObjectContextInternal::spellsteal;
         creators["arcane explosion"] = &MageAiObjectContextInternal::arcaneexplosion;
         creators["blizzard"] = &MageAiObjectContextInternal::blizzard;
         creators["ice lance"] = &MageAiObjectContextInternal::icelance;
@@ -205,6 +220,8 @@ private:
     static Action* frostnova(PlayerbotAI* botAI) { return new CastFrostNovaAction(botAI); }
     static Action* fireblast(PlayerbotAI* botAI) { return new CastFireBlastAction(botAI); }
     static Action* counterspell(PlayerbotAI* botAI) { return new CastCounterspellAction(botAI); }
+    static Action* counterspell_on_enemy_healer(PlayerbotAI* botAI) { return new CastCounterspellOnEnemyHealerAction(botAI); }
+    static Action* spellsteal(PlayerbotAI* botAI) { return new CastSpellstealAction(botAI); }
     static Action* arcaneexplosion(PlayerbotAI* botAI) { return new CastArcaneExplosionAction(botAI); }
     static Action* blizzard(PlayerbotAI* botAI) { return new CastBlizzardAction(botAI); }
     static Action* icelance(PlayerbotAI* botAI) { return new CastIceLanceAction(botAI); }

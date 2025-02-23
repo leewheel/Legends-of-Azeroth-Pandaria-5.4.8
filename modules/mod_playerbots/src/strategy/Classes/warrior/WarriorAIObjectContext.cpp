@@ -60,6 +60,9 @@ public:
         creators["colossus smash"] = &WarriorTriggerFactoryInternal::colossus_smash;
         creators["disarm"] = &WarriorTriggerFactoryInternal::disarm;
 
+        creators["pummel on enemy healer"] = &WarriorTriggerFactoryInternal::pummel_on_enemy_healer;
+        creators["pummel"] = &WarriorTriggerFactoryInternal::pummel;
+
         // -- arms
         creators["overpower"] = &WarriorTriggerFactoryInternal::overpower;
         creators["mortal wounds"] = &WarriorTriggerFactoryInternal::mortal_wounds;
@@ -88,6 +91,9 @@ private:
     static Trigger* sunder_armor(PlayerbotAI* botAI) { return new SunderArmorTrigger(botAI); }
     static Trigger* colossus_smash(PlayerbotAI* botAI) { return new ColossusSmashTrigger(botAI); }
     static Trigger* disarm(PlayerbotAI* botAI) { return new DisarmDebuffTrigger(botAI); }
+
+    static Trigger* pummel(PlayerbotAI* botAI) { return new PummelInterruptSpellTrigger(botAI); }
+    static Trigger* pummel_on_enemy_healer(PlayerbotAI* botAI) { return new PummelInterruptEnemyHealerSpellTrigger(botAI); }
 
     // -- arms
     static Trigger* overpower(PlayerbotAI* botAI) { return new OverpowerAvailableTrigger(botAI); }

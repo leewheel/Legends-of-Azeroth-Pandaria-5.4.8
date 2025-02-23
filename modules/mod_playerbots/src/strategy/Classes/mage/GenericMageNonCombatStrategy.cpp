@@ -22,7 +22,7 @@ private:
     {
         return new ActionNode("molten armor",
                               /*P*/ nullptr,
-                              /*A*/ NextAction::array(0, new NextAction("mage armor"), nullptr),
+                              /*A*/ nullptr,
                               /*C*/ nullptr);
     }
 
@@ -30,7 +30,7 @@ private:
     {
         return new ActionNode("mage armor",
                               /*P*/ nullptr,
-                              /*A*/ NextAction::array(0, new NextAction("frost armor"), nullptr),
+                              /*A*/ nullptr,
                               /*C*/ nullptr);
     }
 
@@ -58,11 +58,15 @@ void GenericMageNonCombatStrategy::InitTriggers(std::vector<TriggerNode*>& trigg
 void MageBuffManaStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode("mage armor", NextAction::array(0, new NextAction("mage armor", 19.0f), nullptr)));
+    triggers.push_back(new TriggerNode("frost armor", NextAction::array(0, new NextAction("frost armor", 19.0f), nullptr)));
+    triggers.push_back(new TriggerNode("molten armor", NextAction::array(0, new NextAction("molten armor", 19.0f), nullptr)));
 }
 
 void MageBuffDpsStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode("mage armor", NextAction::array(0, new NextAction("mage armor", 19.0f), nullptr)));
+    triggers.push_back(new TriggerNode("frost armor", NextAction::array(0, new NextAction("frost armor", 19.0f), nullptr)));
+    triggers.push_back(new TriggerNode("molten armor", NextAction::array(0, new NextAction("molten armor", 19.0f), nullptr)));
 }
 
 void MageBuffStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)

@@ -865,7 +865,7 @@ std::vector<std::string> PlayerbotHolder::HandlePlayerbotCommand(char const* arg
             bot->GetSession()->HandeSetTalentSpecialization(p);
             bot->ActivateSpec(0);
             BotFactory factory(bot, bot->GetLevel());
-            factory.InitTalentsTree(true);
+            factory.InitTalentsTree(false);
             factory.InitEquipment(true);
             GET_PLAYERBOT_AI(bot)->ResetStrategies();
             GET_PLAYERBOT_AI(bot)->Reset(true);

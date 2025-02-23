@@ -309,7 +309,6 @@ class CastInfernoBlastAction : public CastSpellAction
 public:
     CastInfernoBlastAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "inferno blast") {}
     ActionThreatType getThreatType() override { return ActionThreatType::Single; }
-    bool isUseful() override;
 };
 
 class CastBlastWaveAction : public CastSpellAction

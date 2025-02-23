@@ -80,9 +80,9 @@ NextAction** FireMageStrategy::getDefaultActions()
     return NextAction::array(0,
         new NextAction("frostjaw", ACTION_DEFAULT + 0.10f),
         new NextAction("combustion", ACTION_DEFAULT + 0.9f),
+        new NextAction("inferno blast", ACTION_DEFAULT + 0.8f), // cast during movement
         new NextAction("living bomb", ACTION_DEFAULT + 0.7f),
         new NextAction("fireball", ACTION_DEFAULT + 0.6f),
-        new NextAction("inferno blast", ACTION_DEFAULT + 0.5f), // cast during movement
         new NextAction("scorch", ACTION_DEFAULT), nullptr);
 }
 
@@ -91,7 +91,8 @@ void FireMageStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
     GenericMageStrategy::InitTriggers(triggers);
 
     triggers.push_back(new TriggerNode("medium health", NextAction::array(0, new NextAction("ice barrier", ACTION_NORMAL), nullptr)));
-    triggers.push_back(new TriggerNode("pyroblast", NextAction::array(0, new NextAction("pyroblast", 25.0f), nullptr)));
+    triggers.push_back(new TriggerNode("heating up", NextAction::array(0, new NextAction("inferno blast", ACTION_INTERRUPT), nullptr)));
+    triggers.push_back(new TriggerNode("pyroblast!", NextAction::array(0, new NextAction("pyroblast", ACTION_INTERRUPT + 10), nullptr)));
     triggers.push_back(new TriggerNode("combustion", NextAction::array(0, new NextAction("combustion", 50.0f), nullptr)));
     triggers.push_back(new TriggerNode("living bomb", NextAction::array(0, new NextAction("living bomb", 19.0f), nullptr)));
     // triggers.push_back(new TriggerNode("enemy too close for spell", NextAction::array(0, new NextAction("dragon's

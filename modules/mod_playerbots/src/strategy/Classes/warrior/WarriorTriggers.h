@@ -28,6 +28,8 @@ CAN_CAST_TRIGGER(VictoryRushTrigger, "victory rush");
 DEBUFF_TRIGGER(ThunderClapTrigger, "thunder clap");
 DEBUFF_TRIGGER(SunderArmorTrigger, "sunder armor");
 DEBUFF_TRIGGER(ColossusSmashTrigger, "colossus smash");
+INTERRUPT_HEALER_TRIGGER(PummelInterruptEnemyHealerSpellTrigger, "pummel");
+INTERRUPT_TRIGGER(PummelInterruptSpellTrigger, "pummel");
 
 // -- arms
 CAN_CAST_TRIGGER(OverpowerAvailableTrigger, "overpower");

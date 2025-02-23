@@ -44,6 +44,17 @@
 #include "Vehicle.h"
 #include "UpdateFields.h"
 
+PlayerbotChatHandler::PlayerbotChatHandler(Player* pMasterPlayer) : ChatHandler(pMasterPlayer->GetSession())
+{
+}
+
+uint32 PlayerbotChatHandler::extractQuestId(std::string const str)
+{
+    char* source = (char*)str.c_str();
+    char* cId = extractKeyFromLink(source, "Hquest");
+    return cId ? atol(cId) : 0;
+}
+
 void PacketHandlingHelper::AddHandler(uint16 opcode, std::string const handler)
 {
     _handlers[opcode] = handler;
@@ -2246,7 +2257,7 @@ bool PlayerbotAI::CastSpell(uint32 spellId, Unit* target, Item* itemTarget)
     }
 
     Spell* spell = new Spell(bot, spellInfo, TRIGGERED_NONE);
-
+    spell->m_cast_count += 1;
     SpellCastTargets targets;
     if (spellInfo->Targets & TARGET_FLAG_ITEM)
     {

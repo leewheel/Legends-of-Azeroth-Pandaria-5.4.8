@@ -15,11 +15,11 @@ uint32 SpellIdValue::Calculate()
     std::string namepart = qualifier;
     //ItemIds itemIds = ChatHelper::parseItems(namepart);
 
-    /*PlayerbotChatHandler handler(bot);
+    PlayerbotChatHandler handler(bot);
     uint32 extractedSpellId = handler.extractSpellId(namepart);
     if (extractedSpellId)
         if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(extractedSpellId))
-            namepart = spellInfo->SpellName[0];*/
+            namepart = spellInfo->SpellName[0];
 
     std::wstring wnamepart;
     if (!Utf8toWStr(namepart, wnamepart))
@@ -96,71 +96,40 @@ uint32 SpellIdValue::Calculate()
     if (spellIds.empty())
         return 0;
 
-    int32 saveMana = (int32)round(AI_VALUE(double, "mana save level"));
-    uint32 rank = 1;
-    uint32 highestRank = 0;
-    uint32 highestSpellId = 0;
-    uint32 lowestRank = 0;
-    uint32 lowestSpellId = 0;
-    if (saveMana <= 1)
+
+    uint32 castSpellId = 0;
+    for (auto it = spellIds.rbegin(); it != spellIds.rend(); ++it)
     {
-        for (auto it = spellIds.rbegin(); it != spellIds.rend(); ++it)
+        auto spellId = *it;
+        const SpellInfo* pSpellInfo = sSpellMgr->GetSpellInfo(spellId);
+        if (!pSpellInfo)
+            continue;
+
+        std::string spellName = pSpellInfo->Rank[0];
+
+        // For atoi, the input string has to start with a digit, so lets search for the first digit
+        size_t i = 0;
+        for (; i < spellName.length(); i++)
         {
-            auto spellId = *it;
-            const SpellInfo* pSpellInfo = sSpellMgr->GetSpellInfo(spellId);
-            if (!pSpellInfo)
-                continue;
-
-            std::string spellName = pSpellInfo->Rank[0];
-
-            // For atoi, the input string has to start with a digit, so lets search for the first digit
-            size_t i = 0;
-            for (; i < spellName.length(); i++)
-            {
-                if (isdigit(spellName[i]))
-                    break;
-            }
-
-            // remove the first chars, which aren't digits
-            spellName = spellName.substr(i, spellName.length() - i);
-
-            // convert the remaining text to an integer
-            int id = atoi(spellName.c_str());
-
-            if (!id)
-            {
-                highestSpellId = spellId;
-                continue;
-            }
-
-            if (!highestRank || id > highestRank)
-            {
-                highestRank = id;
-                highestSpellId = spellId;
-            }
-
-            if (!lowestRank || (lowestRank && id < lowestRank))
-            {
-                lowestRank = id;
-                lowestSpellId = spellId;
-            }
+            if (isdigit(spellName[i]))
+                break;
         }
-    }
-    else
-    {
-        for (auto it = spellIds.rbegin(); it != spellIds.rend(); ++it)
+
+        // remove the first chars, which aren't digits
+        spellName = spellName.substr(i, spellName.length() - i);
+
+        // convert the remaining text to an integer
+        int id = atoi(spellName.c_str());
+
+        if (!id)
         {
-            auto spellId = *it;
-            if (!highestSpellId)
-                highestSpellId = spellId;
-            if (saveMana == rank)
-                return spellId;
-            lowestSpellId = spellId;
-            rank++;
+            castSpellId = spellId;
+            continue;
         }
+
     }
 
-    return saveMana > 1 ? lowestSpellId : highestSpellId;
+    return castSpellId;
 }
 
 uint32 VehicleSpellIdValue::Calculate()
