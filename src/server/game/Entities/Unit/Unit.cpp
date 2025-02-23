@@ -18717,21 +18717,11 @@ void Unit::WriteMovementInfo(WorldPacket& data, Movement::ExtraMovementStatusEle
         case MSEUintCount:
             data << uint32(0);
             break;
-        case MSEHasTransportVehicleId:
-            data.WriteBit(hasTransportVehicleId);
-            break;
-        case MSETransportVehicleId:
-            if (hasTransportVehicleId)
-                data << mi.transport.time3; // this should be renamed
-            break;
         case MSEForces:
             /*
             for (uint8 i = 0; i < forcesCount; ++i)
             data << uint32(0);
             */
-            break;
-        case MSEFlushBits:
-            data.FlushBits();
             break;
         default:
             ASSERT(Movement::PrintInvalidSequenceElement(element, __FUNCTION__));
