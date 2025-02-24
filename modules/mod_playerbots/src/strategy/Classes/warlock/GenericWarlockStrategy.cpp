@@ -20,6 +20,7 @@ public:
         creators["howl of terror"] = &howl_of_terror;
         creators["drain life"] = &drain_life;
         creators["life tap"] = &life_tap;
+        creators["summon infernal"] = &summon_infernal;
 
         // low threat
         creators["soulshatter"] = &soulshatter;
@@ -27,11 +28,23 @@ public:
         creators["unending resolve"] = &unending_resolve;
         creators["fel flame"] = &fel_flame;
         creators["dark intent"] = &dark_intent;
-        creators["dark soul"] = &dark_soul;
+
         // low life cd
         creators["twilight ward"] = &twilight_ward;
+        creators["health funnel"] = &health_funnel;
 
-        
+        // -- talents
+        creators["dark regeneration"] = &dark_regeneration;
+        creators["demonic breath"] = &demonic_breath;
+        creators["mortal coil"] = &mortal_coil;
+        creators["shadowfury"] = &shadowfury;
+        creators["soul link"] = &soul_link;
+        creators["sacrificial pact"] = &sacrificial_pact;
+        creators["dark bargain"] = &dark_bargain;
+        creators["blood horror"] = &blood_horror;
+        creators["grimoire of supremacy"] = &grimoire_of_supremacy;
+        creators["grimoire of sacrifice"] = &grimoire_of_sacrifice;
+        creators["mannoroth's fury"] = &mannoroths_fury;
     }
 
 private:
@@ -43,13 +56,26 @@ private:
     ACTION_NODE(howl_of_terror, "howl of terror");
     ACTION_NODE(drain_life, "drain life");
     ACTION_NODE(life_tap, "life tap");
+    ACTION_NODE(summon_infernal, "summon infernal");
 
     ACTION_NODE(unending_resolve, "unending resolve");
     ACTION_NODE(fel_flame, "fel flame");
     ACTION_NODE(dark_intent, "dark intent");
-    ACTION_NODE(dark_soul, "dark soul");
     ACTION_NODE(twilight_ward, "twilight ward");
     ACTION_NODE(soulshatter, "soulshatter");
+    ACTION_NODE(health_funnel, "health funnel");
+    // -- talents
+    ACTION_NODE(dark_regeneration, "dark regeneration");
+    ACTION_NODE(demonic_breath, "demonic breath");
+    ACTION_NODE(mortal_coil, "mortal coil");
+    ACTION_NODE(shadowfury, "shadowfury");
+    ACTION_NODE(soul_link, "soul link");
+    ACTION_NODE(sacrificial_pact, "sacrificial pact");
+    ACTION_NODE(dark_bargain, "dark bargain");
+    ACTION_NODE(blood_horror, "blood horror");
+    ACTION_NODE(grimoire_of_supremacy, "grimoire of supremacy");
+    ACTION_NODE(grimoire_of_sacrifice, "grimoire of sacrifice");
+    ACTION_NODE(mannoroths_fury, "mannoroth's fury");
 };
 
 GenericWarlockStrategy::GenericWarlockStrategy(PlayerbotAI* botAI) : RangedCombatStrategy(botAI)
@@ -63,11 +89,25 @@ void GenericWarlockStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
     RangedCombatStrategy::InitTriggers(triggers);
 
-    triggers.push_back(new TriggerNode("low mana", NextAction::array(0, new NextAction("life tap", ACTION_EMERGENCY + 5), nullptr)));
+    triggers.push_back(new TriggerNode("curse of enfeeblement", NextAction::array(0, new NextAction("curse of enfeeblement", ACTION_HIGH + 5), nullptr)));
+    triggers.push_back(new TriggerNode("curse of the elements", NextAction::array(0, new NextAction("curse of the elements", ACTION_HIGH + 5), nullptr)));
 
-    triggers.push_back(new TriggerNode("medium health", NextAction::array(0, new NextAction("twilight ward", ACTION_INTERRUPT), nullptr)));
-    triggers.push_back(new TriggerNode("low health", NextAction::array(0, new NextAction("unending resolve", ACTION_INTERRUPT), nullptr)));
-    triggers.push_back(new TriggerNode("critical health", NextAction::array(0, new NextAction("drain life", ACTION_INTERRUPT), nullptr)));
+    triggers.push_back(new TriggerNode("warlock pet medium health", NextAction::array(0, new NextAction("health funnel", 40.0f), nullptr)));
+    triggers.push_back(new TriggerNode("warlock pet low health", NextAction::array(0, new NextAction("dark regeneration", 60.0f), new NextAction("health funnel", 60.0f), nullptr)));
+
+    triggers.push_back(new TriggerNode("soul link", NextAction::array(0, new NextAction("soul link", ACTION_EMERGENCY + 5), nullptr)));
+    triggers.push_back(new TriggerNode("low mana", NextAction::array(0, new NextAction("life tap", ACTION_EMERGENCY + 5), nullptr)));
+    triggers.push_back(new TriggerNode("medium health", NextAction::array(0, new NextAction("dark bargaing", ACTION_INTERRUPT), new NextAction("twilight ward", ACTION_INTERRUPT), new NextAction("soul burn", ACTION_INTERRUPT), new NextAction("drain life", ACTION_INTERRUPT), nullptr)));
+    triggers.push_back(new TriggerNode("low health", NextAction::array(0, new NextAction("sacrificial pact", ACTION_INTERRUPT), new NextAction("unending resolve", ACTION_INTERRUPT), nullptr)));
+    triggers.push_back(new TriggerNode("critical health", NextAction::array(0, new NextAction("dark regeneration", ACTION_INTERRUPT), new NextAction("drain life", ACTION_INTERRUPT), nullptr)));
+
+    triggers.push_back(new TriggerNode("enemy is close", NextAction::array(0,
+        new NextAction("fear", 25.0f),
+        new NextAction("blood horror", 25.0f),
+        new NextAction("demonic breath", 50.0f),
+        new NextAction("mortal coil", 50.0f),
+        new NextAction("shadowfury", 25.0f),
+        nullptr)));
 }
 
 void WarlockBoostStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
@@ -84,15 +124,12 @@ void WarlockCcStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 void AoeWarlockStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
     triggers.push_back(
-        new TriggerNode("medium aoe", NextAction::array(0, new NextAction("seed of corruption", 33.0f),
-            new NextAction("seed of corruption on attacker", 32.0f),
-            new NextAction("rain of fire", 31.0f), nullptr)));
-    triggers.push_back(new TriggerNode("corruption on attacker",
-        NextAction::array(0, new NextAction("corruption on attacker", 27.0f), nullptr)));
-    triggers.push_back(
-        new TriggerNode("unstable affliction on attacker",
-            NextAction::array(0, new NextAction("unstable affliction on attacker", 26.0f), NULL)));
-    triggers.push_back(
-        new TriggerNode("curse of agony on attacker",
-            NextAction::array(0, new NextAction("curse of agony on attacker", 25.0f), nullptr)));
+        new TriggerNode("medium aoe", NextAction::array(0,
+            new NextAction("mannoroth's fury", 35.0f),
+            new NextAction("immolation aura", 34.0f),
+            new NextAction("seed of corruption", 33.0f),
+            new NextAction("shadowfury", 32.0f),
+            new NextAction("summon abyssal", 31.0f), 
+            new NextAction("rain of fire", 30.0f),
+            nullptr)));
 }

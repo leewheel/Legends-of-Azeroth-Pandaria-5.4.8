@@ -717,6 +717,7 @@ uint32 RandomItemManager::FindBestItemForLevelAndEquip(Player* bot, InventoryTyp
             ItemTemplate const* proto = sObjectMgr->GetItemTemplate(itemID);
             if (proto->RequiredLevel > level) continue;
             if ((proto->AllowableClass & bot->GetClassMask()) == 0 || (proto->AllowableRace & bot->GetRaceMask()) == 0) continue;
+            if (level < 10 && proto->ItemLevel > 100) continue;
 
             // Item Quality
             {

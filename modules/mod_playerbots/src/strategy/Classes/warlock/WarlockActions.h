@@ -12,12 +12,29 @@
 class PlayerbotAI;
 class Unit;
 
-
+// -- TALENTS
+SPELL_ACTION(CastDarkRegenerationAction, "dark regeneration");
+SPELL_ACTION(CastDemonicBreathAction, "demonic breath");
+SPELL_ACTION(CastMortalCoilAction, "mortal coil");
+BUFF_ACTION(CastSoulLinkAction, "soul link");
+SPELL_ACTION(CastSacrificialPactAction, "sacrificial pact");
+SPELL_ACTION(CastDarkBarginAction, "dark bargain");
+SPELL_ACTION(CastBloodHorrorAction, "blood horror");
+SPELL_ACTION(CastGrmoireOfSupremacyAction, "grimoire of supremacy");
+SPELL_ACTION(CastGrimoireOfSacrificeAction, "grimoire of sacrifice");
+SPELL_ACTION(CastMannorothFuryAction, "mannoroth's fury");
+class CastShadowFuryAction : public CastSpellAction
+{
+public:
+    CastShadowFuryAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "shadowfury") {}
+    ActionThreatType getThreatType() override { return ActionThreatType::Aoe; }
+};
+// -- GENERIC
+SPELL_ACTION(CastHealthFunnelAction, "health funnel");
 SPELL_ACTION(CastSoulShatterAction, "soulshatter");
 SPELL_ACTION(CastUnendingResolveAction, "unending resolve");
 SPELL_ACTION(CastFelFlameAction, "fel flame");
 BUFF_ACTION(CastDarkIntentAction, "dark intent");
-SPELL_ACTION(CastDarkSoulAction, "dark soul");
 SPELL_ACTION(CastTwilightWardAction, "twilight ward");
 
 BEGIN_RANGED_SPELL_ACTION(CastShadowBoltAction, "shadow bolt")
@@ -36,61 +53,21 @@ class CastDrainLifeAction : public CastSpellAction
 public:
     CastDrainLifeAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "drain life") {}
 };
-class CastCurseOfWeaknessAction : public CastDebuffSpellAction
-{
-public:
-    CastCurseOfWeaknessAction(PlayerbotAI* botAI) : CastDebuffSpellAction(botAI, "curse of weakness") {}
-};
+
+DEBUFF_ACTION(CastCurseOfWeaknessAction, "curse of weakness");
+DEBUFF_ACTION(CastCurseOfElementsAction, "curse of the elements");
+DEBUFF_ACTION(CastCurseOfEnfeeblementAction, "curse of enfeeblement");
 
 class CastCorruptionAction : public CastDebuffSpellAction
 {
 public:
     CastCorruptionAction(PlayerbotAI* botAI) : CastDebuffSpellAction(botAI, "corruption", true) {}
-    bool isUseful() override
-    {
-        return CastDebuffSpellAction::isUseful() && !botAI->HasAura("seed of corruption", GetTarget(), false, true);
-    }
 };
 class CastCorruptionOnAttackerAction : public CastDebuffSpellOnAttackerAction
 {
 public:
     CastCorruptionOnAttackerAction(PlayerbotAI* botAI) : CastDebuffSpellOnAttackerAction(botAI, "corruption", true) {}
-    bool isUseful() override
-    {
-        return CastDebuffSpellOnAttackerAction::isUseful() &&
-               !botAI->HasAura("seed of corruption", GetTarget(), false, true);
-    }
 };
-class CastSummonVoidwalkerAction : public CastBuffSpellAction
-{
-public:
-    CastSummonVoidwalkerAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "summon voidwalker") {}
-};
-
-class CastSummonFelguardAction : public CastBuffSpellAction
-{
-public:
-    CastSummonFelguardAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "summon felguard") {}
-};
-
-class CastSummonFelhunterAction : public CastBuffSpellAction
-{
-public:
-    CastSummonFelhunterAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "summon felhunter") {}
-};
-
-class CastSummonImpAction : public CastBuffSpellAction
-{
-public:
-    CastSummonImpAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "summon imp") {}
-};
-
-class CastSummonSuccubusAction : public CastBuffSpellAction
-{
-public:
-    CastSummonSuccubusAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "summon succubus") {}
-};
-
 class CastCreateHealthstoneAction : public CastBuffSpellAction
 {
 public:
@@ -111,37 +88,6 @@ public:
     CastRainOfFireAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "rain of fire") {}
     ActionThreatType getThreatType() override { return ActionThreatType::Aoe; }
 };
-
-class CastShadowfuryAction : public CastSpellAction
-{
-public:
-    CastShadowfuryAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "shadowfury") {}
-};
-
-class CastImmolateAction : public CastDebuffSpellAction
-{
-public:
-    CastImmolateAction(PlayerbotAI* botAI) : CastDebuffSpellAction(botAI, "immolate", true) {}
-};
-
-class CastImmolateOnAttackerAction : public CastDebuffSpellOnAttackerAction
-{
-public:
-    CastImmolateOnAttackerAction(PlayerbotAI* botAI) : CastDebuffSpellOnAttackerAction(botAI, "immolate", true) {}
-};
-
-class CastConflagrateAction : public CastSpellAction
-{
-public:
-    CastConflagrateAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "conflagrate") {}
-};
-
-class CastIncinirateAction : public CastSpellAction
-{
-public:
-    CastIncinirateAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "incinirate") {}
-};
-
 class CastFearAction : public CastDebuffSpellAction
 {
 public:
@@ -168,12 +114,6 @@ public:
     bool isUseful() override;
 };
 
-class CastAmplifyCurseAction : public CastBuffSpellAction
-{
-public:
-    CastAmplifyCurseAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "amplify curse") {}
-};
-
 class CastSiphonLifeAction : public CastDebuffSpellAction
 {
 public:
@@ -192,25 +132,9 @@ public:
     std::string const GetTargetName() override { return "pet target"; }
 };
 
-class CastMetamorphosisAction : public CastBuffSpellAction
-{
-public:
-    CastMetamorphosisAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "metamorphosis") {}
-};
-class CastSoulFireAction : public CastSpellAction
-{
-public:
-    CastSoulFireAction(PlayerbotAI* ai) : CastSpellAction(ai, "soul fire") {}
-};
-
-class CastIncinerateAction : public CastSpellAction
-{
-public:
-    CastIncinerateAction(PlayerbotAI* ai) : CastSpellAction(ai, "incinerate") {}
-};
-
-
 // -- Affliction
+SPELL_ACTION(CastSoulBurnAction, "soul burn");
+SPELL_ACTION(CastDarkSoulMiseryAction, "dark soul: misery");
 SPELL_ACTION(CastMaleficGraspAction, "malefic grasp");
 class CastCurseOfAgonyAction : public CastDebuffSpellAction
 {
@@ -230,10 +154,14 @@ public:
     {
     }
 };
-class CastHauntAction : public CastSpellAction
+class CastHauntAction : public CastDebuffSpellAction
 {
 public:
-    CastHauntAction(PlayerbotAI* ai) : CastSpellAction(ai, "haunt") {}
+    CastHauntAction(PlayerbotAI* ai) : CastDebuffSpellAction(ai, "haunt", true, 0) {}
+    bool isUseful() override
+    {
+        return CastDebuffSpellAction::isUseful() && !botAI->HasAura("haunt", GetTarget(), true, false);
+    }
 };
 class CastSeedOfCorruptionAction : public CastDebuffSpellAction
 {
@@ -266,5 +194,100 @@ public:
         : CastDebuffSpellOnAttackerAction(botAI, "agony", true)
     {
     }
+};
+
+// -- summons
+BUFF_ACTION(CastSummonVoidwalkerAction, "summon voidwalker");
+BUFF_ACTION(CastSummonFelguardAction, "summon felguard");
+BUFF_ACTION(CastSummonFelhunterAction, "summon felhunter");
+BUFF_ACTION(CastSummonImpAction, "summon imp");
+BUFF_ACTION(CastSummonSuccubusAction, "summon succubus");
+BUFF_ACTION(CastSummonDoomGuardAction, "summon doomguard");
+BUFF_ACTION(CastSummonFelImpAction, "summon fel imp");
+BUFF_ACTION(CastSummonVoidLordAction, "summon voidlord");
+BUFF_ACTION(CastSummonShivarraAction, "summon shivarra");
+BUFF_ACTION(CastSummonObserverAction, "summon observer");
+BUFF_ACTION(CastSummonTerrorGuardAction, "summon terrorguard");
+BUFF_ACTION(CastSummonWrathGuardGuardAction, "summon wrathguard");
+
+class CastSummonInfernalAction : public CastSpellAction
+{
+public:
+    CastSummonInfernalAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "summon infernal") {}
+    ActionThreatType getThreatType() override { return ActionThreatType::Aoe; }
+};
+class CastSummonAbyssalAction : public CastSpellAction
+{
+public:
+    CastSummonAbyssalAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "summon abyssal") {}
+    ActionThreatType getThreatType() override { return ActionThreatType::Aoe; }
+};
+
+// -- Demono
+SPELL_ACTION(CastDarkSoulKnowledgeAction, "dark soul: knowledge");
+class CastHellfireAction : public CastMeleeSpellAction
+{
+public:
+    CastHellfireAction(PlayerbotAI* botAI) : CastMeleeSpellAction(botAI, "hellfire")
+    {
+        range = ATTACK_DISTANCE;
+    }
+};
+class CastMetaImmolationAction : public CastMeleeSpellAction
+{
+public:
+    CastMetaImmolationAction(PlayerbotAI* botAI) : CastMeleeSpellAction(botAI, "immolation aura")
+    {
+        range = ATTACK_DISTANCE;
+    }
+};
+class CastHandOfGuldanAction : public CastSpellAction
+{
+public:
+    CastHandOfGuldanAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "hand of guldan") {}
+    bool Execute(Event event) override;
+};
+SPELL_ACTION(CastSoulFireAction, "soul fire");
+
+BUFF_ACTION(CastMetamorphosisAction, "metamorphosis");
+SPELL_ACTION(CastMetaChaosWaveAction, "chaos wave");
+DEBUFF_ACTION(CastMetaDoomAction, "doom");
+SPELL_ACTION(CastMetaChaosAction, "touch of chaos");
+SPELL_ACTION(CastMetaVoidRayAction, "void ray");
+
+
+// -- Destru
+SPELL_ACTION(CastDarkSoulInstabilityAction, "dark soul: instability");
+SPELL_ACTION(CastFireAndBrimeStoneAction, "fire and brimstone");
+SPELL_ACTION(CastFlamesOfXorothAction, "flames of xoroth");
+SPELL_ACTION(CastShadowBurnAction, "shadowburn");
+class CastChaosBoltAction : public CastSpellAction
+{
+public:
+    CastChaosBoltAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "chaos bolt") {}
+    bool isUseful() override;
+};
+class CastImmolateAction : public CastDebuffSpellAction
+{
+public:
+    CastImmolateAction(PlayerbotAI* botAI) : CastDebuffSpellAction(botAI, "immolate", true) {}
+    bool Execute(Event event) override;
+};
+class CastImmolateOnAttackerAction : public CastDebuffSpellOnAttackerAction
+{
+public:
+    CastImmolateOnAttackerAction(PlayerbotAI* botAI) : CastDebuffSpellOnAttackerAction(botAI, "immolate", true) {}
+};
+class CastConflagrateAction : public CastSpellAction
+{
+public:
+    CastConflagrateAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "conflagrate") {}
+    bool Execute(Event event) override;
+};
+class CastIncinerateAction : public CastSpellAction
+{
+public:
+    CastIncinerateAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "incinerate") {}
+    bool Execute(Event event) override;
 };
 #endif

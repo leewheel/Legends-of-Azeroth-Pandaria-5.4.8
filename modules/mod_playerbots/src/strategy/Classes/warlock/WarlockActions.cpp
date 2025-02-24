@@ -24,3 +24,48 @@ bool CastFearOnCcAction::isUseful() { return true; }
 
 bool CastLifeTapAction::isUseful() { return AI_VALUE2(uint8, "health", "self target") > sPlayerbotAIConfig->lowHealth; }
 
+bool CastHandOfGuldanAction::Execute(Event event)
+{
+	return botAI->CastSpell(105174, GetTarget());
+}
+
+bool CastChaosBoltAction::isUseful()
+{
+	return botAI->HasAura("fire and brimstone", bot) || bot->GetPower(Powers::POWER_BURNING_EMBERS) >= 10;
+}
+bool CastIncinerateAction::Execute(Event event)
+{
+	if (!isUseful() || !isPossible())
+		return false;
+
+	if (botAI->HasAura("fire and brimstone", bot))
+		botAI->CastSpell(114654, GetTarget());
+	else
+		botAI->CastSpell(spell, GetTarget());
+
+	return true;
+}
+bool CastImmolateAction::Execute(Event event)
+{
+	if (!isUseful() || !isPossible())
+		return false;
+
+	if (botAI->HasAura("fire and brimstone", bot))
+		botAI->CastSpell(108686, GetTarget());
+	else
+		botAI->CastSpell(spell, GetTarget());
+
+	return true;
+}
+bool CastConflagrateAction::Execute(Event event)
+{
+	if (!isUseful() || !isPossible())
+		return false;
+
+	if (botAI->HasAura("fire and brimstone", bot))
+		botAI->CastSpell(108685, GetTarget());
+	else
+		botAI->CastSpell(spell, GetTarget());
+
+	return true;
+}

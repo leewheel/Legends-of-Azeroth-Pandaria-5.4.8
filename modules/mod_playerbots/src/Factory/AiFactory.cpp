@@ -138,7 +138,6 @@ std::string AiFactory::GetPlayerSpecName(Player* player)
                 specName = "holy";
             else
                 specName = "disc";
-            ;
             break;
         case CLASS_SHAMAN:
             if (spec == Specializations::SPEC_SHAMAN_RESTORATION)
@@ -207,12 +206,12 @@ std::string AiFactory::GetPlayerSpecName(Player* player)
                 specName = "frost";
             break;
         case CLASS_WARLOCK:
-            if (spec == Specializations::SPEC_WARLOCK_AFFLICTION)
-                specName = "afflic";
+            if (spec == Specializations::SPEC_WARLOCK_DESTRUCTION)
+                specName = "destru";
             else if (spec == Specializations::SPEC_WARLOCK_DEMONOLOGY)
-                specName = "demo";
+                specName = "demono";
             else
-                specName = "destro";
+                specName = "affli";
             break;
         case CLASS_MONK:
             if (spec == Specializations::SPEC_MONK_BREWMASTER)
@@ -221,6 +220,7 @@ std::string AiFactory::GetPlayerSpecName(Player* player)
                 specName = "mistweaver";
             else
                 specName = "windwalker";
+            break;
         default:
             break;
     }
