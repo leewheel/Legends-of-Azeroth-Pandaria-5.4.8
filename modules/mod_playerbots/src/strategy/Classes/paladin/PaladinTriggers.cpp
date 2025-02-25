@@ -8,3 +8,8 @@
 #include "PaladinActions.h"
 #include "PlayerbotAIConfig.h"
 #include "Playerbots.h"
+
+bool SealTrigger::IsActive()
+{
+	return !botAI->HasAura("seal of righteousness", bot) || !botAI->HasAura("seal of command", bot) || !botAI->HasAura("seal of insight", bot);
+}

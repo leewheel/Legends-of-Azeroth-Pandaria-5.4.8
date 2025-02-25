@@ -12,131 +12,6 @@
 #include "Playerbots.h"
 #include "SharedDefines.h"
 
-inline std::string const GetActualBlessingOfMight(Unit* target)
-{
-    if (!target->ToPlayer())
-    {
-        return "blessing of might";
-    }
-    const uint8 tab = AiFactory::GetPlayerSpecTab(target->ToPlayer());
-    switch (target->GetClass())
-    {
-        case CLASS_MAGE:
-        case CLASS_PRIEST:
-        case CLASS_WARLOCK:
-            return "blessing of wisdom";
-            break;
-        case CLASS_SHAMAN:
-            if (tab == 0 || tab == 2)
-            {
-                return "blessing of wisdom";
-            }
-            break;
-        case CLASS_DRUID:
-            if (tab == 3 || tab == 0)
-            {
-                return "blessing of wisdom";
-            }
-            break;
-        case CLASS_PALADIN:
-            if (tab == 0)
-            {
-                return "blessing of wisdom";
-            }
-            break;
-    }
-
-    return "blessing of might";
-}
-
-inline std::string const GetActualBlessingOfWisdom(Unit* target)
-{
-    if (!target->ToPlayer())
-    {
-        return "blessing of might";
-    }
-    const uint8 tab = AiFactory::GetPlayerSpecTab(target->ToPlayer());
-    switch (target->GetClass())
-    {
-        case CLASS_WARRIOR:
-        case CLASS_ROGUE:
-        case CLASS_DEATH_KNIGHT:
-        case CLASS_HUNTER:
-            return "blessing of might";
-            break;
-        case CLASS_SHAMAN:
-            if (tab == 1)
-            {
-                return "blessing of might";
-            }
-            break;
-        case CLASS_DRUID:
-            if (tab == 1 || tab == 2)
-            {
-                return "blessing of might";
-            }
-            break;
-        case CLASS_PALADIN:
-            if (tab == 1 || tab == 2)
-            {
-                return "blessing of might";
-            }
-            break;
-    }
-
-    return "blessing of wisdom";
-}
-
-Value<Unit*>* CastBlessingOnPartyAction::GetTargetValue()
-{
-    return context->GetValue<Unit*>("party member without aura", name);
-}
-
-bool CastBlessingOfMightAction::Execute(Event event)
-{
-    Unit* target = GetTarget();
-    if (!target)
-        return false;
-
-    return botAI->CastSpell(GetActualBlessingOfMight(target), target);
-}
-
-Value<Unit*>* CastBlessingOfMightOnPartyAction::GetTargetValue()
-{
-    return context->GetValue<Unit*>("party member without aura", "blessing of might,blessing of wisdom");
-}
-
-bool CastBlessingOfMightOnPartyAction::Execute(Event event)
-{
-    Unit* target = GetTarget();
-    if (!target)
-        return false;
-
-    return botAI->CastSpell(GetActualBlessingOfMight(target), target);
-}
-
-bool CastBlessingOfWisdomAction::Execute(Event event)
-{
-    Unit* target = GetTarget();
-    if (!target)
-        return false;
-
-    return botAI->CastSpell(GetActualBlessingOfWisdom(target), target);
-}
-
-Value<Unit*>* CastBlessingOfWisdomOnPartyAction::GetTargetValue()
-{
-    return context->GetValue<Unit*>("party member without aura", "blessing of might,blessing of wisdom");
-}
-
-bool CastBlessingOfWisdomOnPartyAction::Execute(Event event)
-{
-    Unit* target = GetTarget();
-    if (!target)
-        return false;
-
-    return botAI->CastSpell(GetActualBlessingOfWisdom(target), target);
-}
 
 bool CastSealSpellAction::isUseful() { return AI_VALUE2(bool, "combat", "self target"); }
 
@@ -168,4 +43,12 @@ bool CastCancelDivineSacrificeAction::Execute(Event event)
 bool CastCancelDivineSacrificeAction::isUseful()
 {
     return botAI->HasAura("divine sacrifice", GetTarget(), false, true, -1, true);
+}
+
+bool CastCrusaderStrikeAction::isUseful()
+{
+    Unit* target = GetTarget();
+    if (!target) return false;
+
+    return !botAI->HasAura("weakened blows", GetTarget(), false, true, -1, false) || bot->GetPower(Powers::POWER_HOLY_POWER) < 3;
 }

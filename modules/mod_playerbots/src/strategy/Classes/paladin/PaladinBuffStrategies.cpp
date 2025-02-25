@@ -34,26 +34,6 @@ void PaladinBuffDpsStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
     // ACTION_HIGH + 8), nullptr)));
 }
 
-void PaladinShadowResistanceStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
-{
-    triggers.push_back(
-        new TriggerNode("shadow resistance aura",
-                        NextAction::array(0, new NextAction("shadow resistance aura", ACTION_NORMAL), nullptr)));
-}
-
-void PaladinFrostResistanceStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
-{
-    triggers.push_back(
-        new TriggerNode("frost resistance aura",
-                        NextAction::array(0, new NextAction("frost resistance aura", ACTION_NORMAL), nullptr)));
-}
-
-void PaladinFireResistanceStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
-{
-    triggers.push_back(new TriggerNode(
-        "fire resistance aura", NextAction::array(0, new NextAction("fire resistance aura", ACTION_NORMAL), nullptr)));
-}
-
 void PaladinBuffArmorStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode("devotion aura",

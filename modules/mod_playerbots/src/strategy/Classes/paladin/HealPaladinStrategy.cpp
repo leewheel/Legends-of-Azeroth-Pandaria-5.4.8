@@ -34,31 +34,22 @@ void HealPaladinStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
     GenericPaladinStrategy::InitTriggers(triggers);
 
-    // triggers.push_back(new TriggerNode("concentration aura", NextAction::array(0, new NextAction("concentration
-    // aura", ACTION_NORMAL), nullptr)));
-    triggers.push_back(
-        new TriggerNode("seal", NextAction::array(0, new NextAction("seal of wisdom", ACTION_HIGH), nullptr)));
-    triggers.push_back(new TriggerNode(
-        "medium mana", NextAction::array(0, new NextAction("divine illumination", ACTION_HIGH + 2), nullptr)));
-    triggers.push_back(
-        new TriggerNode("low mana", NextAction::array(0, new NextAction("divine favor", ACTION_HIGH + 1), nullptr)));
-    // triggers.push_back(new TriggerNode("blessing", NextAction::array(0, new NextAction("blessing of sanctuary",
-    // ACTION_HIGH + 9), nullptr)));
-    triggers.push_back(new TriggerNode(
-        "party member to heal out of spell range",
-        NextAction::array(0, new NextAction("reach party member to heal", ACTION_EMERGENCY + 3), nullptr)));
+    triggers.push_back(new TriggerNode("seal", NextAction::array(0, new NextAction("seal of insight", ACTION_HIGH), nullptr)));
+    triggers.push_back(new TriggerNode("medium mana", NextAction::array(0, new NextAction("divine illumination", ACTION_HIGH + 2), nullptr)));
+    triggers.push_back(new TriggerNode("low mana", NextAction::array(0, new NextAction("divine favor", ACTION_HIGH + 1), nullptr)));
+    triggers.push_back(new TriggerNode("party member to heal out of spell range", NextAction::array(0, new NextAction("reach party member to heal", ACTION_EMERGENCY + 3), nullptr)));
 
     triggers.push_back(
-        new TriggerNode("medium group heal setting",
-                        NextAction::array(0, new NextAction("divine sacrifice", ACTION_CRITICAL_HEAL + 5),
-                        new NextAction("avenging wrath", ACTION_HIGH + 4), 
-                        nullptr)));
+        new TriggerNode("medium group heal setting", NextAction::array(0, 
+            new NextAction("divine sacrifice", ACTION_CRITICAL_HEAL + 5),
+            new NextAction("avenging wrath", ACTION_HIGH + 4), 
+            nullptr)));
 
     triggers.push_back(
-        new TriggerNode("party member critical health",
-                        NextAction::array(0, new NextAction("holy shock on party", ACTION_CRITICAL_HEAL + 6),
-                                          new NextAction("divine sacrifice", ACTION_CRITICAL_HEAL + 5),
-                                          new NextAction("holy light on party", ACTION_CRITICAL_HEAL + 4), nullptr)));
+        new TriggerNode("party member critical health", NextAction::array(0,
+            new NextAction("holy shock on party", ACTION_CRITICAL_HEAL + 6),
+            new NextAction("divine sacrifice", ACTION_CRITICAL_HEAL + 5),
+            new NextAction("holy light on party", ACTION_CRITICAL_HEAL + 4), nullptr)));
 
     triggers.push_back(
         new TriggerNode("party member low health",

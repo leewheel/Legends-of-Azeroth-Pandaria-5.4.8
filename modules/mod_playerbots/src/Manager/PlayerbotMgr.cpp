@@ -692,166 +692,20 @@ std::vector<std::string> PlayerbotHolder::HandlePlayerbotCommand(char const* arg
         return messages;
     }
 
-    /*if (!strcmp(cmd, "initself"))
+    if (!strcmp(cmd, "addspec") && master)
     {
-        if (master->GetSession()->GetSecurity() >= SEC_GAMEMASTER)
+        if (!charname || !strcmp(charname, "tank") || !strcmp(charname, "dps") || !strcmp(charname, "heal"))
         {
-            // OnBotLogin(master);
-            PlayerbotFactory factory(master, master->GetLevel(), ITEM_QUALITY_EPIC);
-            factory.Randomize(false);
-            messages.push_back("initself ok");
+            messages.push_back(
+                "addclass: invalid SPECNAME(tank/heal/dps)");
             return messages;
         }
-        else
-        {
-            messages.push_back("ERROR: Only GM can use this command.");
-            return messages;
-        }
+        std::map<std::string, std::vector<uint8>> clazs = {
+            {"tank", { 1, 2, 11, 6, 10 }},
+            {"heal", { 2, 5, 7, 11, 10 }},
+            {"dps", { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }}
+        };
     }
-
-    if (!strncmp(cmd, "initself=", 9))
-    {
-        if (!strcmp(cmd, "initself=uncommon"))
-        {
-            if (master->GetSession()->GetSecurity() >= SEC_GAMEMASTER)
-            {
-                // OnBotLogin(master);
-                PlayerbotFactory factory(master, master->GetLevel(), ITEM_QUALITY_UNCOMMON);
-                factory.Randomize(false);
-                messages.push_back("initself ok");
-                return messages;
-            }
-            else
-            {
-                messages.push_back("ERROR: Only GM can use this command.");
-                return messages;
-            }
-        }
-        if (!strcmp(cmd, "initself=rare"))
-        {
-            if (master->GetSession()->GetSecurity() >= SEC_GAMEMASTER)
-            {
-                // OnBotLogin(master);
-                PlayerbotFactory factory(master, master->GetLevel(), ITEM_QUALITY_RARE);
-                factory.Randomize(false);
-                messages.push_back("initself ok");
-                return messages;
-            }
-            else
-            {
-                messages.push_back("ERROR: Only GM can use this command.");
-                return messages;
-            }
-        }
-        if (!strcmp(cmd, "initself=epic"))
-        {
-            if (master->GetSession()->GetSecurity() >= SEC_GAMEMASTER)
-            {
-                // OnBotLogin(master);
-                PlayerbotFactory factory(master, master->GetLevel(), ITEM_QUALITY_EPIC);
-                factory.Randomize(false);
-                messages.push_back("initself ok");
-                return messages;
-            }
-            else
-            {
-                messages.push_back("ERROR: Only GM can use this command.");
-                return messages;
-            }
-        }
-        if (!strcmp(cmd, "initself=legendary"))
-        {
-            if (master->GetSession()->GetSecurity() >= SEC_GAMEMASTER)
-            {
-                // OnBotLogin(master);
-                PlayerbotFactory factory(master, master->GetLevel(), ITEM_QUALITY_LEGENDARY);
-                factory.Randomize(false);
-                messages.push_back("initself ok");
-                return messages;
-            }
-            else
-            {
-                messages.push_back("ERROR: Only GM can use this command.");
-                return messages;
-            }
-        }
-        int32 gs;
-        if (sscanf(cmd, "initself=%d", &gs) != -1)
-        {
-            if (master->GetSession()->GetSecurity() >= SEC_GAMEMASTER)
-            {
-                // OnBotLogin(master);
-                PlayerbotFactory factory(master, master->GetLevel(), ITEM_QUALITY_LEGENDARY, gs);
-                factory.Randomize(false);
-                messages.push_back("initself ok, gs = " + std::to_string(gs));
-                return messages;
-            }
-            else
-            {
-                messages.push_back("ERROR: Only GM can use this command.");
-                return messages;
-            }
-        }
-    }
-
-    if (!strcmp(cmd, "list"))
-    {
-        messages.push_back(ListBots(master));
-        return messages;
-    }
-
-    if (!strcmp(cmd, "reload"))
-    {
-        if (master->GetSession()->GetSecurity() >= SEC_GAMEMASTER)
-        {
-            sPlayerbotAIConfig->Initialize();
-            messages.push_back("Config reloaded.");
-            return messages;
-        }
-        else
-        {
-            messages.push_back("ERROR: Only GM can use this command.");
-            return messages;
-        }
-    }
-
-    if (!strcmp(cmd, "tweak"))
-    {
-        sPlayerbotAIConfig->tweakValue = sPlayerbotAIConfig->tweakValue++;
-        if (sPlayerbotAIConfig->tweakValue > 2)
-            sPlayerbotAIConfig->tweakValue = 0;
-
-        messages.push_back("Set tweakvalue to " + std::to_string(sPlayerbotAIConfig->tweakValue));
-        return messages;
-    }
-
-    if (!strcmp(cmd, "self"))
-    {
-        if (GET_PLAYERBOT_AI(master))
-        {
-            messages.push_back("Disable player botAI");
-            delete GET_PLAYERBOT_AI(master);
-        }
-        else if (sPlayerbotAIConfig->selfBotLevel == 0)
-            messages.push_back("Self-bot is disabled");
-        else if (sPlayerbotAIConfig->selfBotLevel == 1 && master->GetSession()->GetSecurity() < SEC_GAMEMASTER)
-            messages.push_back("You do not have permission to enable player botAI");
-        else
-        {
-            messages.push_back("Enable player botAI");
-            sPlayerbotsMgr->AddPlayerbotData(master, true);
-            GET_PLAYERBOT_AI(master)->SetMaster(master);
-        }
-
-        return messages;
-    }
-
-    if (!strcmp(cmd, "lookup"))
-    {
-        messages.push_back(LookupBots(master));
-        return messages;
-    }*/
-
     if (!strcmp(cmd, "setspec") && master && master->GetTarget())
     {
         uint32 tab = std::atoi(charname);
@@ -875,11 +729,6 @@ std::vector<std::string> PlayerbotHolder::HandlePlayerbotCommand(char const* arg
 
     if (!strcmp(cmd, "addclass"))
     {
-        if (master->GetSession()->GetSecurity() < SEC_GAMEMASTER)
-        {
-            messages.push_back("You do not have permission to create bot by addclass command");
-            return messages;
-        }
         if (!charname)
         {
             messages.push_back(
@@ -976,116 +825,6 @@ std::vector<std::string> PlayerbotHolder::HandlePlayerbotCommand(char const* arg
         messages.push_back("Add class failed, no available characters!");
         return messages;
     }
-
-    /*std::string charnameStr;
-
-    if (!charname)
-    {
-        std::string name;
-        bool isPlayer = sCharacterCache->GetCharacterNameByGuid(master->GetTarget(), name);
-        // Player* tPlayer = ObjectAccessor::FindConnectedPlayer(master->GetTarget());
-        if (isPlayer)
-        {
-            charnameStr = name;
-        }
-        else
-        {
-            messages.push_back("usage: list/reload/tweak/self or add/init/remove PLAYERNAME");
-            return messages;
-        }
-    }
-    else
-    {
-        charnameStr = charname;
-    }
-
-    std::string const cmdStr = cmd;
-
-    std::unordered_set<std::string> bots;
-    if (charnameStr == "*" && master)
-    {
-        Group* group = master->GetGroup();
-        if (!group)
-        {
-            messages.push_back("you must be in group");
-            return messages;
-        }
-
-        Group::MemberSlotList slots = group->GetMemberSlots();
-        for (Group::member_citerator i = slots.begin(); i != slots.end(); i++)
-        {
-            uint64 member = i->guid;
-
-            if (member == master->GetGUID())
-                continue;
-
-            std::string bot;
-            if (sCharacterCache->GetCharacterNameByGuid(member, bot))
-                bots.insert(bot);
-        }
-    }
-
-    if (charnameStr == "!" && master && master->GetSession()->GetSecurity() > SEC_GAMEMASTER)
-    {
-        for (PlayerBotMap::const_iterator i = GetPlayerBotsBegin(); i != GetPlayerBotsEnd(); ++i)
-        {
-            if (Player* bot = i->second)
-                if (bot->IsInWorld())
-                    bots.insert(bot->GetName());
-        }
-    }
-
-    std::vector<std::string> chars = split(charnameStr, ',');
-    for (std::vector<std::string>::iterator i = chars.begin(); i != chars.end(); i++)
-    {
-        std::string const s = *i;
-
-        uint32 accountId = GetAccountId(s);
-        if (!accountId)
-        {
-            bots.insert(s);
-            continue;
-        }
-
-        QueryResult results = CharacterDatabase.Query("SELECT name FROM characters WHERE account = {}", accountId);
-        if (results)
-        {
-            do
-            {
-                Field* fields = results->Fetch();
-                std::string const charName = fields[0].Get<std::string>();
-                bots.insert(charName);
-            } while (results->NextRow());
-        }
-    }
-
-    for (auto i = bots.begin(); i != bots.end(); ++i)
-    {
-        std::string const bot = *i;
-
-        std::ostringstream out;
-        out << cmdStr << ": " << bot << " - ";
-
-        uint64 member = sCharacterCache->GetCharacterGuidByName(bot);
-        if (!member)
-        {
-            out << "character not found";
-        }
-        else if (master && member != master->GetGUID())
-        {
-            out << ProcessBotCommand(cmdStr, member, master->GetGUID(),
-                master->GetSession()->GetSecurity() >= SEC_GAMEMASTER,
-                master->GetSession()->GetAccountId(), master->GetGuildId());
-        }
-        else if (!master)
-        {
-            out << ProcessBotCommand(cmdStr, member, ObjectGuid::Empty, true, -1, -1);
-        }
-
-        messages.push_back(out.str());
-    }
-
-    return messages;*/
 
     return {};
 }

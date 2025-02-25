@@ -42,9 +42,6 @@ class PaladinResistanceStrategyFactoryInternal : public NamedObjectContext<Strat
 public:
     PaladinResistanceStrategyFactoryInternal() : NamedObjectContext<Strategy>(false, true)
     {
-        creators["rshadow"] = &PaladinResistanceStrategyFactoryInternal::rshadow;
-        creators["rfrost"] = &PaladinResistanceStrategyFactoryInternal::rfrost;
-        creators["rfire"] = &PaladinResistanceStrategyFactoryInternal::rfire;
         creators["baoe"] = &PaladinResistanceStrategyFactoryInternal::baoe;
         creators["barmor"] = &PaladinResistanceStrategyFactoryInternal::barmor;
         creators["bcast"] = &PaladinResistanceStrategyFactoryInternal::bcast;
@@ -52,9 +49,6 @@ public:
     }
 
 private:
-    static Strategy* rshadow(PlayerbotAI* botAI) { return new PaladinShadowResistanceStrategy(botAI); }
-    static Strategy* rfrost(PlayerbotAI* botAI) { return new PaladinFrostResistanceStrategy(botAI); }
-    static Strategy* rfire(PlayerbotAI* botAI) { return new PaladinFireResistanceStrategy(botAI); }
     static Strategy* baoe(PlayerbotAI* botAI) { return new PaladinBuffAoeStrategy(botAI); }
     static Strategy* barmor(PlayerbotAI* botAI) { return new PaladinBuffArmorStrategy(botAI); }
     static Strategy* bcast(PlayerbotAI* botAI) { return new PaladinBuffCastStrategy(botAI); }
@@ -100,9 +94,10 @@ class PaladinTriggerFactoryInternal : public NamedObjectContext<Trigger>
 public:
     PaladinTriggerFactoryInternal()
     {
+        creators["seal"] = &PaladinTriggerFactoryInternal::seal;
     }
-
 private:
+    static Trigger* seal(PlayerbotAI* botAI) { return new SealTrigger(botAI); }
 };
 
 class PaladinAiObjectContextInternal : public NamedObjectContext<Action>
@@ -111,20 +106,16 @@ public:
     PaladinAiObjectContextInternal()
     {
         creators["seal of command"] = &PaladinAiObjectContextInternal::seal_of_command;
-        creators["seal of vengeance"] = &PaladinAiObjectContextInternal::seal_of_vengeance;
-        creators["seal of corruption"] = &PaladinAiObjectContextInternal::seal_of_corruption;
+        creators["seal of insight"] = &PaladinAiObjectContextInternal::seal_of_insight;
+        creators["seal of righteousness"] = &PaladinAiObjectContextInternal::seal_of_righteousness;
+
         creators["blessing of might"] = &PaladinAiObjectContextInternal::blessing_of_might;
-        creators["blessing of wisdom"] = &PaladinAiObjectContextInternal::blessing_of_wisdom;
         creators["blessing of kings"] = &PaladinAiObjectContextInternal::blessing_of_kings;
-        creators["blessing of sanctuary"] = &PaladinAiObjectContextInternal::blessing_of_sanctuary;
+
         creators["divine storm"] = &PaladinAiObjectContextInternal::divine_storm;
-        creators["blessing of kings on party"] = &PaladinAiObjectContextInternal::blessing_of_kings_on_party;
-        creators["blessing of might on party"] = &PaladinAiObjectContextInternal::blessing_of_might_on_party;
-        creators["blessing of wisdom on party"] = &PaladinAiObjectContextInternal::blessing_of_wisdom_on_party;
         creators["redemption"] = &PaladinAiObjectContextInternal::redemption;
         creators["crusader strike"] = &PaladinAiObjectContextInternal::crusader_strike;
         creators["crusader aura"] = &PaladinAiObjectContextInternal::crusader_aura;
-        creators["seal of light"] = &PaladinAiObjectContextInternal::seal_of_light;
         creators["devotion aura"] = &PaladinAiObjectContextInternal::devotion_aura;
         creators["concentration aura"] = &PaladinAiObjectContextInternal::concentration_aura;
         creators["holy wrath"] = &PaladinAiObjectContextInternal::holy_wrath;
@@ -139,16 +130,12 @@ public:
         creators["cleanse magic on party"] = &PaladinAiObjectContextInternal::cleanse_magic_on_party;
         creators["purify poison on party"] = &PaladinAiObjectContextInternal::purify_poison_on_party;
         creators["purify disease on party"] = &PaladinAiObjectContextInternal::purify_disease_on_party;
-        creators["seal of wisdom"] = &PaladinAiObjectContextInternal::seal_of_wisdom;
-        creators["seal of justice"] = &PaladinAiObjectContextInternal::seal_of_justice;
-        creators["seal of righteousness"] = &PaladinAiObjectContextInternal::seal_of_righteousness;
+        
         creators["flash of light"] = &PaladinAiObjectContextInternal::flash_of_light;
         creators["hand of reckoning"] = &PaladinAiObjectContextInternal::hand_of_reckoning;
         creators["avenger's shield"] = &PaladinAiObjectContextInternal::avengers_shield;
         creators["exorcism"] = &PaladinAiObjectContextInternal::exorcism;
         creators["judgement"] = &PaladinAiObjectContextInternal::judgement;
-        creators["judgement of light"] = &PaladinAiObjectContextInternal::judgement_of_light;
-        creators["judgement of wisdom"] = &PaladinAiObjectContextInternal::judgement_of_wisdom;
         creators["divine shield"] = &PaladinAiObjectContextInternal::divine_shield;
         creators["divine protection"] = &PaladinAiObjectContextInternal::divine_protection;
         creators["divine protection on party"] = &PaladinAiObjectContextInternal::divine_protection_on_party;
@@ -158,14 +145,10 @@ public:
         creators["holy light on party"] = &PaladinAiObjectContextInternal::holy_light_on_party;
         creators["lay on hands"] = &PaladinAiObjectContextInternal::lay_on_hands;
         creators["lay on hands on party"] = &PaladinAiObjectContextInternal::lay_on_hands_on_party;
-        creators["judgement of justice"] = &PaladinAiObjectContextInternal::judgement_of_justice;
         creators["hammer of wrath"] = &PaladinAiObjectContextInternal::hammer_of_wrath;
         creators["holy shield"] = &PaladinAiObjectContextInternal::holy_shield;
         creators["hammer of the righteous"] = &PaladinAiObjectContextInternal::hammer_of_the_righteous;
         creators["retribution aura"] = &PaladinAiObjectContextInternal::retribution_aura;
-        creators["shadow resistance aura"] = &PaladinAiObjectContextInternal::shadow_resistance_aura;
-        creators["frost resistance aura"] = &PaladinAiObjectContextInternal::frost_resistance_aura;
-        creators["fire resistance aura"] = &PaladinAiObjectContextInternal::fire_resistance_aura;
         creators["righteous fury"] = &PaladinAiObjectContextInternal::righteous_fury;
         creators["hammer of justice on enemy healer"] =
             &PaladinAiObjectContextInternal::hammer_of_justice_on_enemy_healer;
@@ -173,7 +156,6 @@ public:
             &PaladinAiObjectContextInternal::hammer_of_justice_on_snare_target;
         creators["divine favor"] = &PaladinAiObjectContextInternal::divine_favor;
         creators["turn undead"] = &PaladinAiObjectContextInternal::turn_undead;
-        creators["blessing of protection on party"] = &PaladinAiObjectContextInternal::blessing_of_protection_on_party;
         creators["righteous defense"] = &PaladinAiObjectContextInternal::righteous_defense;
         creators["repentance"] = &PaladinAiObjectContextInternal::repentance;
         creators["repentance on snare target"] = &PaladinAiObjectContextInternal::repentance_on_snare_target;
@@ -192,37 +174,22 @@ public:
     }
 
 private:
-    static Action* blessing_of_protection_on_party(PlayerbotAI* botAI)
-    {
-        return new CastBlessingOfProtectionProtectAction(botAI);
-    }
+    static Action* seal_of_command(PlayerbotAI* botAI) { return new CastSealOfCommandAction(botAI); }
+    static Action* seal_of_righteousness(PlayerbotAI* botAI) { return new CastSealOfRighteousnessAction(botAI); }
+    static Action* seal_of_insight(PlayerbotAI* botAI) { return new CastSealOfInsightAction(botAI); }
+
+    static Action* blessing_of_might(PlayerbotAI* botAI) { return new CastBlessingOfMightAction(botAI); }
+    static Action* blessing_of_kings(PlayerbotAI* botAI) { return new CastBlessingOfKingsAction(botAI); }
+    static Action* blessing_of_kings_on_party(PlayerbotAI* botAI) { return new CastBlessingOfKingsOnPartyAction(botAI); }
+    static Action* blessing_of_might_on_party(PlayerbotAI* botAI) { return new CastBlessingOfMightOnPartyAction(botAI); }
+
     static Action* turn_undead(PlayerbotAI* botAI) { return new CastTurnUndeadAction(botAI); }
     static Action* divine_favor(PlayerbotAI* botAI) { return new CastDivineFavorAction(botAI); }
     static Action* righteous_fury(PlayerbotAI* botAI) { return new CastRighteousFuryAction(botAI); }
-    static Action* seal_of_command(PlayerbotAI* botAI) { return new CastSealOfCommandAction(botAI); }
-    static Action* seal_of_vengeance(PlayerbotAI* botAI) { return new CastSealOfVengeanceAction(botAI); }
-    static Action* seal_of_corruption(PlayerbotAI* botAI) { return new CastSealOfCorruptionAction(botAI); }
-    static Action* blessing_of_sanctuary(PlayerbotAI* botAI) { return new CastBlessingOfSanctuaryAction(botAI); }
-    static Action* blessing_of_might(PlayerbotAI* botAI) { return new CastBlessingOfMightAction(botAI); }
-    static Action* blessing_of_wisdom(PlayerbotAI* botAI) { return new CastBlessingOfWisdomAction(botAI); }
-    static Action* blessing_of_kings(PlayerbotAI* botAI) { return new CastBlessingOfKingsAction(botAI); }
     static Action* divine_storm(PlayerbotAI* botAI) { return new CastDivineStormAction(botAI); }
-    static Action* blessing_of_kings_on_party(PlayerbotAI* botAI)
-    {
-        return new CastBlessingOfKingsOnPartyAction(botAI);
-    }
-    static Action* blessing_of_might_on_party(PlayerbotAI* botAI)
-    {
-        return new CastBlessingOfMightOnPartyAction(botAI);
-    }
-    static Action* blessing_of_wisdom_on_party(PlayerbotAI* botAI)
-    {
-        return new CastBlessingOfWisdomOnPartyAction(botAI);
-    }
     static Action* redemption(PlayerbotAI* botAI) { return new CastRedemptionAction(botAI); }
     static Action* crusader_strike(PlayerbotAI* botAI) { return new CastCrusaderStrikeAction(botAI); }
     static Action* crusader_aura(PlayerbotAI* botAI) { return new CastCrusaderAuraAction(botAI); }
-    static Action* seal_of_light(PlayerbotAI* botAI) { return new CastSealOfLightAction(botAI); }
     static Action* devotion_aura(PlayerbotAI* botAI) { return new CastDevotionAuraAction(botAI); }
     static Action* concentration_aura(PlayerbotAI* botAI) { return new CastConcentrationAuraAction(botAI); }
     static Action* holy_wrath(PlayerbotAI* botAI) { return new CastHolyWrathAction(botAI); }
@@ -237,16 +204,12 @@ private:
     static Action* cleanse_magic_on_party(PlayerbotAI* botAI) { return new CastCleanseMagicOnPartyAction(botAI); }
     static Action* purify_poison_on_party(PlayerbotAI* botAI) { return new CastPurifyPoisonOnPartyAction(botAI); }
     static Action* purify_disease_on_party(PlayerbotAI* botAI) { return new CastPurifyDiseaseOnPartyAction(botAI); }
-    static Action* seal_of_wisdom(PlayerbotAI* botAI) { return new CastSealOfWisdomAction(botAI); }
-    static Action* seal_of_justice(PlayerbotAI* botAI) { return new CastSealOfJusticeAction(botAI); }
-    static Action* seal_of_righteousness(PlayerbotAI* botAI) { return new CastSealOfRighteousnessAction(botAI); }
+    
     static Action* flash_of_light(PlayerbotAI* botAI) { return new CastFlashOfLightAction(botAI); }
     static Action* hand_of_reckoning(PlayerbotAI* botAI) { return new CastHandOfReckoningAction(botAI); }
     static Action* avengers_shield(PlayerbotAI* botAI) { return new CastAvengersShieldAction(botAI); }
     static Action* exorcism(PlayerbotAI* botAI) { return new CastExorcismAction(botAI); }
     static Action* judgement(PlayerbotAI* botAI) { return new CastJudgementAction(botAI); }
-    static Action* judgement_of_light(PlayerbotAI* botAI) { return new CastJudgementOfLightAction(botAI); }
-    static Action* judgement_of_wisdom(PlayerbotAI* botAI) { return new CastJudgementOfWisdomAction(botAI); }
     static Action* divine_shield(PlayerbotAI* botAI) { return new CastDivineShieldAction(botAI); }
     static Action* divine_protection(PlayerbotAI* botAI) { return new CastDivineProtectionAction(botAI); }
     static Action* divine_protection_on_party(PlayerbotAI* botAI)
@@ -259,14 +222,10 @@ private:
     static Action* holy_light_on_party(PlayerbotAI* botAI) { return new CastHolyLightOnPartyAction(botAI); }
     static Action* lay_on_hands(PlayerbotAI* botAI) { return new CastLayOnHandsAction(botAI); }
     static Action* lay_on_hands_on_party(PlayerbotAI* botAI) { return new CastLayOnHandsOnPartyAction(botAI); }
-    static Action* judgement_of_justice(PlayerbotAI* botAI) { return new CastJudgementOfJusticeAction(botAI); }
     static Action* hammer_of_wrath(PlayerbotAI* botAI) { return new CastHammerOfWrathAction(botAI); }
     static Action* holy_shield(PlayerbotAI* botAI) { return new CastHolyShieldAction(botAI); }
     static Action* hammer_of_the_righteous(PlayerbotAI* botAI) { return new CastHammerOfTheRighteousAction(botAI); }
     static Action* retribution_aura(PlayerbotAI* botAI) { return new CastRetributionAuraAction(botAI); }
-    static Action* shadow_resistance_aura(PlayerbotAI* botAI) { return new CastShadowResistanceAuraAction(botAI); }
-    static Action* frost_resistance_aura(PlayerbotAI* botAI) { return new CastFrostResistanceAuraAction(botAI); }
-    static Action* fire_resistance_aura(PlayerbotAI* botAI) { return new CastFireResistanceAuraAction(botAI); }
     static Action* hammer_of_justice_on_enemy_healer(PlayerbotAI* botAI)
     {
         return new CastHammerOfJusticeOnEnemyHealerAction(botAI);

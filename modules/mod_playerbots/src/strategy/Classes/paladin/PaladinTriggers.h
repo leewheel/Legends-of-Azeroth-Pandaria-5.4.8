@@ -12,4 +12,11 @@
 
 class PlayerbotAI;
 
+class SealTrigger : public HasAuraTrigger
+{
+public:
+	SealTrigger(PlayerbotAI* botAI) : HasAuraTrigger(botAI, "seal", 5.0f){}
+	bool IsActive() override;
+}
+
 #endif

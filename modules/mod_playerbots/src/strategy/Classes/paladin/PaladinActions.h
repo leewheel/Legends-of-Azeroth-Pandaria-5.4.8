@@ -15,27 +15,16 @@ class Unit;
 
 // seals
 BUFF_ACTION(CastSealOfRighteousnessAction, "seal of righteousness");
-BUFF_ACTION(CastSealOfJusticeAction, "seal of justice");
-BUFF_ACTION(CastSealOfLightAction, "seal of light");
-BUFF_ACTION(CastSealOfWisdomAction, "seal of wisdom");
 BUFF_ACTION(CastSealOfCommandAction, "seal of command");
-BUFF_ACTION(CastSealOfVengeanceAction, "seal of vengeance");
-BUFF_ACTION(CastSealOfCorruptionAction, "seal of corruption");
+BUFF_ACTION(CastSealOfInsightAction, "seal of insight");
 
 // judgements
 SPELL_ACTION(CastJudgementAction, "judgement");
-
-SPELL_ACTION(CastJudgementOfLightAction, "judgement of light");
-SPELL_ACTION(CastJudgementOfWisdomAction, "judgement of wisdom");
-SPELL_ACTION(CastJudgementOfJusticeAction, "judgement of justice");
 
 // auras
 BUFF_ACTION(CastDevotionAuraAction, "devotion aura");
 BUFF_ACTION(CastRetributionAuraAction, "retribution aura");
 BUFF_ACTION(CastConcentrationAuraAction, "concentration aura");
-BUFF_ACTION(CastShadowResistanceAuraAction, "shadow resistance aura");
-BUFF_ACTION(CastFrostResistanceAuraAction, "frost resistance aura");
-BUFF_ACTION(CastFireResistanceAuraAction, "fire resistance aura");
 BUFF_ACTION(CastCrusaderAuraAction, "crusader aura");
 BUFF_ACTION(CastSanctityAuraAction, "sanctity aura");
 
@@ -70,6 +59,7 @@ class CastCrusaderStrikeAction : public CastMeleeSpellAction
 {
 public:
     CastCrusaderStrikeAction(PlayerbotAI* botAI) : CastMeleeSpellAction(botAI, "crusader strike") {}
+    bool isUseful() override;
 };
 
 class CastSealSpellAction : public CastBuffSpellAction
@@ -84,8 +74,6 @@ class CastBlessingOfMightAction : public CastBuffSpellAction
 {
 public:
     CastBlessingOfMightAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "blessing of might") {}
-
-    bool Execute(Event event) override;
 };
 
 class CastBlessingOnPartyAction : public BuffOnPartyAction
@@ -94,8 +82,6 @@ public:
     CastBlessingOnPartyAction(PlayerbotAI* botAI, std::string const name) : BuffOnPartyAction(botAI, name), name(name)
     {
     }
-
-    Value<Unit*>* GetTargetValue() override;
 
 private:
     std::string name;
@@ -107,26 +93,6 @@ public:
     CastBlessingOfMightOnPartyAction(PlayerbotAI* botAI) : BuffOnPartyAction(botAI, "blessing of might") {}
 
     std::string const getName() override { return "blessing of might on party"; }
-    Value<Unit*>* GetTargetValue() override;
-    bool Execute(Event event) override;
-};
-
-class CastBlessingOfWisdomAction : public CastBuffSpellAction
-{
-public:
-    CastBlessingOfWisdomAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "blessing of wisdom") {}
-
-    bool Execute(Event event) override;
-};
-
-class CastBlessingOfWisdomOnPartyAction : public BuffOnPartyAction
-{
-public:
-    CastBlessingOfWisdomOnPartyAction(PlayerbotAI* botAI) : BuffOnPartyAction(botAI, "blessing of wisdom") {}
-
-    std::string const getName() override { return "blessing of wisdom on party"; }
-    Value<Unit*>* GetTargetValue() override;
-    bool Execute(Event event) override;
 };
 
 class CastBlessingOfKingsAction : public CastBuffSpellAction
@@ -141,22 +107,6 @@ public:
     CastBlessingOfKingsOnPartyAction(PlayerbotAI* botAI) : CastBlessingOnPartyAction(botAI, "blessing of kings") {}
 
     std::string const getName() override { return "blessing of kings on party"; }
-};
-
-class CastBlessingOfSanctuaryAction : public CastBuffSpellAction
-{
-public:
-    CastBlessingOfSanctuaryAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "blessing of sanctuary") {}
-};
-
-class CastBlessingOfSanctuaryOnPartyAction : public CastBlessingOnPartyAction
-{
-public:
-    CastBlessingOfSanctuaryOnPartyAction(PlayerbotAI* botAI) : CastBlessingOnPartyAction(botAI, "blessing of sanctuary")
-    {
-    }
-
-    std::string const getName() override { return "blessing of sanctuary on party"; }
 };
 
 class CastHolyLightAction : public CastHealingSpellAction
