@@ -214,7 +214,7 @@ bool AoeTrigger::IsActive()
         if (!unit || !unit->IsAlive())
             continue;
 
-        if (unit->GetExactDist2d(current_target) <= range)
+        if (unit->GetDistance(current_target->GetPosition()) <= range)
         {
             attackers_count++;
         }
