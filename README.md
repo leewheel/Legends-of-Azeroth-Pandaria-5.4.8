@@ -1,5 +1,7 @@
 **Mists of Pandaria 5.4.8 Build 18414**
 
+Discord link: https://discord.gg/byBCHbwJEg
+
 Client exe files" https://mega.nz/file/xUJDkIDA#I3TMdPymMw8ISNwIUgSaXLl5oHJHYFxAKyPNMXUQjgY
 
 ## Requirements
@@ -23,8 +25,8 @@ Read file [COPYING](COPYING.md)
 Read file [THANKS](THANKS.md)
 
 ## Build Status
-[![windows-build](https://github.com/atidot3/Pandaria/actions/workflows/windows-build-release.yml/badge.svg?branch=main)](https://github.com/atidot3/Pandaria/actions/workflows/windows-build-release.yml)
-[![linux-gcc-build](https://github.com/atidot3/Pandaria/actions/workflows/linux_gcc.yml/badge.svg?branch=main)](https://github.com/atidot3/Pandaria/actions/workflows/linux_gcc.yml)
+[![windows-build](https://github.com/Legends-of-Azeroth/Legends-of-Azeroth-Pandaria-5.4.8/actions/workflows/windows-build-release.yml/badge.svg?branch=master)](https://github.com/Legends-of-Azeroth/Legends-of-Azeroth-Pandaria-5.4.8/actions/workflows/windows-build-release.yml)
+[![linux-gcc-build](https://github.com/Legends-of-Azeroth/Legends-of-Azeroth-Pandaria-5.4.8/actions/workflows/linux_gcc.yml/badge.svg?branch=master)](https://github.com/Legends-of-Azeroth/Legends-of-Azeroth-Pandaria-5.4.8/actions/workflows/linux_gcc.yml)
 
 <a href="https://scan.coverity.com/projects/legends-of-azeroth-mop">
   <img alt="Coverity Scan Build Status"

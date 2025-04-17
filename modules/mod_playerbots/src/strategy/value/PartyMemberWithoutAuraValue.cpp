@@ -1,8 +1,7 @@
 #include "PartyMemberWithoutAuraValue.h"
 
 #include "Playerbots.h"
-
-extern std::vector<std::string> split(std::string const s, char delim);
+#include "Helper.h"
 
 class PlayerWithoutAuraPredicate : public FindPlayerPredicate, public PlayerbotAIAware
 {

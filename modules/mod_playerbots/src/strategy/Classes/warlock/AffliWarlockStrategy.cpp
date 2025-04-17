@@ -21,7 +21,7 @@ private:
     ACTION_NODE(dark_soul, "dark soul: misery");
     ACTION_NODE_A(malefic_grasp, "malefic grasp", "shadow bolt");
     ACTION_NODE(agony, "agony");
-    ACTION_NODE_P(drain_soul, "drain soul", "corruption", "agony", "unstable affliction");
+    ACTION_NODE_P(drain_soul, "drain soul", "corruption");
     ACTION_NODE(haunt, "haunt");
     ACTION_NODE(unstable_affliction, "unstable affliction");
     ACTION_NODE(unstable_affliction_on_attacker, "unstable affliction on attacker");
