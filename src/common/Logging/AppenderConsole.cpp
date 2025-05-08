@@ -33,7 +33,11 @@ AppenderConsole::AppenderConsole(uint8 id, std::string const& name, LogLevel lev
         _colors[i] = ColorTypes(NUM_COLOR_TYPES);
 
     if (3 < args.size())
+    {
         InitColors(name, args[3]);
+        _colors[LOG_LEVEL_INFO] = SIEMENS_BLUE;
+    }
+
 }
 
 void AppenderConsole::InitColors(std::string const& name, std::string_view str)
@@ -90,7 +94,8 @@ void AppenderConsole::SetColor(bool stdout_stream, ColorTypes color)
                                                             // CYAN_BOLD
         FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY,
                                                             // WHITE_BOLD
-        FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY
+        FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY,
+        FOREGROUND_BLUE | FOREGROUND_INTENSITY //SIEMENS_BLUE
     };
 
     HANDLE hConsole = GetStdHandle(stdout_stream ? STD_OUTPUT_HANDLE : STD_ERROR_HANDLE);

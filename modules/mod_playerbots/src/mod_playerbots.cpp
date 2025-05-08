@@ -44,7 +44,7 @@ public:
     void OnLogin(Player* player) override
     {
         // Announce Module
-        ChatHandler(player->GetSession()).SendSysMessage("This server is running the |cff4CFF00mod playerbots |rmodule.");
+        ChatHandler(player->GetSession()).SendSysMessage("本服务端已加载 |cff4CFF00玩家机器人 |r模块。");
     }
 
 };

@@ -38,6 +38,7 @@ enum ColorTypes
     LMAGENTA,
     LCYAN,
     WHITE,
+    SIEMENS_BLUE,
     NUM_COLOR_TYPES // SKIP
 };
 
