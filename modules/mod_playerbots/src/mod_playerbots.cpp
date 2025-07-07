@@ -188,7 +188,7 @@ public:
                     std::to_string(std::ceil((sPlayerbotAIConfig->maxRandomBots * 0.11 / 60) * 10) / 10.0);
                 roundedTime = roundedTime.substr(0, roundedTime.find('.') + 2);
 
-                ChatHandler(player->GetSession()).SendSysMessage(std::string("Playerbots: bot initialization at server startup takes about '" + roundedTime + "' minutes.").c_str());
+                ChatHandler(player->GetSession()).SendSysMessage(std::string("玩家机器人: 机器人初始化使用了 '" + roundedTime + "' 分钟.").c_str());
             }
         }
     }
